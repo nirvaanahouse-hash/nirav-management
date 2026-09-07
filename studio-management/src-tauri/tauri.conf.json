@@ -8,7 +8,7 @@
     "frontendDist": "../dist/studio-management-system/browser",
     "devUrl": "http://localhost:4200",
     "beforeDevCommand": "npm start",
-    "beforeBuildCommand": "npm run build:prod"
+    "beforeBuildCommand": "npm run build"
   },
 
   "app": {

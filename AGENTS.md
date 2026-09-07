@@ -6,26 +6,22 @@
 
 ## Build Commands
 
-### Frontend
+### Frontend (`studio-management/`) — see its README.md for the full list
 ```bash
-# from studio-management/
-export PATH="/usr/local/bin:$PATH"
-node /usr/local/bin/npx ng build      # production build
-node /usr/local/bin/npx ng serve --port 4200  # dev server
+npm start            # dev server → http://localhost:4200
+npm run build        # production build (also validates TypeScript) → dist/studio-management-system/browser
+npm test             # unit tests (Vitest via @angular/build:unit-test)
+npm run desktop:mac  # Tauri universal .dmg  (needs Rust)
+npm run desktop:windows   # Tauri .msi/.exe (must run on Windows)
+npm run ios:open / android:open   # Capacitor → open Xcode / Android Studio
 ```
+Node/npx live at `/opt/homebrew/bin`. Rust (for Tauri) is at `/opt/homebrew/opt/rustup/bin`.
 
 ### Backend
 ```bash
 # from BE/
 node server.js    # start server (port 3000)
 npm run dev       # start with nodemon
-```
-
-### Lint & Typecheck
-```bash
-# Frontend (from studio-management/)
-export PATH="/usr/local/bin:$PATH"
-node /usr/local/bin/npx ng build      # also validates TypeScript
 ```
 
 The backend is plain CommonJS JavaScript — no TypeScript or Prisma.

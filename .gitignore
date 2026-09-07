@@ -17,6 +17,8 @@ node_modules/
 studio-management/dist/
 studio-management/.angular/
 studio-management/tmp/
+studio-management/out-tsc/
+**/coverage/
 
 # ---- Tauri / Rust ----
 studio-management/src-tauri/target/

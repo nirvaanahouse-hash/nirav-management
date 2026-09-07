@@ -1,0 +1,475 @@
+<div class="client-page">
+  <app-page-header
+    title="Clients"
+    subtitle="Manage client accounts, contact details and balances."
+  >
+    <app-button actions *appCan="'clients.create'" (click)="openCreate()">+ New Client</app-button>
+  </app-page-header>
+
+<div class="client-toolbar">
+  <input
+    class="client-toolbar__search"
+    type="search"
+    placeholder="Search by name, sort name, company or email…"
+    [ngModel]="searchTerm()"
+    (ngModelChange)="searchTerm.set($event)"
+  />
+  <select
+    class="client-toolbar__filter"
+    [ngModel]="statusFilter()"
+    (ngModelChange)="statusFilter.set($event)"
+  >
+    <option value="all">All statuses</option>
+    @for (opt of statusOptions; track opt.value) {
+    <option [value]="opt.value">{{ opt.label }}</option>
+    }
+  </select>
+  <label class="checkbox-label">
+    <input
+      type="checkbox"
+      [ngModel]="showInactive()"
+      (ngModelChange)="showInactive.set($event)"
+    />
+    Show Inactive
+  </label>
+</div>
+
+@if (loading()) {
+  <div class="client-skeleton">Loading clients…</div>
+} @else {
+  <app-table
+    [columns]="columns"
+    [rows]="filteredClients()"
+    [hasActions]="true"
+    [rowActionsTemplate]="rowActions"
+    emptyMessage="No clients match your search."
+  />
+}
+
+<ng-template #rowActions let-row>
+  <div class="client-page__actions">
+    <app-icon-button *appCan="'clients.edit'" label="Edit" (clicked)="openEdit(row)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 3.5a2.5 2.5 0 1 1 3.5 3.5L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+    </app-icon-button>
+
+    <app-icon-button label="View work" (clicked)="viewWork(row)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </app-icon-button>
+
+    <app-icon-button label="Payment history" (clicked)="openPaymentHistory(row)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"></path><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"></path><path d="M12 7v5l4 2"></path></svg>
+    </app-icon-button>
+
+    @if (isAdmin()) {
+      <app-icon-button label="Record payment" (clicked)="openPaymentEntry(row)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+      </app-icon-button>
+
+      <app-icon-button label="Billing / invoice PDF" (clicked)="openBilling(row)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
+      </app-icon-button>
+    }
+
+    <app-icon-button
+      *appCan="['clients.delete', 'clients.edit']"
+      [label]="row.isActive ? 'Deactivate' : 'Reactivate'"
+      [variant]="row.isActive ? 'danger' : 'confirm'"
+      (clicked)="confirmDelete(row)"
+    >
+      @if (row.isActive) {
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+      } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      }
+    </app-icon-button>
+  </div>
+</ng-template>
+
+@if (dialogMode(); as mode) {
+<app-modal
+  [title]="mode === 'create' ? 'New Client' : 'Edit Client'"
+  (close)="closeDialog()"
+>
+  <app-client-form
+    [client]="editingClient()"
+    (submitted)="onFormSubmit($event)"
+    #clientForm
+  />
+  <ng-container modal-footer>
+    <app-button variant="secondary" (click)="closeDialog()">Cancel</app-button>
+    <app-button [loading]="saving()" (click)="clientForm.requestSubmit()">
+      {{ mode === 'create' ? 'Create Client' : 'Save Changes' }}
+    </app-button>
+  </ng-container>
+</app-modal>
+}
+
+@if (workDialogOpen(); as isOpen) {
+<app-modal
+  [title]="workDialogClient() ? workDialogClient()!.name + ' - Work Details' : ''"
+  (close)="closeWorkDialog()"
+>
+  <div class="work-view-filters">
+    <input
+      class="work-view-filters__search"
+      type="search"
+      placeholder="Filter by ticket type or couple…"
+      [ngModel]="workTypeFilter()"
+      (ngModelChange)="workTypeFilter.set($event)"
+    />
+    <select
+      class="work-view-filters__select"
+      [ngModel]="workEmployeeFilter()"
+      (ngModelChange)="workEmployeeFilter.set($event)"
+    >
+      <option value="">All Employees</option>
+      @for (opt of employeeOptions(); track opt.value) {
+      <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (workLoading()) {
+    <div>Loading work details...</div>
+  } @else {
+  <table class="work-view-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Couple</th>
+        <th>User</th>
+        <th>Amount</th>
+        <th>Main Amount</th>
+        <th>Status</th>
+        <th>Delivery</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (ticket of filteredTickets(); track ticket._id) {
+        <tr>
+          <td>{{ formatTicketType(ticket.ticketType) }}</td>
+          <td>{{ ticket.coupleName }}</td>
+          <td>{{ ticket.createdByName }}</td>
+          <td>₹{{ toNumber(ticket.amount) | number:'1.0-0':'en-IN' }}</td>
+          <td>₹{{ toNumber(ticket.mainAmount) | number:'1.0-0':'en-IN' }}</td>
+          <td>
+            <span [class]="'badge badge--' + statusVariant(ticket.status)">
+              {{ formatStatus(ticket.status) }}
+            </span>
+          </td>
+          <td>{{ ticket.deleveryDate }}</td>
+        </tr>
+      }
+      @empty {
+        <tr>
+          <td colspan="7">No tickets found for this client.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  }
+  <ng-container modal-footer>
+    <app-button variant="secondary" (click)="closeWorkDialog()">Close</app-button>
+  </ng-container>
+</app-modal>
+}
+
+@if (showPaymentHistory(); as historyClient) {
+<app-modal
+  [title]="'Payment History - ' + historyClient.name"
+  (close)="closePaymentHistory()"
+>
+  @if (paymentLoading()) {
+    <div>Loading payments...</div>
+  } @else {
+  <table class="work-view-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Recorded By</th>
+          <th>Description</th>
+          @if (isAdmin()) {
+            <th>Actions</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of paymentEntries(); track entry._id) {
+          <tr>
+            <td>{{ entry.type === 'received' ? 'Received' : 'Sent' }}</td>
+            <td>₹{{ toNumber(entry.amount) | number:'1.0-0':'en-IN' }}</td>
+            <td>{{ entry.entryDate | date:'shortDate' }}</td>
+            <td>{{ entry.recordedBy }}</td>
+            <td>{{ entry.description || '-' }}</td>
+            @if (isAdmin()) {
+              <td>
+                <app-button variant="ghost" size="sm" (click)="openEditPaymentEntry(entry, historyClient)">Edit</app-button>
+                <app-button variant="ghost" size="sm" (click)="onDeletePaymentEntry(entry)">Delete</app-button>
+              </td>
+            }
+          </tr>
+        }
+      @empty {
+        <tr>
+          <td colspan="5">No payment history found.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  }
+  <ng-container modal-footer>
+    <app-button variant="secondary" (click)="closePaymentHistory()">Close</app-button>
+  </ng-container>
+</app-modal>
+}
+
+@if (showPaymentEntry(); as paymentClient) {
+<app-modal
+  [title]="'Record Payment from ' + paymentClient.name"
+  (close)="closePaymentEntry()"
+>
+  <div class="payment-entry-form">
+    <label class="payment-entry-form__label">Amount Received (₹)</label>
+    <input
+      class="payment-entry-form__input"
+      type="number"
+      placeholder="0.00"
+      min="0"
+      step="0.01"
+      [(ngModel)]="paymentAmount"
+    />
+  </div>
+  <ng-container modal-footer>
+    <app-button variant="secondary" (click)="closePaymentEntry()">Cancel</app-button>
+    <app-button (click)="onPaymentSubmit(paymentAmount)">Record Payment</app-button>
+  </ng-container>
+</app-modal>
+}
+
+@if (editingPaymentEntry(); as editEntry) {
+<app-modal
+  [title]="'Edit Payment - #' + editEntry._id.slice(-6)"
+  (close)="closeEditPaymentEntry()"
+>
+  <div class="payment-entry-form">
+    <label class="payment-entry-form__label">Amount (₹)</label>
+    <input
+      class="payment-entry-form__input"
+      type="number"
+      placeholder="0.00"
+      min="0"
+      step="0.01"
+      [(ngModel)]="paymentAmount"
+    />
+  </div>
+  <ng-container modal-footer>
+    <app-button variant="secondary" (click)="closeEditPaymentEntry()">Cancel</app-button>
+    <app-button (click)="onEditPaymentSubmit(paymentAmount)">Save Changes</app-button>
+  </ng-container>
+</app-modal>
+}
+
+@if (showBilling(); as billClient) {
+<app-modal
+  [title]="'Billing statement — ' + billClient.name"
+  [maxWidth]="780"
+  (close)="closeBilling()"
+>
+  <div class="billing">
+    <!-- Scope picker -->
+    <div class="billing__section">
+      <span class="billing__section-label">Scope</span>
+      <div class="billing__scope" role="tablist">
+        @for (opt of billingModeOptions; track opt.value) {
+          <button
+            type="button"
+            role="tab"
+            class="billing__scope-btn"
+            [class.billing__scope-btn--active]="billingMode() === opt.value"
+            [attr.aria-selected]="billingMode() === opt.value"
+            (click)="setBillingMode(opt.value)"
+          >
+            <span class="billing__scope-title">{{ opt.label }}</span>
+            <span class="billing__scope-desc">{{ opt.desc }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (billingMode() === 'custom') {
+      <div class="billing__section">
+        <span class="billing__section-label">Delivery date range</span>
+        <div class="billing__range">
+          <input
+            class="billing__control"
+            type="date"
+            aria-label="From date"
+            [ngModel]="billingFrom()"
+            (ngModelChange)="billingFrom.set($event); onBillingDateChange()"
+          />
+          <span class="billing__range-arrow">→</span>
+          <input
+            class="billing__control"
+            type="date"
+            aria-label="To date"
+            [ngModel]="billingTo()"
+            (ngModelChange)="billingTo.set($event); onBillingDateChange()"
+          />
+        </div>
+        @if (billingRangeInvalid()) {
+          <p class="billing__warn">"From" date is after "To" date.</p>
+        }
+      </div>
+    }
+
+    <!-- Summary tiles -->
+    @if (billingSummary(); as s) {
+      <div class="billing__tiles">
+        @if (billingMode() === 'current') {
+          <div class="billing__tile">
+            <span class="billing__tile-label">This statement (new work)</span>
+            <span class="billing__tile-value">₹{{ s.newWork | number:'1.0-0':'en-IN' }}</span>
+          </div>
+          <div class="billing__tile">
+            <span class="billing__tile-label">
+              {{ s.previousBalance < 0 ? 'Advance held from client' : 'Pending before this bill' }}
+            </span>
+            <span class="billing__tile-value">
+              {{ s.previousBalance < 0 ? '− ₹' : '₹' }}{{ (s.previousBalance < 0 ? -s.previousBalance : s.previousBalance) | number:'1.0-0':'en-IN' }}
+            </span>
+          </div>
+        } @else {
+          <div class="billing__tile">
+            <span class="billing__tile-label">Total (this statement)</span>
+            <span class="billing__tile-value">₹{{ s.statementTotal | number:'1.0-0':'en-IN' }}</span>
+          </div>
+          <div class="billing__tile">
+            <span class="billing__tile-label">Received from client</span>
+            <span class="billing__tile-value">− ₹{{ s.received | number:'1.0-0':'en-IN' }}</span>
+          </div>
+        }
+        <div
+          class="billing__tile"
+          [class.billing__tile--pending]="s.pending > 0"
+          [class.billing__tile--settled]="s.pending === 0"
+        >
+          <span class="billing__tile-label">
+            {{ s.pending > 0 ? 'Final total' : 'Settled up' }}
+          </span>
+          <span class="billing__tile-value">₹{{ s.pending | number:'1.0-0':'en-IN' }}</span>
+        </div>
+      </div>
+
+      @if (billingMode() === 'current') {
+        <p class="billing__ledger">
+          <strong>Final total</strong> =
+          ₹{{ (s.previousBalance > 0 ? s.previousBalance : 0) | number:'1.0-0':'en-IN' }} pending before
+          + ₹{{ s.newWork | number:'1.0-0':'en-IN' }} this statement
+          @if (s.previousBalance < 0) {
+            − ₹{{ -s.previousBalance | number:'1.0-0':'en-IN' }} advance held
+          }
+          = <strong>₹{{ s.pending | number:'1.0-0':'en-IN' }}</strong>
+          <span class="billing__ledger-sub">
+            (billed to date ₹{{ s.invoicedTotal | number:'1.0-0':'en-IN' }} − received ₹{{ s.received | number:'1.0-0':'en-IN' }})
+          </span>
+        </p>
+      }
+    }
+
+    <!-- Tickets table -->
+    <div class="billing__panel">
+      <div class="billing__panel-head">
+        <span class="billing__panel-title">Tickets in this statement</span>
+        <span class="billing__count">{{ billingRows().length }}</span>
+      </div>
+
+      @if (billingLoading()) {
+        <div class="billing__state">Loading tickets…</div>
+      } @else if (billingRows().length === 0) {
+        <div class="billing__state billing__state--empty">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 15h6"></path></svg>
+          <p>No completed &amp; finalised tickets match this scope.</p>
+        </div>
+      } @else {
+        <div class="billing__table-wrap">
+          <table class="billing__table">
+            <thead>
+              <tr>
+                <th class="billing__col-idx">#</th>
+                <th>Couple Name</th>
+                <th>Delivery Date</th>
+                <th class="billing__num">Main Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of billingRows(); track row._id; let i = $index) {
+                <tr>
+                  <td class="billing__col-idx">{{ i + 1 }}</td>
+                  <td>
+                    <span class="billing__couple">{{ row.coupleName || '—' }}</span>
+                    @if (row.isPdf) {
+                      <span class="badge badge--neutral billing__billed">Billed</span>
+                    }
+                  </td>
+                  <td>{{ row.deleveryDate ? (row.deleveryDate | date:'mediumDate') : '—' }}</td>
+                  <td class="billing__num">₹{{ row.mainAmount | number:'1.0-0':'en-IN' }}</td>
+                </tr>
+              }
+            </tbody>
+            @if (billingSummary(); as s) {
+              <tfoot>
+                <tr>
+                  <td colspan="3">Total</td>
+                  <td class="billing__num">₹{{ s.statementTotal | number:'1.0-0':'en-IN' }}</td>
+                </tr>
+              </tfoot>
+            }
+          </table>
+        </div>
+      }
+    </div>
+
+    <p class="billing__note">
+      Only <strong>completed &amp; finalised</strong> tickets appear here.
+      @if (billingMode() === 'current') {
+        Downloading marks them invoiced, so the next Current run skips them.
+        The <strong>Final total</strong> above is this statement's work plus any
+        unpaid balance carried from earlier statements.
+      } @else if (billingMode() === 'all') {
+        This view includes tickets already invoiced (tagged <strong>Billed</strong>).
+        @if (billingSummary(); as s) {
+          @if (s.invoicedTotal !== s.statementTotal) {
+            <strong>Payment pending</strong> counts only invoiced work:
+            ₹{{ s.invoicedTotal | number:'1.0-0':'en-IN' }} invoiced
+            − ₹{{ s.received | number:'1.0-0':'en-IN' }} received.
+          }
+        }
+      } @else {
+        Filtered by each ticket's delivery date.
+        @if (billingSummary(); as s) {
+          @if (s.invoicedTotal !== s.statementTotal) {
+            <strong>Payment pending</strong> counts only invoiced work:
+            ₹{{ s.invoicedTotal | number:'1.0-0':'en-IN' }} invoiced
+            − ₹{{ s.received | number:'1.0-0':'en-IN' }} received.
+          }
+        }
+      }
+    </p>
+  </div>
+
+  <ng-container modal-footer>
+    <app-button variant="secondary" (clicked)="closeBilling()">Cancel</app-button>
+    <app-button
+      [loading]="billingDownloading()"
+      [disabled]="billingRows().length === 0 || billingRangeInvalid()"
+      (clicked)="downloadBilling()"
+    >
+      Download PDF
+    </app-button>
+  </ng-container>
+</app-modal>
+}
+</div>
+

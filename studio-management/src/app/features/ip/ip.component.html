@@ -1,0 +1,418 @@
+<div class="ip-page">
+  <app-page-header
+    title="IP & Security"
+    subtitle="Access rules, rate limiting and audit trails for the API."
+  >
+    <span actions>
+      <app-button variant="secondary" (clicked)="loadOverview()">Refresh</app-button>
+    </span>
+  </app-page-header>
+
+  @if (stats(); as s) {
+    <div class="ip-stats">
+      <div class="ip-stat">
+        <span class="ip-stat__value">{{ s.totalRules }}</span>
+        <span class="ip-stat__label">IP rules</span>
+      </div>
+      <div class="ip-stat">
+        <span class="ip-stat__value">{{ s.activeBlocks }}</span>
+        <span class="ip-stat__label">Active blocks</span>
+      </div>
+      <div class="ip-stat">
+        <span class="ip-stat__value">{{ s.loginsToday }}</span>
+        <span class="ip-stat__label">Logins today</span>
+      </div>
+      <div class="ip-stat" [class.ip-stat--warn]="s.failedLoginsToday > 0">
+        <span class="ip-stat__value">{{ s.failedLoginsToday }}</span>
+        <span class="ip-stat__label">Failed logins today</span>
+      </div>
+      <div class="ip-stat">
+        <span class="ip-stat__value">{{ s.requestsToday }}</span>
+        <span class="ip-stat__label">API requests today</span>
+      </div>
+    </div>
+  }
+
+  <div class="ip-guard" [class.ip-guard--on]="guardEnabled()">
+    <div class="ip-guard__text">
+      <strong>IP guard is {{ guardEnabled() ? 'ON' : 'OFF' }}</strong>
+      @if (guardEnabled()) {
+        <span>
+          Only permitted IPs can reach the API{{ stats()?.allowlistMode ? ' — allow-list mode' : '' }}.
+          Localhost is always allowed. Your IP: <span class="ip-mono">{{ myIp() || '—' }}</span>
+        </span>
+      } @else {
+        <span>
+          Every IP can reach the API. Add rules on the Access Rules tab, then switch the guard on.
+          Your IP: <span class="ip-mono">{{ myIp() || '—' }}</span>
+        </span>
+      }
+    </div>
+    @if (canManageSettings()) {
+      <button
+        type="button"
+        class="switch"
+        role="switch"
+        [attr.aria-checked]="guardEnabled()"
+        [class.switch--on]="guardEnabled()"
+        (click)="toggleGuard(!guardEnabled())"
+      >
+        <span class="switch__dot"></span>
+      </button>
+    }
+  </div>
+
+  <nav class="ip-tabs">
+    <button
+      class="ip-tabs__tab"
+      [class.ip-tabs__tab--active]="activeTab() === 'rules'"
+      (click)="setTab('rules')"
+    >
+      Access Rules
+    </button>
+    <button
+      class="ip-tabs__tab"
+      [class.ip-tabs__tab--active]="activeTab() === 'limits'"
+      (click)="setTab('limits')"
+    >
+      Rate Limiting
+    </button>
+    <button
+      class="ip-tabs__tab"
+      [class.ip-tabs__tab--active]="activeTab() === 'logins'"
+      (click)="setTab('logins')"
+    >
+      Login Activity
+    </button>
+    <button
+      class="ip-tabs__tab"
+      [class.ip-tabs__tab--active]="activeTab() === 'requests'"
+      (click)="setTab('requests')"
+    >
+      Request Log
+    </button>
+  </nav>
+
+  @if (loading()) {
+    <div class="ip-state">Loading security overview…</div>
+  } @else {
+    @switch (activeTab()) {
+      <!-- ================= ACCESS RULES ================= -->
+      @case ('rules') {
+        <section class="ip-panel">
+          <div class="ip-panel__bar">
+            <div class="ip-panel__title">
+              Access rules <span class="ip-muted">({{ rules().length }})</span>
+            </div>
+            <div class="ip-panel__actions">
+              @if (canManageRules()) {
+                <app-button variant="secondary" size="sm" [disabled]="!myIp()" (clicked)="addMyIp()">
+                  Allow my IP
+                </app-button>
+                <app-button size="sm" (clicked)="openCreateRule()">Add rule</app-button>
+              }
+            </div>
+          </div>
+
+          @if (rulesLoading() && !rules().length) {
+            <div class="ip-state">Loading rules…</div>
+          } @else if (!rules().length) {
+            <div class="ip-state">
+              No IP rules yet. Add a <strong>block</strong> rule to deny an address, or an
+              <strong>allow</strong> rule to switch the guard into allow-list mode.
+            </div>
+          } @else {
+            <div class="ip-table-wrap">
+              <table class="ip-table">
+                <thead>
+                  <tr>
+                    <th>IP / CIDR</th>
+                    <th>Mode</th>
+                    <th>Note</th>
+                    <th>Status</th>
+                    <th>Added</th>
+                    <th class="ip-table__actions-col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (rule of rules(); track trackById($index, rule)) {
+                    <tr [class.ip-row--muted]="!rule.isActive">
+                      <td class="ip-mono">{{ rule.ip }}</td>
+                      <td>
+                        <span class="badge badge--{{ modeVariant(rule.mode) }}">{{ rule.mode }}</span>
+                      </td>
+                      <td>{{ rule.note || '—' }}</td>
+                      <td>
+                        <span class="badge {{ rule.isActive ? 'badge--success' : 'badge--neutral' }}">
+                          {{ rule.isActive ? 'Active' : 'Disabled' }}
+                        </span>
+                      </td>
+                      <td class="ip-nowrap">{{ rule.createdAt | date: 'MMM d, y' }}</td>
+                      <td>
+                        <div class="ip-row-actions">
+                          @if (canManageRules()) {
+                            <app-icon-button
+                              [label]="rule.isActive ? 'Disable rule' : 'Enable rule'"
+                              (clicked)="toggleRuleActive(rule)"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9"></path><path d="M6.4 6.4a9 9 0 1 0 11.2 0"></path></svg>
+                            </app-icon-button>
+                            <app-icon-button label="Edit rule" (clicked)="openEditRule(rule)">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 3.5a2.5 2.5 0 1 1 3.5 3.5L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </app-icon-button>
+                            <app-icon-button label="Delete rule" variant="danger" (clicked)="deleteRule(rule)">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L7 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                            </app-icon-button>
+                          } @else {
+                            <span class="ip-muted">—</span>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- ================= RATE LIMITING ================= -->
+      @case ('limits') {
+        <section class="ip-panel">
+          <div class="ip-panel__title">Rate limiting &amp; audit</div>
+          <form class="ip-limits" [formGroup]="limitsForm" (ngSubmit)="saveLimits()">
+            <label class="ip-check">
+              <input type="checkbox" formControlName="rateLimitEnabled" />
+              <span>Enable per-IP rate limiting (stricter on <code>/api/auth</code>)</span>
+            </label>
+            <label class="ip-check">
+              <input type="checkbox" formControlName="logRequests" />
+              <span>Record an audit row for every authenticated API request</span>
+            </label>
+
+            <div class="ip-limits__grid">
+              <app-form-field
+                label="Window (ms)"
+                type="number"
+                [control]="limitsForm.controls.rateLimitWindowMs"
+                [hint]="windowLabel(limitsForm.controls.rateLimitWindowMs.value)"
+              />
+              <app-form-field
+                label="Max API requests / window"
+                type="number"
+                [control]="limitsForm.controls.rateLimitMax"
+                hint="0 disables this limit"
+              />
+              <app-form-field
+                label="Max login attempts / window"
+                type="number"
+                [control]="limitsForm.controls.authRateLimitMax"
+                hint="Applies to /api/auth. 0 disables."
+              />
+            </div>
+            <p class="ip-muted">Requests from the server machine (localhost) are never blocked or throttled.</p>
+          </form>
+          @if (canManageSettings()) {
+            <div class="ip-panel__footer">
+              <app-button [loading]="savingLimits()" (clicked)="saveLimits()">Save settings</app-button>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- ================= LOGIN ACTIVITY ================= -->
+      @case ('logins') {
+        <section class="ip-panel">
+          <div class="ip-panel__bar">
+            <div class="ip-panel__title">
+              Login activity <span class="ip-muted">({{ loginsTotal() }})</span>
+            </div>
+            <div class="ip-filters">
+              <input
+                class="ip-input"
+                type="search"
+                placeholder="Filter by IP…"
+                [(ngModel)]="loginFilter.ip"
+                (keyup.enter)="loadLogins()"
+              />
+              <select class="ip-input" [(ngModel)]="loginFilter.success" (change)="loadLogins()">
+                @for (o of successOptions; track o.value) {
+                  <option [value]="o.value">{{ o.label }}</option>
+                }
+              </select>
+              <app-button variant="secondary" size="sm" (clicked)="loadLogins()">Apply</app-button>
+            </div>
+          </div>
+
+          @if (loginsLoading() && !logins().length) {
+            <div class="ip-state">Loading…</div>
+          } @else if (!logins().length) {
+            <div class="ip-state">No login attempts match.</div>
+          } @else {
+            <div class="ip-table-wrap">
+              <table class="ip-table">
+                <thead>
+                  <tr>
+                    <th>When</th>
+                    <th>User</th>
+                    <th>IP</th>
+                    <th>Outcome</th>
+                    <th>Reason</th>
+                    <th>Device</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (ev of logins(); track trackById($index, ev)) {
+                    <tr>
+                      <td class="ip-nowrap">{{ ev.createdAt | date: 'MMM d, HH:mm:ss' }}</td>
+                      <td>
+                        {{ ev.userName || ev.email || '—' }}
+                        @if (ev.role) { <span class="ip-muted">· {{ ev.role }}</span> }
+                      </td>
+                      <td class="ip-mono">{{ ev.ip || '—' }}</td>
+                      <td>
+                        <span class="badge {{ ev.success ? 'badge--success' : 'badge--danger' }}">
+                          {{ ev.success ? 'Success' : 'Failed' }}
+                        </span>
+                      </td>
+                      <td>{{ ev.reason || '—' }}</td>
+                      <td class="ip-ua" [attr.title]="ev.userAgent">{{ ev.userAgent || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (loginsHasMore()) {
+              <div class="ip-more">
+                <app-button variant="secondary" size="sm" [loading]="loginsLoading()" (clicked)="loadMoreLogins()">
+                  Load more
+                </app-button>
+              </div>
+            }
+          }
+        </section>
+      }
+
+      <!-- ================= REQUEST LOG ================= -->
+      @case ('requests') {
+        <section class="ip-panel">
+          <div class="ip-panel__bar">
+            <div class="ip-panel__title">
+              Request log <span class="ip-muted">({{ requestsTotal() }})</span>
+            </div>
+            <div class="ip-filters">
+              <input
+                class="ip-input"
+                type="search"
+                placeholder="Filter by IP…"
+                [(ngModel)]="requestFilter.ip"
+                (keyup.enter)="loadRequests()"
+              />
+              <input
+                class="ip-input"
+                type="search"
+                placeholder="Path contains…"
+                [(ngModel)]="requestFilter.path"
+                (keyup.enter)="loadRequests()"
+              />
+              <select class="ip-input" [(ngModel)]="requestFilter.method" (change)="loadRequests()">
+                @for (o of methodOptions; track o.value) {
+                  <option [value]="o.value">{{ o.label }}</option>
+                }
+              </select>
+              <select class="ip-input" [(ngModel)]="requestFilter.statusClass" (change)="loadRequests()">
+                @for (o of statusOptions; track o.value) {
+                  <option [value]="o.value">{{ o.label }}</option>
+                }
+              </select>
+              <app-button variant="secondary" size="sm" (clicked)="loadRequests()">Apply</app-button>
+            </div>
+          </div>
+
+          @if (requestsLoading() && !requests().length) {
+            <div class="ip-state">Loading…</div>
+          } @else if (!requests().length) {
+            <div class="ip-state">No requests match.</div>
+          } @else {
+            <div class="ip-table-wrap">
+              <table class="ip-table">
+                <thead>
+                  <tr>
+                    <th>When</th>
+                    <th>User</th>
+                    <th>Method</th>
+                    <th>Path</th>
+                    <th>Status</th>
+                    <th class="ip-table__num">ms</th>
+                    <th>IP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (rq of requests(); track trackById($index, rq)) {
+                    <tr>
+                      <td class="ip-nowrap">{{ rq.createdAt | date: 'MMM d, HH:mm:ss' }}</td>
+                      <td>{{ rq.userName || '—' }} @if (rq.role) { <span class="ip-muted">· {{ rq.role }}</span> }</td>
+                      <td class="ip-mono">{{ rq.method }}</td>
+                      <td class="ip-mono ip-path">{{ rq.path }}</td>
+                      <td>
+                        <span class="badge badge--{{ statusVariant(rq.statusCode) }}">{{ rq.statusCode }}</span>
+                      </td>
+                      <td class="ip-table__num">{{ rq.durationMs ?? '—' }}</td>
+                      <td class="ip-mono">{{ rq.ip || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (requestsHasMore()) {
+              <div class="ip-more">
+                <app-button variant="secondary" size="sm" [loading]="requestsLoading()" (clicked)="loadMoreRequests()">
+                  Load more
+                </app-button>
+              </div>
+            }
+          }
+        </section>
+      }
+    }
+  }
+</div>
+
+@if (showRuleModal()) {
+  <app-modal
+    [title]="editingRule() ? 'Edit IP rule' : 'Add IP rule'"
+    [maxWidth]="460"
+    (close)="closeRuleModal()"
+  >
+    <form class="ip-form" [formGroup]="ruleForm" (ngSubmit)="submitRule()">
+      <app-form-field
+        label="IP address or CIDR"
+        [control]="ruleForm.controls.ip"
+        [required]="true"
+        placeholder="e.g. 192.168.1.42 or 192.168.1.0/24"
+        hint="IPv4, IPv6, or an IPv4 CIDR block."
+        [errorMessages]="ipErrorMessages"
+      />
+      <app-form-field
+        label="Mode"
+        type="select"
+        [control]="ruleForm.controls.mode"
+        [options]="modeOptions"
+        [required]="true"
+        hint="Block denies the address. Allow switches the guard into allow-list mode."
+      />
+      <app-form-field
+        label="Note"
+        [control]="ruleForm.controls.note"
+        placeholder="Optional label"
+      />
+    </form>
+    <ng-container modal-footer>
+      <app-button variant="secondary" (clicked)="closeRuleModal()">Cancel</app-button>
+      <app-button [loading]="savingRule()" (clicked)="submitRule()">
+        {{ editingRule() ? 'Save changes' : 'Add rule' }}
+      </app-button>
+    </ng-container>
+  </app-modal>
+}

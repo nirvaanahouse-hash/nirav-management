@@ -1,0 +1,83 @@
+name: Desktop build (macOS + Windows)
+
+# Builds the Tauri desktop app for both platforms.
+#  - Run manually from the Actions tab (workflow_dispatch), or
+#  - Push a tag like `v1.0.0` to also publish a GitHub Release with the installers.
+#
+# Outputs per run:
+#   macOS  : Studio Management System_<version>_universal.dmg   (Apple Silicon + Intel)
+#   Windows: Studio Management System_<version>_x64_en-US.msi
+#            Studio Management System_<version>_x64-setup.exe    (NSIS installer)
+# Download them from the run's "Artifacts" section (or the Release, on a tag push).
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+            tauri-args: '--target universal-apple-darwin'
+          - os: windows-latest
+            rust-targets: ''
+            tauri-args: ''
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: studio-management/package-lock.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: studio-management/src-tauri -> target
+
+      - name: Install frontend dependencies
+        working-directory: studio-management
+        run: npm ci || npm install
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: studio-management
+          # Only publish a Release when a v* tag was pushed; otherwise just build.
+          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+          releaseName: 'Studio Management System __VERSION__'
+          releaseBody: 'Desktop installers for macOS (universal) and Windows.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.tauri-args }}
+
+      - name: Upload installers as run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os }}
+          if-no-files-found: warn
+          path: |
+            studio-management/src-tauri/target/**/release/bundle/dmg/*.dmg
+            studio-management/src-tauri/target/**/release/bundle/msi/*.msi
+            studio-management/src-tauri/target/**/release/bundle/nsis/*-setup.exe

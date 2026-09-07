@@ -1,0 +1,272 @@
+<div class="dash">
+  @if (loading()) {
+    <div class="dash__skeleton">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="dash__skel-card"></div>
+      }
+    </div>
+  } @else {
+    <header class="dash__head">
+      <div>
+        <h2>Dashboard</h2>
+        <p>Welcome back, {{ greetingName() }} — here's how {{ isAdmin() ? 'the studio' : 'your work' }} is performing.</p>
+      </div>
+      <div class="dash__range">
+        <div class="dash__seg" role="group" aria-label="Time range">
+          @for (r of rangeOptions; track r.value) {
+            <button type="button" [class.dash__seg-on]="range() === r.value" (click)="setRange(r.value)">
+              {{ r.label }}
+            </button>
+          }
+        </div>
+        @if (range() === 'custom') {
+          <label class="dash__custom">
+            <span>From</span>
+            <input
+              type="date"
+              [max]="customTo() || today"
+              [ngModel]="customFrom()"
+              (ngModelChange)="setCustomFrom($event)"
+            />
+          </label>
+          <label class="dash__custom">
+            <span>To</span>
+            <input
+              type="date"
+              [min]="customFrom()"
+              [max]="today"
+              [ngModel]="customTo()"
+              (ngModelChange)="setCustomTo($event)"
+            />
+          </label>
+        }
+      </div>
+    </header>
+
+    <!-- Live outstanding balances (independent of the time filter) -->
+    <div class="dash__bal">
+      @if (isAdmin()) {
+        <div class="balc balc--out">
+          <span class="balc__label">Payable to users</span>
+          <span class="balc__val">{{ formatCurrency(payableToUsers()) }}</span>
+          <span class="balc__hint">Finalised earnings still owed to employees</span>
+        </div>
+        <div class="balc balc--in">
+          <span class="balc__label">Receivable from clients</span>
+          <span class="balc__val">{{ formatCurrency(receivableFromClients()) }}</span>
+          <span class="balc__hint">Work billed but not yet paid</span>
+        </div>
+      } @else {
+        <div class="balc balc--in">
+          <span class="balc__label">Receivable from company</span>
+          <span class="balc__val">{{ formatCurrency(receivableFromCompany()) }}</span>
+          <span class="balc__hint">Your finalised earnings not yet paid out</span>
+        </div>
+      }
+    </div>
+
+    <!-- KPI cards -->
+    <p class="dash__kpi-hint">Click a card to chart it — click the <b>vs</b> chip on a second card to compare the two.</p>
+    <div class="dash__kpis">
+      @for (k of kpis(); track k.key) {
+        <button
+          type="button"
+          class="kpi"
+          [class.kpi--on]="selectedMetricKey() === k.key"
+          [class.kpi--a]="isComparing() && selectedMetricKey() === k.key"
+          [class.kpi--b]="compareKey() === k.key"
+          (click)="setMetric(k.key)"
+        >
+          @if (isComparing() && selectedMetricKey() === k.key) { <span class="kpi__tag kpi__tag--a">A</span> }
+          @if (compareKey() === k.key) { <span class="kpi__tag kpi__tag--b">B</span> }
+          @if (selectedMetricKey() !== k.key && compareKey() !== k.key) {
+            <span class="kpi__vs" (click)="setCompare(k.key, $event)" title="Compare with the selected card">vs</span>
+          }
+          <div class="kpi__top">
+            <span class="kpi__ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                @switch (k.iconKey) {
+                  @case ('rupee') { <path d="M7 5h10M7 9h10M7 13h4M13 22 7 13h3a5 5 0 0 0 0-8" /> }
+                  @case ('trend') { <path d="M22 7 13.5 15.5l-5-5L2 17" /><path d="M16 7h6v6" /> }
+                  @case ('wallet') { <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4z" /> }
+                  @case ('send') { <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /> }
+                  @case ('check') { <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" /> }
+                  @case ('clock') { <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /> }
+                  @default { <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z" /><path d="M13 5v14" /> }
+                }
+              </svg>
+            </span>
+            <span class="kpi__label">{{ k.label }}</span>
+            <span [class]="'kpi__pill kpi__pill--' + k.trend">
+              @if (k.trend === 'up') { ↑ } @else if (k.trend === 'down') { ↓ } @else { · }
+              {{ k.delta > 0 ? '+' : '' }}{{ k.delta }}%
+            </span>
+          </div>
+          <span class="kpi__val">{{ k.valueLabel }}</span>
+          <span class="kpi__spark"><app-sparkline [values]="k.series" [trend]="k.trend" /></span>
+        </button>
+      }
+    </div>
+
+    <!-- Hero: big number + smooth chart + money mini-cards -->
+    <section class="dash__hero dash__panel--dark">
+      <div class="dash__hero-grid">
+        <div class="dash__hero-lede">
+          @if (isComparing()) {
+            <p class="dash__eyebrow">
+              <span class="dash__cmp-a">A · {{ activeMetric().label }}</span>
+              <span class="dash__cmp-vs">vs</span>
+              <span class="dash__cmp-b">B · {{ compareLabel() }}</span>
+            </p>
+            <button type="button" class="dash__cmp-clear" (click)="clearCompare()">✕ Clear compare</button>
+          } @else {
+            <div class="dash__hero-eyebrow">
+              <span class="dash__eyebrow">{{ activeMetric().label }}</span>
+              <select
+                class="dash__select dash__select--ghost"
+                aria-label="Metric"
+                [ngModel]="selectedMetricKey()"
+                (ngModelChange)="setMetric($event)"
+              >
+                @for (m of metrics(); track m.key) {
+                  <option [value]="m.key">{{ m.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="dash__hero-value">
+              <strong class="dash__hero-num">{{ heroKpi().valueLabel }}</strong>
+              <span [class]="'dash__pill dash__pill--' + heroKpi().trend">
+                @if (heroKpi().trend === 'up') { ↑ } @else if (heroKpi().trend === 'down') { ↓ } @else { · }
+                {{ heroKpi().delta > 0 ? '+' : '' }}{{ heroKpi().delta }}%
+              </span>
+            </div>
+            <span class="dash__muted">{{ rangeLabel() }} · vs previous period</span>
+          }
+        </div>
+
+        <div class="dash__hero-chart">
+          @if (isComparing()) {
+            <app-comparison-chart [seriesA]="seriesA()" [seriesB]="seriesB()" />
+          } @else {
+            <app-area-chart [points]="chartData()" [kind]="chartKind()" variant="hero" />
+          }
+        </div>
+      </div>
+
+      @if (isAdmin() && !isComparing()) {
+        <div class="dash__mini">
+          @for (m of miniCards(); track m.label) {
+            <div [class]="'minic minic--' + m.tone">
+              <span class="minic__label">{{ m.label }}</span>
+              <span class="minic__val">{{ m.valueLabel }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Insights row -->
+    <div class="dash__main-row dash__main-row--three">
+      <section class="dash__panel dash__panel--dark">
+        <div class="dash__panel-hd">
+          <div><p class="dash__eyebrow">Ticket funnel</p><span class="dash__muted">{{ rangeLabel() }}</span></div>
+        </div>
+        <app-funnel-chart [stages]="funnelStages()">
+          <div class="dash__funnel-foot">
+            <span>Completion rate <strong>{{ completionRate() }}%</strong></span>
+            <span [class]="'dash__pill dash__pill--' + (completionDelta() > 0 ? 'up' : completionDelta() < 0 ? 'down' : 'flat')">
+              {{ completionDelta() > 0 ? '↑ +' : completionDelta() < 0 ? '↓ ' : '· ' }}{{ completionDelta() }}pts
+            </span>
+          </div>
+        </app-funnel-chart>
+      </section>
+
+      <section class="dash__panel dash__panel--dark">
+        <div class="dash__panel-hd">
+          <div><p class="dash__eyebrow">Ticket status</p><span class="dash__muted">{{ statusTotalLabel() }} tickets</span></div>
+        </div>
+        @if (statusBreakdown().length) {
+          <app-donut [segments]="statusBreakdown()" [centerValue]="statusTotalLabel()" centerLabel="tickets" />
+          <div class="dash__funnel-foot">
+            <span class="dash__muted">Finalisation vs previous period</span>
+            <span [class]="'dash__pill dash__pill--' + (completionDelta() > 0 ? 'up' : completionDelta() < 0 ? 'down' : 'flat')">
+              {{ completionDelta() > 0 ? '↑ +' : completionDelta() < 0 ? '↓ ' : '· ' }}{{ completionDelta() }}pts
+            </span>
+          </div>
+        } @else {
+          <p class="dash__muted">No tickets in this range.</p>
+        }
+      </section>
+
+      <section class="dash__panel dash__panel--dark">
+        <div class="dash__panel-hd">
+          <div><p class="dash__eyebrow">By ticket type</p><span class="dash__muted">Distribution</span></div>
+        </div>
+        @if (typeBreakdown().length) {
+          <div class="dash__scroll dash__scroll--type">
+            <ul class="dash__bars">
+              @for (row of typeBreakdown(); track row.label) {
+                <li>
+                  <span class="dash__bar-l">{{ row.label }}</span>
+                  <span class="dash__bar-track">
+                    <span
+                      [class]="'dash__bar-fill dash__bar-fill--' + row.variant"
+                      [style.width.%]="row.pct"
+                    ></span>
+                  </span>
+                  <span class="dash__bar-v">{{ row.value }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        } @else {
+          <p class="dash__muted">No tickets in this range.</p>
+        }
+      </section>
+    </div>
+
+    <!-- Recent tickets -->
+    <section class="dash__panel">
+      <div class="dash__panel-hd">
+        <div><p class="dash__eyebrow">Recent tickets</p></div>
+        <a class="dash__link" [routerLink]="isAdmin() ? '/sa/tickets' : '/employee/tickets'">View all →</a>
+      </div>
+      @if (recentTickets().length) {
+        <div class="dash__tbl-wrap">
+          <table class="dash__tbl">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Couple</th>
+                <th>Created by</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Delivery</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ticket of recentTickets(); track ticket._id) {
+                <tr>
+                  <td><span [class]="'badge badge--' + ticketTypeVariant(ticket.ticketType)">{{ typeLabel(ticket.ticketType) }}</span></td>
+                  <td class="dash__td-strong">{{ ticket.coupleName }}</td>
+                  <td>{{ ticket.createdByName }}</td>
+                  <td><span [class]="'badge badge--' + priorityVariant(ticket.priorety)">{{ ticket.priorety }}</span></td>
+                  <td><span [class]="'badge badge--' + statusVariant(ticket.status)">{{ formatStatus(ticket.status) }}</span></td>
+                  <td>{{ ticket.deleveryDate }}</td>
+                  <td class="dash__td-act">
+                    <app-icon-button label="Open" (clicked)="onEditTicket(ticket)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 3.5a2.5 2.5 0 1 1 3.5 3.5L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </app-icon-button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="dash__muted">No tickets in this range.</p>
+      }
+    </section>
+  }
+</div>

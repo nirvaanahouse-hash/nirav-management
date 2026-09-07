@@ -1,0 +1,92 @@
+<div class="login">
+  <div class="login__panel">
+    <div class="login__brand">
+      <span class="login__mark">NH</span>
+      <span>Nirvaana House</span>
+    </div>
+
+    <h1 class="login__title">Welcome back</h1>
+    <p class="login__subtitle">
+      Sign in to manage tasks, clients, and studio earnings.
+    </p>
+
+    <form class="login__form" [formGroup]="form" (ngSubmit)="submit()">
+      <label class="login__field">
+        <span>Email or Username</span>
+        <input
+          type="text"
+          formControlName="email"
+          placeholder="you@studio.com or your username"
+          autocomplete="username"
+          [class.login__input--invalid]="form.controls.email.invalid && form.controls.email.touched"
+        />
+        <small
+          class="login__error"
+          *ngIf="form.controls.email.invalid && form.controls.email.touched"
+        >
+          Enter a valid email address or username.
+        </small>
+      </label>
+
+      <label class="login__field">
+        <span>Password</span>
+        <input
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          [class.login__input--invalid]="form.controls.password.invalid && form.controls.password.touched"
+        />
+        <small
+          class="login__error"
+          *ngIf="form.controls.password.invalid && form.controls.password.touched"
+        >
+          Password must be at least 6 characters.
+        </small>
+      </label>
+
+      <app-button
+        type="submit"
+        size="lg"
+        [fullWidth]="true"
+        [loading]="submitting()"
+      >
+        Sign in
+      </app-button>
+    </form>
+
+    <!-- <div class="login__demo">
+      <span>Demo access</span>
+      <div class="login__demo-buttons">
+        <button type="button" (click)="fillDemo('admin')">Super Admin</button>
+        <button type="button" (click)="fillDemo('employee')">Employee</button>
+      </div>
+    </div> -->
+
+    <div class="login__footer">
+      <p>
+        Don't have an account?
+        <a routerLink="/auth/register" class="login__link">
+          Create one
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <div class="login__showcase">
+    <div class="login__showcase-copy">
+      <h2>Powering Modern Creative Studios.</h2>
+      <p>
+        Manage Pre-Wedding, Wedding, Reel, Highlight, Cinematic, ShootFilm,
+        YouTube, and Social Media editing projects while keeping every employee
+        and client connected in real time.
+      </p>
+    </div>
+
+    <div class="login__showcase-image">
+      <img src="assets/bg-image.jpg" alt="Studio management illustration" />
+      <div class="linear-gradient-first"></div>
+      <div class="linear-gradient-second"></div>
+    </div>
+  </div>
+</div>

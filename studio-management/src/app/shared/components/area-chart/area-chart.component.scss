@@ -1,0 +1,117 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.chart {
+  position: relative;
+  width: 100%;
+}
+
+.chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart__grid {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart__ytick,
+.chart__xtick {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-body);
+}
+
+.chart__area {
+  stroke: none;
+}
+
+.chart__track {
+  fill: var(--border-subtle);
+  opacity: 0.35;
+}
+
+.chart__bar {
+  fill: url(#barFill);
+  opacity: 0.7;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.chart__bar--peak {
+  opacity: 1;
+}
+
+.chart__bar--hover {
+  opacity: 1;
+}
+
+.chart__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart--hero .chart__line {
+  stroke-width: 2.25;
+  filter: drop-shadow(0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent));
+}
+
+.chart__xtick--hero {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.chart__crosshair {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.chart__marker {
+  fill: var(--surface-1);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.chart__tip {
+  position: absolute;
+  top: 0;
+  transform: translate(-50%, -8px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-raised, var(--surface-1));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-elevated);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.chart__tip-label {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.chart__tip-value {
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.chart__empty {
+  padding: var(--sp-10) var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}

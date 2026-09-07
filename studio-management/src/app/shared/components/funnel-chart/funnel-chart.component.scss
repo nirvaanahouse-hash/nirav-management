@@ -1,0 +1,79 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.funnel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.funnel__row {
+  display: grid;
+  grid-template-columns: 78px 1fr auto;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.funnel__label {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.funnel__track {
+  height: 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.funnel__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width 0.6s cubic-bezier(0.22, 0.7, 0.15, 1);
+
+  &--a { background: linear-gradient(90deg, #6366f1, #818cf8); }
+  &--b { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+  &--c { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+  &--d { background: linear-gradient(90deg, #10b981, #34d399); }
+  &--e { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+}
+
+.funnel__value {
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.funnel__pct {
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+.funnel__foot {
+  margin-top: var(--sp-1);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+
+  &:empty {
+    display: none;
+  }
+}

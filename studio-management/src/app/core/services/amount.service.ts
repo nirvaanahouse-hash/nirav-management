@@ -1,0 +1,147 @@
+import { Injectable, inject, signal } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { Observable, tap } from "rxjs";
+import { AmountEntry, AmountEntryDraft } from "../models/amountEntry.model";
+import { environment } from "../../env/env";
+
+export interface AmountEntryResponse {
+  success: boolean;
+  message: string;
+  data: AmountEntry[];
+}
+
+export interface DashboardSummaryResponse {
+  success: boolean;
+  data: {
+    employeeSummary: EmployeeSummaryItem[];
+    clientSummary: ClientSummaryItem[];
+    saTotals: SATotals;
+  };
+}
+
+export interface EmployeeSummaryItem {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  totalTickets: number;
+  totalAmount: number;
+  completedFinalized: number;
+}
+
+export interface ClientSummaryItem {
+  _id: string;
+  name: string;
+  sortName?: string;
+  company?: string;
+  totalWorkAmount: number;
+  paidAmount: number;
+  balanceDue: number;
+}
+
+export interface SATotals {
+  totalEmployeeAmount: number;
+  totalMainAmount: number;
+  profit: number;
+  totalSentToEmployees: number;
+  pendingFromEmployees: number;
+  totalClientAmount: number;
+  totalReceivedFromClients: number;
+  pendingFromClients: number;
+}
+
+export interface EmployeeSummaryResponse {
+  success: boolean;
+  data: {
+    totalTickets: number;
+    completedFinalizedCount: number;
+    totalEarnings: number;
+    totalAmountReceived: number;
+    pendingAmount: number;
+  };
+}
+
+@Injectable({ providedIn: "root" })
+export class AmountService {
+  private readonly http = inject(HttpClient);
+  private readonly _entries = signal<AmountEntry[]>([]);
+
+  readonly entries = this._entries.asReadonly();
+
+  list(): Observable<AmountEntryResponse> {
+    return this.http
+      .get<AmountEntryResponse>(`${environment.apiUrl}api/amount-entries`, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap((response) => {
+          this._entries.set(response.data);
+        })
+      );
+  }
+
+  /** Entries for one recipient (e.g. a specific user / employee). */
+  listFor(recipient: string, recipientType: "employee" | "client"): Observable<AmountEntryResponse> {
+    return this.http.get<AmountEntryResponse>(`${environment.apiUrl}api/amount-entries`, {
+      params: { recipient, recipientType },
+      withCredentials: true,
+    });
+  }
+
+  create(draft: AmountEntryDraft): Observable<{ success: boolean; message: string; data: AmountEntry }> {
+    return this.http
+      .post<{ success: boolean; message: string; data: AmountEntry }>(
+        `${environment.apiUrl}api/amount-entries`,
+        draft,
+        { withCredentials: true },
+      )
+      .pipe(
+        tap((response) => {
+          this._entries.update((list) => [response.data, ...list]);
+        }),
+      );
+  }
+
+  update(id: string, changes: { amount?: number; description?: string }): Observable<{ success: boolean; message: string; data: AmountEntry }> {
+    return this.http
+      .put<{ success: boolean; message: string; data: AmountEntry }>(
+        `${environment.apiUrl}api/amount-entries/${id}`,
+        changes,
+        { withCredentials: true },
+      )
+      .pipe(
+        tap((response) => {
+          this._entries.update((list) =>
+            list.map((e) => (e._id === response.data._id ? response.data : e))
+          );
+        }),
+      );
+  }
+
+  delete(id: string): Observable<{ success: boolean; message: string; data: { _id: string } }> {
+    return this.http
+      .delete<{ success: boolean; message: string; data: { _id: string } }>(
+        `${environment.apiUrl}api/amount-entries/${id}`,
+        { withCredentials: true },
+      )
+      .pipe(
+        tap(() => {
+          this._entries.update((list) => list.filter((e) => e._id !== id));
+        }),
+      );
+  }
+
+  getDashboardSummary(): Observable<DashboardSummaryResponse> {
+    return this.http.get<DashboardSummaryResponse>(
+      `${environment.apiUrl}api/dashboard/summary`,
+      { withCredentials: true },
+    );
+  }
+
+  getEmployeeSummary(): Observable<EmployeeSummaryResponse> {
+    return this.http.get<EmployeeSummaryResponse>(
+      `${environment.apiUrl}api/employee/summary`,
+      { withCredentials: true },
+    );
+  }
+}

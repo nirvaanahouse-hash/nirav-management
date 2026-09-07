@@ -1,0 +1,8 @@
+ .client-form__row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-3);
+    }
+    @media (max-width: 560px) {
+      .client-form__row { grid-template-columns: 1fr; }
+    }

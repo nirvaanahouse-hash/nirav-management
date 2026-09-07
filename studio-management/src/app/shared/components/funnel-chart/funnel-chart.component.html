@@ -1,0 +1,21 @@
+<div class="funnel">
+  <ul class="funnel__list">
+    @for (row of rows(); track row.label) {
+      <li class="funnel__row">
+        <span class="funnel__label">{{ row.label }}</span>
+        <span class="funnel__track">
+          <span
+            class="funnel__fill"
+            [class]="'funnel__fill--' + row.variant"
+            [style.width.%]="row.width"
+          ></span>
+        </span>
+        <span class="funnel__value">
+          {{ row.value }}
+          <span class="funnel__pct">{{ row.pct }}%</span>
+        </span>
+      </li>
+    }
+  </ul>
+  <div class="funnel__foot"><ng-content></ng-content></div>
+</div>

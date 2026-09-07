@@ -1,0 +1,115 @@
+.cmp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+}
+
+.cmp__legend {
+  display: flex;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.cmp__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  i {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  b {
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--a i { background: var(--accent); }
+  &--b i { background: var(--warning); }
+}
+
+.cmp__plot {
+  position: relative;
+  width: 100%;
+}
+
+.cmp__svg {
+  width: 100%;
+  height: 300px;
+  display: block;
+  overflow: visible;
+}
+
+.cmp__axis {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.cmp__guide {
+  stroke: var(--border-strong);
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.cmp__bars {
+  transform: scaleY(0);
+  transform-origin: 0 150px;
+  transition: transform 0.55s cubic-bezier(0.22, 0.7, 0.15, 1);
+
+  &--in {
+    transform: scaleY(1);
+  }
+}
+
+.cmp__bar {
+  transition: opacity 0.15s ease;
+
+  &--a { fill: var(--accent); }
+  &--b { fill: var(--warning); }
+
+  &--hot { opacity: 1; }
+}
+
+.cmp__bars:hover .cmp__bar:not(.cmp__bar--hot) {
+  opacity: 0.45;
+}
+
+.cmp__xlabel {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+.cmp__tip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  min-width: 130px;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-card);
+  font-size: var(--fs-xs, 0.72rem);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.cmp__tip-l {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.cmp__tip-row b { color: var(--text-primary); }
+.cmp__tip-row--a { color: var(--accent-strong, var(--accent)); }
+.cmp__tip-row--b { color: var(--warning); }
+.cmp__tip-delta {
+  margin-top: 2px;
+  color: var(--text-muted);
+}

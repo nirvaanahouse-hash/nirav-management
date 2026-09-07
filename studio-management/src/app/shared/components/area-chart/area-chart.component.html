@@ -1,0 +1,90 @@
+@if (points().length === 0) {
+  <div class="chart__empty">No data for this range.</div>
+} @else {
+  <div class="chart" [class.chart--hero]="variant() === 'hero'">
+    <svg
+      #svg
+      class="chart__svg"
+      [attr.viewBox]="vb"
+      preserveAspectRatio="xMidYMid meet"
+      (mousemove)="onMove($event)"
+      (mouseleave)="clearHover()"
+    >
+      <defs>
+        <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.28" />
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02" />
+        </linearGradient>
+        <linearGradient id="heroFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.4" />
+          <stop offset="55%" stop-color="var(--accent)" stop-opacity="0.12" />
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="barFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" />
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.55" />
+        </linearGradient>
+      </defs>
+
+      <!-- gridlines (full variant only) -->
+      @if (variant() !== 'hero') {
+        @for (t of yTicks(); track t.y) {
+          <line class="chart__grid" [attr.x1]="plot.x0" [attr.x2]="plot.x1" [attr.y1]="t.y" [attr.y2]="t.y" />
+          <text class="chart__ytick" [attr.x]="plot.x0 - 10" [attr.y]="t.y + 4" text-anchor="end">{{ format(t.v) }}</text>
+        }
+      }
+
+      @if (mode() === 'bars') {
+        @for (b of bars(); track b.i) {
+          <rect class="chart__track" [attr.x]="b.x" [attr.y]="b.trackY" [attr.width]="b.w" [attr.height]="b.trackH" rx="5" />
+          <rect
+            class="chart__bar"
+            [class.chart__bar--peak]="b.peak"
+            [class.chart__bar--hover]="hoverIndex() === b.i"
+            [attr.x]="b.x"
+            [attr.y]="b.y"
+            [attr.width]="b.w"
+            [attr.height]="b.h"
+            rx="5"
+          />
+        }
+      } @else {
+        <path
+          class="chart__area"
+          [attr.d]="areaPath()"
+          [attr.fill]="variant() === 'hero' ? 'url(#heroFill)' : 'url(#areaFill)'"
+        />
+        <path class="chart__line" [attr.d]="linePath()" vector-effect="non-scaling-stroke" />
+        @if (hovered(); as h) {
+          <line class="chart__crosshair" [attr.x1]="h.x" [attr.x2]="h.x" [attr.y1]="plot.y0" [attr.y2]="plot.y1" />
+          <circle class="chart__marker" [attr.cx]="h.x" [attr.cy]="h.y" r="4.5" vector-effect="non-scaling-stroke" />
+        }
+      }
+
+      <!-- x labels -->
+      @if (variant() !== 'hero') {
+        @for (p of xLabels(); track p.label) {
+          <text class="chart__xtick" [attr.x]="p.x" [attr.y]="plot.y1 + 20" text-anchor="middle">{{ p.label }}</text>
+        }
+      } @else {
+        @for (p of xLabels(); track p.label) {
+          <text class="chart__xtick chart__xtick--hero" [attr.x]="p.x" [attr.y]="plot.y1 + 18" text-anchor="middle">{{ p.label }}</text>
+        }
+      }
+    </svg>
+
+    @if (mode() === 'bars') {
+      @if (hoveredBar(); as b) {
+        <div class="chart__tip" [style.left]="tooltipLeft(b.x + b.w / 2)">
+          <span class="chart__tip-label">{{ b.label }}</span>
+          <strong class="chart__tip-value">{{ format(b.value) }}</strong>
+        </div>
+      }
+    } @else if (hovered(); as h) {
+      <div class="chart__tip" [style.left]="tooltipLeft(h.x)">
+        <span class="chart__tip-label">{{ h.label }}</span>
+        <strong class="chart__tip-value">{{ format(h.value) }}</strong>
+      </div>
+    }
+  </div>
+}

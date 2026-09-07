@@ -1,0 +1,52 @@
+:host {
+  display: inline-flex;
+}
+
+/* the icon is projected content, so it needs ::ng-deep to be reached */
+:host ::ng-deep svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  line-height: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    border-color var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &--danger:hover:not(:disabled) {
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  &--confirm {
+    color: var(--success);
+    border-color: var(--success);
+
+    &:hover:not(:disabled) {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+  }
+}

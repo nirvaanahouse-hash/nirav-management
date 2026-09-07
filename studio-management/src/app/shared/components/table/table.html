@@ -1,0 +1,71 @@
+  <div class="app-table-wrap">
+      <table class="app-table">
+        <thead>
+          <tr>
+            @if (hasActions()) {
+              <th class="app-table__actions-col">Actions</th>
+            }
+            @for (col of columns(); track col.key) {
+              <th
+                [style.width]="col.width"
+                [style.textAlign]="col.align || 'left'"
+                [class.app-table__sortable]="col.sortable"
+                (click)="col.sortable && toggleSort(col.key)"
+              >
+                {{ col.label }}
+                @if (col.sortable) {
+                  <span class="app-table__sort-icon">
+                    {{ sort().key === col.key ? (sort().direction === 'asc' ? '▲' : '▼') : '↕' }}
+                  </span>
+                }
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @if (pagedRows().length === 0) {
+            <tr>
+              <td [attr.colspan]="columns().length + (hasActions() ? 1 : 0)">
+                <div class="app-table__empty">
+                  <p>{{ emptyMessage() }}</p>
+                </div>
+              </td>
+            </tr>
+          }
+          @for (row of pagedRows(); track $index) {
+            
+            <tr>
+              @if (hasActions()) {
+                <td class="app-table__actions-col">
+                  <ng-container [ngTemplateOutlet]="rowActionsTemplate() ?? null" [ngTemplateOutletContext]="{ $implicit: row }" />
+                </td>
+              }
+              @for (col of columns(); track col.key) {
+                <td [style.textAlign]="col.align || 'left'">
+                  @if (col.badge && col.badgeVariant) {
+                    <span [class]="'badge badge--' + col.badgeVariant(row)">
+                      {{ cellText(col, row) }}
+                    </span>
+                  } @else {
+                    {{ cellText(col, row) }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (rows().length > pageSize()) {
+      <div class="app-table__pagination">
+        <span class="app-table__page-info">
+          {{ startIndex() + 1 }}–{{ endIndex() }} of {{ rows().length }}
+        </span>
+        <div class="app-table__page-controls">
+          <button (click)="goToPage(page() - 1)" [disabled]="page() === 1">Prev</button>
+          <span>Page {{ page() }} / {{ totalPages() }}</span>
+          <button (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">Next</button>
+        </div>
+      </div>
+    }

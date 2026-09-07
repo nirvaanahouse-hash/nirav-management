@@ -1,0 +1,17 @@
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
+
+  <div class="main-layout__content">
+    <app-navbar></app-navbar>
+    <button class="main-layout__mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="none">
+        <path d="M2 5h16M2 10h16M2 15h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <main class="main-layout__page">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <app-confirm-dialog-host></app-confirm-dialog-host>
+</div>

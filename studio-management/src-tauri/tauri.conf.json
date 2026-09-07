@@ -1,0 +1,36 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Studio Management System",
+  "version": "1.0.0",
+  "identifier": "com.mayur.studio",
+
+  "build": {
+    "frontendDist": "../dist/studio-management-system/browser",
+    "devUrl": "http://localhost:4200",
+    "beforeDevCommand": "npm start",
+    "beforeBuildCommand": "npm run build:prod"
+  },
+
+  "app": {
+    "windows": [
+      {
+        "title": "Studio Management System",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1200,
+        "minHeight": 700,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+
+  "bundle": {
+    "active": true,
+    "targets": "all"
+  }
+}

@@ -1,0 +1,124 @@
+<div class="perm-page">
+  <app-page-header
+    title="Permissions"
+    subtitle="Grant capabilities per user, down to each action. The Super Admin always has full access."
+  />
+
+  @if (loading()) {
+    <div class="perm-state">Loading permissions…</div>
+  } @else {
+    <div class="perm-layout">
+      <!-- ---------- user picker ---------- -->
+      <aside class="perm-users">
+        <input
+          class="perm-users__search"
+          type="search"
+          placeholder="Search users…"
+          [(ngModel)]="userSearch"
+        />
+        <div class="perm-users__list">
+          @for (u of filteredUsers(); track trackUser($index, u)) {
+            <button
+              type="button"
+              class="perm-users__item"
+              [class.perm-users__item--active]="selectedUser()?._id === u._id"
+              (click)="selectUser(u)"
+            >
+              <span class="perm-users__name">{{ u.firstName }} {{ u.lastName }}</span>
+              <span class="perm-users__meta">
+                <span class="perm-users__handle">&#64;{{ u.userName }}</span>
+                <span class="badge {{ roleBadge(u.role) }}">{{ roleLabel(u.role) }}</span>
+              </span>
+            </button>
+          } @empty {
+            <p class="perm-state perm-state--sm">No users match.</p>
+          }
+        </div>
+      </aside>
+
+      <!-- ---------- permission tree ---------- -->
+      <section class="perm-panel">
+        @if (!selectedUser()) {
+          <div class="perm-state">Select a user to view and edit their permissions.</div>
+        } @else if (permLoading()) {
+          <div class="perm-state">Loading {{ selectedUser()?.firstName }}’s permissions…</div>
+        } @else if (targetIsSA()) {
+          <div class="perm-fullaccess">
+            <strong>Full access</strong>
+            <p>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }} is a Super Admin and holds every permission. This cannot be changed.</p>
+          </div>
+        } @else {
+          <div class="perm-panel__head">
+            <div>
+              <h3 class="perm-panel__who">{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</h3>
+              <span class="perm-muted">{{ totalGranted() }} / {{ totalPossible() }} permissions granted</span>
+            </div>
+          </div>
+
+          <div class="perm-tree-wrap">
+            <table class="perm-tree">
+              <thead>
+                <tr>
+                  <th>Permission</th>
+                  <th class="perm-tree__keycol">Key</th>
+                  <th class="perm-tree__chkcol">Granted</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (g of groups(); track trackGroup($index, g)) {
+                  <tr class="perm-tree__grouprow">
+                    <td>
+                      <button type="button" class="perm-tree__toggle" (click)="toggleExpand(g.key)">
+                        <span class="perm-tree__chev" [class.perm-tree__chev--open]="isExpanded(g.key)">▸</span>
+                        <span class="perm-tree__grouplabel">{{ g.label }}</span>
+                        <span class="perm-muted">{{ groupCountLabel(g) }}</span>
+                      </button>
+                    </td>
+                    <td class="perm-tree__keycol"></td>
+                    <td class="perm-tree__chkcol">
+                      <input
+                        type="checkbox"
+                        [checked]="groupState(g) === 'all'"
+                        [indeterminate]="groupState(g) === 'some'"
+                        (change)="toggleGroup(g)"
+                      />
+                    </td>
+                  </tr>
+
+                  @if (isExpanded(g.key)) {
+                    @for (p of g.permissions; track trackPerm($index, p)) {
+                      <tr class="perm-tree__leafrow" [class.perm-tree__leafrow--on]="isChecked(p.key)">
+                        <td class="perm-tree__leaf">
+                          <span class="perm-tree__indent"></span>
+                          <span class="perm-tree__leaflabel">{{ p.label }}</span>
+                          @if (isDefault(p.key)) {
+                            <span class="perm-tag" title="Part of the default employee set">default</span>
+                          }
+                        </td>
+                        <td class="perm-tree__keycol"><code>{{ p.key }}</code></td>
+                        <td class="perm-tree__chkcol">
+                          <input type="checkbox" [checked]="isChecked(p.key)" (change)="toggleKey(p.key)" />
+                        </td>
+                      </tr>
+                    }
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="perm-panel__footer">
+            <div class="perm-panel__bulk">
+              <app-button variant="ghost" size="sm" (clicked)="selectAll()">Select all</app-button>
+              <app-button variant="ghost" size="sm" (clicked)="clearAll()">Clear all</app-button>
+              <app-button variant="ghost" size="sm" (clicked)="resetToDefault()">Reset to employee default</app-button>
+            </div>
+            <app-button [loading]="saving()" [disabled]="!dirty()" (clicked)="save()">
+              Save permissions
+            </app-button>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>

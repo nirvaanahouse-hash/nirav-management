@@ -1,0 +1,190 @@
+<form [formGroup]="form" class="ticket-form" (ngSubmit)="onSubmit()">
+  <!-- SA-only: client & assignment -->
+  @if (isSA()) {
+    <div class="ticket-form__section">
+      <h3 class="ticket-form__heading">Client &amp; Assignment</h3>
+
+      <div class="ticket-form__row">
+        <app-form-field
+          label="Client"
+          type="select"
+          [control]="form.controls.client"
+          [options]="clientOptions()"
+          placeholder="Select a client"
+          [required]="true"
+          [errorMessages]="{ required: 'Client is required' }"
+        />
+        <app-form-field
+          label="Assigned Employee"
+          type="select"
+          [control]="form.controls.assignedEmployee"
+          [options]="employeeOptions()"
+          placeholder="Select an employee"
+          [required]="true"
+          [errorMessages]="{ required: 'Assigned Employee is required' }"
+        />
+      </div>
+
+      <div class="ticket-form__row">
+        <app-form-field
+          label="Couple Name"
+          [control]="form.controls.coupleName"
+          placeholder="e.g. Aarav & Priya"
+          [required]="true"
+          [errorMessages]="{ required: 'Couple Name is required' }"
+        />
+        <div></div>
+      </div>
+    </div>
+  }
+
+  <!-- Employee-only: client & couple -->
+  @if (isEmployee()) {
+    <div class="ticket-form__section">
+      <h3 class="ticket-form__heading">Ticket Details</h3>
+      <div class="ticket-form__row">
+        <app-form-field
+          label="Client"
+          type="select"
+          [control]="form.controls.client"
+          [options]="clientOptions()"
+          placeholder="Select a client"
+        />
+        <app-form-field
+          label="Couple Name"
+          [control]="form.controls.coupleName"
+          placeholder="e.g. Aarav & Priya"
+          [required]="true"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- Shared: work details -->
+  <div class="ticket-form__section">
+    <h3 class="ticket-form__heading">Work Details</h3>
+
+    <div class="ticket-form__row">
+      <app-form-field
+        label="Ticket Type"
+        type="select"
+        [control]="form.controls.ticketType"
+        [options]="ticketTypeOptions()"
+        [required]="true"
+      />
+      <app-form-field
+        label="Priority"
+        type="select"
+        [control]="form.controls.priorety"
+        [options]="priorityOptions()"
+        [required]="true"
+      />
+    </div>
+
+    <div class="ticket-form__row">
+      <app-form-field
+        label="Delivery Date"
+        type="date"
+        [control]="form.controls.deleveryDate"
+        [required]="true"
+      />
+      <app-form-field
+        label="Ticket Status"
+        type="select"
+        [control]="form.controls.status"
+        [options]="statusOptions()"
+        [required]="true"
+      />
+    </div>
+
+    @if (showHourFields()) {
+      <div class="ticket-form__row">
+        <app-form-field
+          label="Work Hours (HR)"
+          type="number"
+          [control]="form.controls.HR"
+          placeholder="e.g. 8"
+          [required]="true"
+        />
+        @if (isSA()) {
+          <app-form-field
+            label="Main Hours (MainHr)"
+            type="number"
+            [control]="form.controls.mainHr"
+            placeholder="e.g. 10"
+            [required]="true"
+          />
+        } @else {
+          <div></div>
+        }
+      </div>
+
+      @if (isSA()) {
+        <div class="ticket-form__row">
+          <app-form-field
+            label="HR Price"
+            type="number"
+            [control]="form.controls.hrPrice"
+            placeholder="e.g. 1200"
+            [required]="true"
+          />
+          <div></div>
+        </div>
+      }
+    }
+
+    <div class="ticket-form__row">
+      <app-form-field
+        label="Remark"
+        type="textarea"
+        [control]="form.controls.remark"
+        placeholder="Additional notes"
+      />
+      @if (isSA() && isStatusCompleted()) {
+        <label class="ticket-form__checkbox">
+          <input type="checkbox" formControlName="isFinalized" />
+          <span>Finalize ticket (client delivered, payment received)</span>
+        </label>
+      } @else {
+        <div></div>
+      }
+    </div>
+  </div>
+
+  <!-- SA-only: pricing -->
+  @if (isSA()) {
+    <div class="ticket-form__section">
+      <h3 class="ticket-form__heading">Pricing</h3>
+      <div class="ticket-form__row">
+        <app-form-field
+          label="User Amount"
+          type="number"
+          [control]="form.controls.amount"
+          placeholder="e.g. 12000"
+          [required]="true"
+          [hint]="showHourFields() ? 'Auto: HR × HR Price — edit to override' : ''"
+        />
+        <app-form-field
+          label="Main Amount"
+          type="number"
+          [control]="form.controls.mainAmount"
+          placeholder="e.g. 20000"
+          [required]="true"
+          [hint]="showHourFields() ? 'Auto: Main HR × HR Price — edit to override' : ''"
+        />
+      </div>
+
+      <div class="ticket-form__row">
+        <app-form-field
+          label="User Percentage (%)"
+          type="number"
+          [control]="form.controls.userPersentage"
+          placeholder="Select an employee first"
+          [required]="true"
+          hint="Auto-filled from the assigned user's profit share — you can adjust it for this ticket"
+        />
+        <div></div>
+      </div>
+    </div>
+  }
+</form>

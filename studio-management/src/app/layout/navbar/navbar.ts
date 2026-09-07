@@ -1,0 +1,182 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { AuthService } from '../../core/services/auth.service';
+import { SocketService, NotificationData } from '../../core/services/socket.service';
+import { ThemeService } from '../../core/services/theme.service';
+import { ProfileService } from '../../core/services/profile.service';
+import { ThemeId } from '../../core/models/theme.model';
+
+type NotifTab = 'all' | 'unread';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './navbar.html',
+  styleUrl: './navbar.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class Navbar {
+  private readonly _themeMenuOpen = signal(false);
+  private readonly _userMenuOpen = signal(false);
+  private readonly _notificationMenuOpen = signal(false);
+  private readonly _pageTitle = signal('');
+
+  readonly themeMenuOpen = this._themeMenuOpen.asReadonly();
+  readonly userMenuOpen = this._userMenuOpen.asReadonly();
+  readonly notificationMenuOpen = this._notificationMenuOpen.asReadonly();
+  readonly pageTitle = this._pageTitle.asReadonly();
+
+  readonly notifTab = signal<NotifTab>('all');
+  readonly showDeleted = signal(false);
+
+  readonly profileService = inject(ProfileService);
+  private readonly elementRef = inject(ElementRef<HTMLElement>);
+
+  constructor(
+    readonly authService: AuthService,
+    readonly socketService: SocketService,
+    readonly themeService: ThemeService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+  ) {
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
+      this.updatePageTitle();
+      this._notificationMenuOpen.set(false);
+      this._userMenuOpen.set(false);
+    });
+    this.updatePageTitle();
+
+    if (this.authService.isAuthenticated()) {
+      this.profileService.getProfile().subscribe({ error: () => {} });
+    }
+  }
+
+  private updatePageTitle(): void {
+    let snapshot = this.router.routerState.snapshot.root;
+    while (snapshot.firstChild) {
+      snapshot = snapshot.firstChild;
+    }
+    const title = snapshot.data['pageTitle'] as string | undefined;
+    this._pageTitle.set(title ?? 'Studio');
+  }
+
+  toggleThemeMenu(): void {
+    this._userMenuOpen.set(false);
+    this._notificationMenuOpen.set(false);
+    this._themeMenuOpen.update((value) => !value);
+  }
+
+  toggleUserMenu(): void {
+    this._themeMenuOpen.set(false);
+    this._notificationMenuOpen.set(false);
+    this._userMenuOpen.update((value) => !value);
+  }
+
+  toggleNotificationMenu(): void {
+    this._themeMenuOpen.set(false);
+    this._userMenuOpen.set(false);
+    const opening = !this._notificationMenuOpen();
+    this._notificationMenuOpen.set(opening);
+    if (opening) {
+      this.socketService.loadNotifications(this.notifTab(), this.showDeleted());
+    }
+  }
+
+  selectTheme(themeId: ThemeId): void {
+    this.themeService.setTheme(themeId);
+    this._themeMenuOpen.set(false);
+  }
+
+  // --- Notifications -------------------------------------------------------
+  setNotifTab(tab: NotifTab): void {
+    if (this.notifTab() === tab) return;
+    this.notifTab.set(tab);
+    this.socketService.loadNotifications(tab, this.showDeleted());
+  }
+
+  setShowDeleted(value: boolean): void {
+    this.showDeleted.set(value);
+    this.socketService.loadNotifications(this.notifTab(), value);
+  }
+
+  toggleNotificationRead(notif: NotificationData): void {
+    this.socketService.toggleNotificationRead(notif._id);
+  }
+
+  deleteNotification(notif: NotificationData): void {
+    this.socketService.deleteNotification(notif._id);
+  }
+
+  restoreNotification(notif: NotificationData): void {
+    this.socketService.restoreNotification(notif._id);
+  }
+
+  markAllNotificationsRead(): void {
+    this.socketService.markAllNotificationsRead();
+  }
+
+  closeMenus(): void {
+    this._themeMenuOpen.set(false);
+    this._userMenuOpen.set(false);
+    this._notificationMenuOpen.set(false);
+  }
+
+  private anyMenuOpen(): boolean {
+    return this._themeMenuOpen() || this._userMenuOpen() || this._notificationMenuOpen();
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.anyMenuOpen()) return;
+    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
+      this.closeMenus();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.anyMenuOpen()) this.closeMenus();
+  }
+
+  formatNotificationTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe(() => {
+      this.profileService.clear();
+      this.router.navigate(['/auth/login']);
+    });
+  }
+
+  initials(name: string): string {
+    return name
+      .split(' ')
+      .map((part) => part.charAt(0))
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+}

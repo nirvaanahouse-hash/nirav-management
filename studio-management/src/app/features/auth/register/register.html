@@ -1,0 +1,187 @@
+<div class="register">
+  <div class="register__panel">
+    <div class="register__brand">
+      <span class="register__mark">NH</span>
+      <span>Nirvaana House</span>
+    </div>
+
+    <h1 class="register__title">Create your account</h1>
+    <p class="register__subtitle">
+      Join us to manage tasks, clients, and studio earnings.
+    </p>
+
+    <form class="register__form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="register__grid">
+        <label class="register__field">
+          <span>Full Name</span>
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="John Doe"
+            autocomplete="name"
+          />
+          <small
+            class="register__error"
+            *ngIf="form.controls.name.invalid && form.controls.name.touched"
+          >
+            <span *ngIf="form.controls.name.errors?.['required']">
+              Full name is required.
+            </span>
+            <span *ngIf="form.controls.name.errors?.['minlength']">
+              Full name must be at least 2 characters.
+            </span>
+          </small>
+        </label>
+
+        <label class="register__field">
+          <span>Username</span>
+          <input
+            type="text"
+            formControlName="username"
+            placeholder="your username"
+            autocomplete="username"
+          />
+          <small
+            class="register__error"
+            *ngIf="form.controls.username.invalid && form.controls.username.touched"
+          >
+            <span *ngIf="form.controls.username.errors?.['required']">
+              Username is required.
+            </span>
+            <span *ngIf="form.controls.username.errors?.['minlength']">
+              Username must be at least 3 characters.
+            </span>
+          </small>
+        </label>
+      </div>
+
+      <div class="register__grid">
+        <label class="register__field">
+          <span>Email</span>
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="you@studio.com"
+            autocomplete="email"
+          />
+          <small
+            class="register__error"
+            *ngIf="form.controls.email.invalid && form.controls.email.touched"
+          >
+            <span *ngIf="form.controls.email.errors?.['required']">
+              Email is required.
+            </span>
+            <span *ngIf="form.controls.email.errors?.['email']">
+              Enter a valid email address.
+            </span>
+          </small>
+        </label>
+
+        <label class="register__field">
+          <span>Mobile Number</span>
+          <input
+            type="tel"
+            formControlName="mobileNo"
+            placeholder="9876543210"
+            autocomplete="tel"
+          />
+          <small
+            class="register__error"
+            *ngIf="form.controls.mobileNo.invalid && form.controls.mobileNo.touched"
+          >
+            <span *ngIf="form.controls.mobileNo.errors?.['required']">
+              Mobile number is required.
+            </span>
+            <span *ngIf="form.controls.mobileNo.errors?.['pattern']">
+              Mobile number must be 10 digits.
+            </span>
+          </small>
+        </label>
+      </div>
+
+      <div class="register__grid">
+        <label class="register__field">
+          <span>Password</span>
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+          <small
+            class="register__error"
+            *ngIf="form.controls.password.invalid && form.controls.password.touched"
+          >
+            Password must be at least 6 characters.
+          </small>
+        </label>
+
+        <label class="register__field">
+          <span>Confirm Password</span>
+          <input
+            type="password"
+            formControlName="confirmPassword"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+          <small
+            class="register__error"
+            *ngIf="form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched"
+          >
+            <span *ngIf="form.controls.confirmPassword.errors?.['required']">
+              Please confirm your password.
+            </span>
+            <span *ngIf="form.controls.confirmPassword.errors?.['minlength']">
+              Password must be at least 6 characters.
+            </span>
+          </small>
+          <small
+            class="register__error"
+            *ngIf="form.errors?.['passwordMismatch'] && form.controls.confirmPassword.touched"
+          >
+            Passwords do not match.
+          </small>
+        </label>
+      </div>
+
+      <app-button
+        type="submit"
+        size="lg"
+        [fullWidth]="true"
+        [loading]="submitting()"
+      >
+        Create account
+      </app-button>
+    </form>
+
+    <div class="register__footer">
+      <p>
+        Already have an account?
+        <button
+          type="button"
+          class="register__link"
+          (click)="navigateToLogin()"
+        >
+          Sign in
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="register__showcase">
+    <div class="register__showcase-copy">
+      <h2>Powering Modern Creative Studios.</h2>
+      <p>
+        Manage Pre-Wedding, Wedding, Reel, Highlight, Cinematic, ShootFilm,
+        YouTube, and Social Media editing projects while keeping every employee
+        and client connected in real time.
+      </p>
+    </div>
+
+    <div class="register__showcase-image">
+      <img src="assets/bg-image.jpg" alt="Studio management illustration" />
+      <div class="linear-gradient-first"></div>
+      <div class="linear-gradient-second"></div>
+    </div>
+  </div>
+</div>

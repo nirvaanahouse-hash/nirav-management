@@ -1,0 +1,63 @@
+<form [formGroup]="form" class="client-form" (ngSubmit)="onSubmit()">
+  <div class="client-form__row">
+    <app-form-field
+      label="Full Name"
+      [control]="form.controls.name"
+      placeholder="e.g. Priya Shah"
+      [required]="true"
+    />
+    <app-form-field
+      label="Sort Name"
+      [control]="form.controls.sortName"
+      placeholder="e.g. Priya"
+      [required]="true"
+    />
+  </div>
+
+  <div class="client-form__row">
+    <app-form-field
+      label="Company"
+      [control]="form.controls.company"
+      placeholder="e.g. Nova Textiles"
+    />
+    <app-form-field
+      label="Email"
+      type="email"
+      [control]="form.controls.email"
+      placeholder="contact@company.com"
+    />
+  </div>
+
+  <div class="client-form__row">
+    <app-form-field
+      label="Phone"
+      [control]="form.controls.phone"
+      placeholder="+1 (555) 000-0000"
+      [required]="true"
+      [errorMessages]="{ pattern: 'Enter a valid phone number.' }"
+    />
+    <app-form-field
+      label="Mobile Number"
+      [control]="form.controls.mobileNumber"
+      placeholder="9876543210"
+      [required]="true"
+      [errorMessages]="{ pattern: 'Mobile number must be 10 digits.' }"
+    />
+  </div>
+
+  <div class="client-form__row">
+    <app-form-field
+      label="Status"
+      type="select"
+      [control]="form.controls.status"
+      [options]="statusOptions"
+      [required]="true"
+    />
+    <app-form-field
+      label="Active"
+      type="select"
+      [control]="form.controls.isActive"
+      [options]="[{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]"
+    />
+  </div>
+</form>

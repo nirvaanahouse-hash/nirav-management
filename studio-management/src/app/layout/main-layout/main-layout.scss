@@ -1,0 +1,55 @@
+.main-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  &__mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: var(--sp-3);
+    left: var(--sp-3);
+    z-index: 35;
+    width: 40px;
+    height: 40px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 768px) {
+      display: flex;
+    }
+  }
+
+  /* Scroll lives here — the page content is a card that fills the viewport
+     below the (non-scrolling) navbar and scrolls internally. */
+  &__page {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: var(--sp-5);
+    padding: var(--sp-6);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+
+    @media (max-width: 768px) {
+      margin: var(--sp-3);
+      padding: var(--sp-4);
+    }
+  }
+}

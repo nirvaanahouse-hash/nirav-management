@@ -1,0 +1,13 @@
+ @if (service.pending(); as req) {
+      <app-modal [title]="req.title" [maxWidth]="420" (close)="service.resolve(false)">
+        <p class="confirm-message">{{ req.message }}</p>
+        <div modal-footer>
+          <app-button variant="secondary" (click)="service.resolve(false)">
+            {{ req.cancelLabel || 'Cancel' }}
+          </app-button>
+          <app-button [variant]="req.danger ? 'danger' : 'primary'" (click)="service.resolve(true)">
+            {{ req.confirmLabel || 'Confirm' }}
+          </app-button>
+        </div>
+      </app-modal>
+    }

@@ -1,4 +1,17 @@
 {
+  "name": "nirav-managemant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nirvaana House - Angular frontend (studio-management/) + Node backend (BE/) + Tauri desktop",
+  "scripts": {
+    "repo:connect": "git remote add origin",
+    "repo:set-url": "git remote set-url origin",
+    "repo:first-push": "git push -u origin main && git push origin v1.0.0",
+    "repo:force-push": "git push -u --force origin main && git push --force origin v1.0.0",
+    "push": "git add -A && (git diff --cached --quiet || git commit -q -m build) && git push origin main",
+    "desktop:build": "npm run push && git tag -f desktop && git push -f origin refs/tags/desktop && echo \"Desktop build triggered. Open your GitHub repo -> Actions tab -> the newest run -> wait ~15 min -> download the .dmg / .msi / -setup.exe from Artifacts.\"",
+    "desktop:help": "echo \"Steps: 1) create an EMPTY GitHub repo  2) npm run repo:connect -- https://github.com/USER/REPO.git  3) npm run repo:first-push  4) for every later build: npm run desktop:build\""
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3"
   }

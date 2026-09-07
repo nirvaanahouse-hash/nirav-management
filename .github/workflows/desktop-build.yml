@@ -14,7 +14,8 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'v*'
+      - 'v*'        # v1.2.3 -> also publishes a draft GitHub Release
+      - 'desktop'   # moved by `npm run desktop:build` -> just builds + uploads artifacts
 
 jobs:
   build:

@@ -52,4 +52,12 @@
       padding: var(--sp-4);
     }
   }
+
+  /* The routed content — this is what animates on route change (see styles.scss
+     ::view-transition-*(page)). The card frame above stays put. */
+  &__outlet {
+    display: block;
+    min-height: 100%;
+    view-transition-name: page;
+  }
 }

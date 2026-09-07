@@ -8,8 +8,10 @@
         <path d="M2 5h16M2 10h16M2 15h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
     </button>
-    <main class="main-layout__page">
-      <router-outlet></router-outlet>
+    <main class="main-layout__page" #pageScroll>
+      <div class="main-layout__outlet">
+        <router-outlet></router-outlet>
+      </div>
     </main>
   </div>
 

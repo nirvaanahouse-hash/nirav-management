@@ -97,3 +97,48 @@ button {
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
 }
+
+/* ---- Route-change transitions (View Transitions API, enabled via withViewTransitions()) ----
+   Only the routed page animates; the shell (sidebar + navbar) is pinned so it never flashes.
+   `page` is set with `view-transition-name` on the router-outlet wrapper in main-layout. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(page) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(page) {
+  animation: 150ms cubic-bezier(0.4, 0, 1, 1) both route-leave;
+}
+
+::view-transition-new(page) {
+  animation: 320ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both route-enter;
+}
+
+@keyframes route-leave {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.995);
+  }
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+}
+
+/* The global reduced-motion rule uses `*`, which does not match the view-transition
+   pseudo-tree — so opt out explicitly. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(page),
+  ::view-transition-old(page),
+  ::view-transition-new(page) {
+    animation: none !important;
+  }
+}

@@ -31,3 +31,6 @@ studio-management/ios/
 # ---- Misc build output ----
 dist/
 build/
+
+# ---- Claude Code local state ----
+.claude/

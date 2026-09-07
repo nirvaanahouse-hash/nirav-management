@@ -34,6 +34,19 @@ The backend is plain CommonJS JavaScript — no TypeScript or Prisma.
 - Frontend: 4200
 - Backend API: 3000
 
+## Desktop app (Tauri v2)
+- Project lives in `studio-management/src-tauri/`. `tauri.conf.json` `beforeBuildCommand`
+  runs `npm run build:prod`; `frontendDist` = `../dist/studio-management-system/browser`.
+- Local build (needs Rust): from `studio-management/` → `npm run desktop` (dev),
+  `npm run desktop:mac` (universal `.dmg`), `npm run desktop:win` (on Windows).
+- CI: `.github/workflows/desktop-build.yml` builds the universal macOS `.dmg` and the
+  Windows `.msi` / NSIS `-setup.exe` via `tauri-apps/tauri-action`. Run it from the
+  Actions tab, or push a `v*` tag to also publish a draft GitHub Release. Installers are
+  attached to the run as artifacts (`desktop-macos-latest`, `desktop-windows-latest`).
+- The desktop app is only the Angular UI in a WebView — it still calls the API at
+  `env.ts` `apiUrl`, so the `BE/` server + MongoDB must be reachable from the machine
+  running it. Builds are unsigned (no Apple Developer ID / Windows cert).
+
 ## IP & Security (SA-only, `/api/ip/*`, UI at `/sa/ip`)
 - **IP guard** (`middleware/ipGuard.middleware.js`) — allow/block rules in `IpRule`.
   Off until `IpSetting.guardEnabled` is turned on from the UI; loopback is always allowed.

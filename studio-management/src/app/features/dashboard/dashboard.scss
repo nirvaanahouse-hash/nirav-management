@@ -751,3 +751,47 @@
 
   strong { color: var(--text-primary); }
 }
+
+/* ============================================================
+   Entrance animation — cards cascade in when the route opens
+   (plays once per mount; range/data changes don't retrigger it
+   because Angular reuses the card elements).
+   ============================================================ */
+@keyframes dash-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dash__bal .balc,
+  .dash__kpis .kpi,
+  .dash__hero,
+  .dash__main-row--three > .dash__panel,
+  .dash > .dash__panel {
+    animation: dash-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* balance cards */
+  .dash__bal .balc:nth-child(1) { animation-delay: 0.03s; }
+  .dash__bal .balc:nth-child(2) { animation-delay: 0.08s; }
+
+  /* KPI cards (staggered) */
+  @for $i from 1 through 8 {
+    .dash__kpis .kpi:nth-child(#{$i}) {
+      animation-delay: #{0.10s + ($i - 1) * 0.05s};
+    }
+  }
+
+  /* hero + insight panels + recent tickets */
+  .dash__hero { animation-delay: 0.18s; }
+  .dash__main-row--three > .dash__panel:nth-child(1) { animation-delay: 0.30s; }
+  .dash__main-row--three > .dash__panel:nth-child(2) { animation-delay: 0.36s; }
+  .dash__main-row--three > .dash__panel:nth-child(3) { animation-delay: 0.42s; }
+  .dash > .dash__panel { animation-delay: 0.48s; }
+}

@@ -4,6 +4,8 @@
   "private": true,
   "description": "Nirvaana House - Angular frontend (studio-management/) + Node backend (BE/) + Tauri desktop",
   "scripts": {
+    "start": "cd BE && node server.js",
+    "postinstall": "cd BE && npm install",
     "repo:connect": "git remote add origin",
     "repo:set-url": "git remote set-url origin",
     "repo:first-push": "git push -u origin main && git push origin v1.0.0",

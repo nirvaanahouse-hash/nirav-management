@@ -132,3 +132,4 @@ npm run dev
 | Desktop window / bundle / **identifier** / version | `src-tauri/tauri.conf.json` |
 | Desktop icons | `src-tauri/icons/` — regenerate all with `npx tauri icon path/to/1024.png` |
 | Mobile **appId / appName** | `capacitor.config.ts` |
+# niravana-house

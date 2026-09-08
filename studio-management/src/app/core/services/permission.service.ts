@@ -1,7 +1,7 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../env/env';
+import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import {
   MyPermissionsResponse,

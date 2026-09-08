@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, tap } from "rxjs";
 import { AmountEntry, AmountEntryDraft } from "../models/amountEntry.model";
-import { environment } from "../../env/env";
+import { environment } from "../../../environments/environment";
 
 export interface AmountEntryResponse {
   success: boolean;

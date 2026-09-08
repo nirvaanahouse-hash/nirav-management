@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Client, ClientDraft } from '../models/client.model';
-import { environment } from '../../env/env';
+import { environment } from '../../../environments/environment';
 
 export interface ClientListResponse {
   success: boolean;

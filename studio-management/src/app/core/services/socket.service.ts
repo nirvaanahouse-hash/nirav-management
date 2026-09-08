@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed, effect } from "@angular/core";
 import { io, Socket } from "socket.io-client";
 import { AuthService } from "./auth.service";
-import { environment } from "../../env/env";
+import { environment } from "../../../environments/environment";
 import { NotificationService } from "./notification.service";
 import { TicketRecord } from "../models/task.model";
 

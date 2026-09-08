@@ -11,7 +11,7 @@ import {
   UserRole,
 } from "../models/user.model";
 import { StorageService } from "./storage.service";
-import { environment } from "../../env/env";
+import { environment } from "../../../environments/environment";
 
 @Injectable({ providedIn: "root" })
 export class AuthService {

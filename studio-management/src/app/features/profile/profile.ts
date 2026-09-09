@@ -43,6 +43,9 @@ interface Profile {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {
+  /** Largest profile photo we accept (5 MB). */
+  private static readonly MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
   private fb = new FormBuilder();
   private profileService = inject(ProfileService);
   private toastService = inject(ToastService);
@@ -209,6 +212,18 @@ export class ProfileComponent {
       return;
     }
 
+    if (!file.type.startsWith("image/")) {
+      this.toastService.error("Unsupported file", "Please choose an image file.");
+      input.value = "";
+      return;
+    }
+
+    if (file.size > ProfileComponent.MAX_IMAGE_BYTES) {
+      this.toastService.error("Image too large", "Please choose an image up to 5 MB.");
+      input.value = "";
+      return;
+    }
+
     const reader = new FileReader();
 
     reader.onload = () => {
@@ -219,6 +234,8 @@ export class ProfileComponent {
     };
 
     reader.readAsDataURL(file);
+    // Allow re-selecting the same file after a failed/removed upload.
+    input.value = "";
   }
 
   removeImage(): void {

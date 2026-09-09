@@ -39,8 +39,10 @@ app.use(cookieParser());
 // See config/cors.js — FRONTEND_URL may be a comma-separated list.
 const { corsOptions } = require("./config/cors");
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Profile photos are sent as base64 data URLs in the JSON body — a 5 MB image
+// inflates to ~6.85 MB once encoded, so allow 10 MB of headroom.
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // IP allow / block guard — no-op unless enabled from the security settings.
 app.use(ipGuard);

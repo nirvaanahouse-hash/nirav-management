@@ -25,6 +25,7 @@
           @if (memberSince()) {
             <span class="pf-hero__since">Member since {{ memberSince() }}</span>
           }
+          <span class="pf-hero__since">Photo: image up to 5 MB</span>
           @if (profile().image) {
             <button type="button" class="pf-hero__remove" (click)="removeImage()">Remove photo</button>
           }

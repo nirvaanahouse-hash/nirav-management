@@ -6,6 +6,20 @@ const { ERole, DEFAULT_USER_PERMISSIONS } = require("../constants");
 const { getClientIp } = require("../utils/ip");
 const { effectivePermissions } = require("../utils/permissions");
 
+// Auth cookie flags. When the frontend and API sit on different domains
+// (e.g. *.onrender.com), the browser only sends the cookie on XHR if it is
+// SameSite=None + Secure. Set COOKIE_SAMESITE=none on the deployed API.
+// Local dev keeps the default lax / non-secure cookie.
+const COOKIE_SAMESITE = process.env.COOKIE_SAMESITE || "lax";
+const COOKIE_SECURE = process.env.COOKIE_SECURE
+  ? process.env.COOKIE_SECURE === "true"
+  : COOKIE_SAMESITE === "none";
+const authCookieOptions = {
+  httpOnly: true,
+  secure: COOKIE_SECURE,
+  sameSite: COOKIE_SAMESITE,
+};
+
 // Fire-and-forget audit row for a login attempt — never blocks or fails the request.
 const recordLoginEvent = (req, { user, emailTried, success, reason }) => {
   LoginEvent.create({
@@ -156,9 +170,7 @@ const login = async (req, res) => {
     userObj.permissions = effectivePermissions(userObj);
 
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      ...authCookieOptions,
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -179,11 +191,7 @@ const login = async (req, res) => {
 
 // Logout User
 const logout = async (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-  });
+  res.clearCookie("token", authCookieOptions);
 
   res.status(200).json({
     success: true,

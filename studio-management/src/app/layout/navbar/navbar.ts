@@ -14,6 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { SocketService, NotificationData } from '../../core/services/socket.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { LocationService } from '../../core/services/location.service';
 import { ThemeId } from '../../core/models/theme.model';
 
 type NotifTab = 'all' | 'unread';
@@ -41,6 +42,7 @@ export class Navbar {
   readonly showDeleted = signal(false);
 
   readonly profileService = inject(ProfileService);
+  readonly locationService = inject(LocationService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
 
   constructor(

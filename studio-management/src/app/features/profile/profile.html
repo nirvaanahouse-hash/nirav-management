@@ -155,6 +155,35 @@
 
       <section class="pf-card">
         <header class="pf-card__head">
+          <h3>Location sharing</h3>
+          <p>Lets the studio admin see where you are while you're signed in.</p>
+        </header>
+        <div class="pf-fields">
+          <div class="pf-field pf-span">
+            <label class="pf-switch">
+              <input
+                type="checkbox"
+                [checked]="locationService.sharing()"
+                (change)="toggleLocationSharing($any($event.target).checked)"
+              />
+              <span class="pf-switch__track"><span class="pf-switch__thumb"></span></span>
+              <span class="pf-switch__text">
+                Share my location
+                @if (locationService.active()) {
+                  <small class="pf-switch__note pf-switch__note--ok">On — updates every couple of minutes while this app is open.</small>
+                } @else if (locationService.sharing() && locationService.blocked()) {
+                  <small class="pf-switch__note pf-switch__note--warn">Your browser is blocking location. Allow location access for this site to share it.</small>
+                } @else {
+                  <small class="pf-switch__note">Off — your location is not shared.</small>
+                }
+              </span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="pf-card">
+        <header class="pf-card__head">
           <h3>Security</h3>
           <p>Leave blank to keep your current password.</p>
         </header>

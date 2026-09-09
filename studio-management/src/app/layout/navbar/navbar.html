@@ -187,6 +187,19 @@
       }
     </div>
 
+    <!-- Location sharing status -->
+    @if (authService.currentUser()) {
+      @if (locationService.active()) {
+        <a class="navbar__loc navbar__loc--on" routerLink="/profile" title="Your location is shared with the studio admin while you're logged in. Manage it on your profile.">
+          <span class="navbar__loc-dot"></span> Location on
+        </a>
+      } @else if (locationService.sharing() && locationService.blocked()) {
+        <a class="navbar__loc navbar__loc--blocked" routerLink="/profile" title="Location sharing is on but your browser is blocking access. Allow location for this site.">
+          <span class="navbar__loc-dot"></span> Location blocked
+        </a>
+      }
+    }
+
     <!-- User -->
     @if (authService.currentUser(); as user) {
       <div class="navbar__menu-wrap">

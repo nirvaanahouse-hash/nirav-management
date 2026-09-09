@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { EmployeeService, EmployeeActionResponse } from "../../core/services/employee.service";
@@ -9,6 +10,7 @@ import { User } from "../../core/models/user.model";
 import { ToastService } from "../../features/toast/toast.service";
 import { ConfirmDialogService } from "../../features/dialog/confirm-dialog/confirm-dialog.service";
 import { AmountService } from "../../core/services/amount.service";
+import { LocationService, UserLocationView } from "../../core/services/location.service";
 import { AmountEntry, AmountEntryDraft } from "../../core/models/amountEntry.model";
 import { ButtonComponent } from "../../shared/components/button/button";
 import { IconButtonComponent } from "../../shared/components/icon-button/icon-button.component";
@@ -39,6 +41,8 @@ export class UsersComponent {
   private readonly toastService = inject(ToastService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly amountService = inject(AmountService);
+  private readonly locationService = inject(LocationService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly permissions = inject(PermissionService);
@@ -49,6 +53,67 @@ export class UsersComponent {
 
   openPermissions(user: User): void {
     this.router.navigate(["/sa/permissions"], { queryParams: { user: user._id } });
+  }
+
+  // --- Live location ----------------------------------------------------
+  readonly showLocationFor = signal<User | null>(null);
+  readonly locationLoading = signal(false);
+  readonly locationData = signal<UserLocationView | null>(null);
+  readonly locationMapUrl = signal<SafeResourceUrl | null>(null);
+
+  openLocation(user: User): void {
+    this.showLocationFor.set(user);
+    this.loadLocation(user._id);
+  }
+
+  closeLocation(): void {
+    this.showLocationFor.set(null);
+    this.locationData.set(null);
+    this.locationMapUrl.set(null);
+  }
+
+  refreshLocation(): void {
+    const u = this.showLocationFor();
+    if (u) this.loadLocation(u._id);
+  }
+
+  private loadLocation(userId: string): void {
+    this.locationLoading.set(true);
+    this.locationData.set(null);
+    this.locationMapUrl.set(null);
+    this.locationService.getUserLocation(userId).subscribe({
+      next: (res) => {
+        this.locationLoading.set(false);
+        const d = res.data;
+        this.locationData.set(d);
+        if (d && d.lat != null && d.lng != null) {
+          const dLat = 0.004;
+          const dLng = 0.004;
+          const bbox = `${d.lng - dLng}%2C${d.lat - dLat}%2C${d.lng + dLng}%2C${d.lat + dLat}`;
+          const url = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${d.lat}%2C${d.lng}`;
+          this.locationMapUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+        }
+      },
+      error: () => {
+        this.locationLoading.set(false);
+        this.locationData.set(null);
+      },
+    });
+  }
+
+  gmapsLink(d: UserLocationView): string {
+    return `https://www.google.com/maps/search/?api=1&query=${d.lat}%2C${d.lng}`;
+  }
+
+  locationAgo(iso: string | null): string {
+    if (!iso) return "";
+    const secs = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
+    if (secs < 45) return "just now";
+    const mins = Math.round(secs / 60);
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `${hrs} hr ago`;
+    return `${Math.round(hrs / 24)} d ago`;
   }
 
   readonly loading = signal(true);

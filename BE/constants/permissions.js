@@ -50,6 +50,7 @@ const PERMISSION_GROUPS = [
       { key: "users.password", label: "Set / reset user passwords" },
       { key: "users.percentage", label: "Set user profit-share %" },
       { key: "users.permissions", label: "Manage user permissions" },
+      { key: "users.location", label: "See users' live location" },
     ],
   },
   {

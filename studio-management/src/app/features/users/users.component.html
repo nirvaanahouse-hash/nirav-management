@@ -101,6 +101,9 @@
                   <app-icon-button *appCan="'users.permissions'" label="Permissions" (clicked)="openPermissions(employee)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="3.5"></circle><path d="M10 13 20 3m-3 0h4v4"></path><path d="m15.5 4.5 3 3"></path></svg>
                   </app-icon-button>
+                  <app-icon-button *appCan="'users.location'" label="Live location" (clicked)="openLocation(employee)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  </app-icon-button>
                   <app-icon-button *appCan="'users.password'" label="Set password" (clicked)="openPassword(employee)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"></circle><path d="m10.8 12.2 8.7-8.7a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4L20 8.8"></path><path d="m14 6 3 3"></path></svg>
                   </app-icon-button>
@@ -373,6 +376,58 @@
       <ng-container modal-footer>
         <app-button variant="secondary" (clicked)="closeEdit()">Cancel</app-button>
         <app-button [loading]="editSaving()" (clicked)="submitEdit()">Save changes</app-button>
+      </ng-container>
+    </app-modal>
+  }
+
+  @if (showLocationFor(); as u) {
+    <app-modal
+      [title]="'Live location — ' + u.firstName + ' ' + u.lastName"
+      [maxWidth]="560"
+      (close)="closeLocation()"
+    >
+      @if (locationLoading()) {
+        <p class="users-page__pwd-note">Loading location…</p>
+      } @else if (locationData(); as loc) {
+        @if (loc.lat !== null && loc.lng !== null) {
+          <div class="users-loc">
+            <div class="users-loc__map">
+              <iframe
+                [src]="locationMapUrl()"
+                title="User location map"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            <div class="users-loc__meta">
+              <span><strong>Updated:</strong> {{ locationAgo(loc.updatedAt) }}</span>
+              @if (loc.accuracy) {
+                <span><strong>Accuracy:</strong> ±{{ loc.accuracy | number:'1.0-0' }} m</span>
+              }
+              <span class="users-loc__coords">{{ loc.lat | number:'1.5-5' }}, {{ loc.lng | number:'1.5-5' }}</span>
+            </div>
+            <a
+              class="users-loc__gmaps"
+              [href]="gmapsLink(loc)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open in Google Maps &rarr;
+            </a>
+          </div>
+        } @else if (!loc.sharing) {
+          <p class="users-page__pwd-note">{{ u.firstName }} has turned location sharing off.</p>
+        } @else {
+          <p class="users-page__pwd-note">
+            No location yet. It appears once {{ u.firstName }} signs in and allows location access in their browser.
+          </p>
+        }
+      } @else {
+        <p class="users-page__pwd-note">Could not load location. Please try again.</p>
+      }
+      <ng-container modal-footer>
+        <app-button variant="secondary" (clicked)="closeLocation()">Close</app-button>
+        <app-button (clicked)="refreshLocation()">Refresh</app-button>
       </ng-container>
     </app-modal>
   }

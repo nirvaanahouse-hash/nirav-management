@@ -35,32 +35,10 @@ app.set("trust proxy", process.env.TRUST_PROXY || "loopback, linklocal, uniquelo
 
 app.use(cookieParser());
 
-// Allow the Angular dev server on localhost AND on the LAN IP (same WiFi devices).
-// FRONTEND_URL may be a comma-separated list of allowed origins.
-const allowedOrigins = (
-  process.env.FRONTEND_URL ||
-  "http://localhost:4200,http://192.168.1.73:4200"
-)
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
-
-app.use(
-  cors({
-    origin(origin, callback) {
-      // Non-browser clients (curl, mobile webview) send no Origin header.
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      // Also allow any private LAN origin on the dev port, so the IP can change.
-      if (/^http:\/\/(?:10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.)[\d.]+:4200$/.test(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS: " + origin));
-    },
-    credentials: true,
-  }),
-);
+// Allowed browser origins (localhost dev, LAN testing, deployed frontend).
+// See config/cors.js — FRONTEND_URL may be a comma-separated list.
+const { corsOptions } = require("./config/cors");
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

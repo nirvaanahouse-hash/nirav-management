@@ -9,18 +9,10 @@ const HOST = process.env.HOST || "0.0.0.0";
 
 const server = http.createServer(app);
 
-const socketOrigin =
-  process.env.FRONTEND_URL || [
-    "http://localhost:4200",
-    "http://192.168.1.73:4200",
-    /^http:\/\/(?:10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.)[\d.]+:4200$/,
-  ];
+const { corsOptions } = require("./config/cors");
 
 const io = new Server(server, {
-  cors: {
-    origin: socketOrigin,
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 io.use((socket, next) => {

@@ -18,6 +18,7 @@ import {
 } from "@angular/forms";
 import { AuthService } from "../../core/services/auth.service";
 import { ProfileService, ProfileData } from "../../core/services/profile.service";
+import { LocationService } from "../../core/services/location.service";
 import { ToastService } from "../../features/toast/toast.service";
 
 interface Profile {
@@ -46,6 +47,12 @@ export class ProfileComponent {
   private fb = new FormBuilder();
   private profileService = inject(ProfileService);
   private toastService = inject(ToastService);
+  readonly locationService = inject(LocationService);
+
+  toggleLocationSharing(on: boolean): void {
+    this.locationService.setSharing(on);
+    this.toastService.success(on ? "Location sharing on." : "Location sharing off.");
+  }
 
   readonly profile = signal<Profile>({
     image: "",

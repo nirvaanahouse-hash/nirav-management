@@ -32,5 +32,8 @@ studio-management/ios/
 dist/
 build/
 
+# ---- Runtime uploads (user profile photos, not source) ----
+BE/uploads/
+
 # ---- Claude Code local state ----
 .claude/

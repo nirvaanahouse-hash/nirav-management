@@ -34,8 +34,19 @@ export class ProfileService {
   private readonly _profile = signal<ProfileData | null>(null);
   readonly profile = this._profile.asReadonly();
 
-  /** Current user's profile photo (data URL), shared with the navbar avatar. */
-  readonly photo = computed(() => this._profile()?.image || "");
+  /** Current user's profile photo as a ready-to-use <img> URL, shared with the navbar avatar. */
+  readonly photo = computed(() => this.resolveImageUrl(this._profile()?.image));
+
+  /**
+   * Resolve a stored `image` value to something an <img> can load.
+   * Photos are now files served by the API (`uploads/profile/…`); legacy base64
+   * data URLs and absolute URLs are passed through untouched.
+   */
+  resolveImageUrl(value: string | null | undefined): string {
+    if (!value) return "";
+    if (/^(data:|blob:|https?:\/\/)/i.test(value)) return value;
+    return `${environment.apiUrl}${value.replace(/^\/+/, "")}`;
+  }
 
   getProfile(): Observable<ProfileResponse> {
     return this.http
@@ -53,6 +64,42 @@ export class ProfileService {
       .pipe(
         tap(() =>
           this._profile.update((prev) => (prev ? { ...prev, ...data } : prev)),
+        ),
+      );
+  }
+
+  /** Upload / replace the profile photo. Sends the raw file as multipart/form-data. */
+  uploadPhoto(file: File): Observable<ProfileResponse> {
+    const body = new FormData();
+    body.append("image", file);
+    return this.http
+      .post<ProfileResponse>(`${environment.apiUrl}api/profile/image`, body, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap(
+          (res) =>
+            res?.success &&
+            this._profile.update((prev) =>
+              prev ? { ...prev, image: res.data.image } : prev,
+            ),
+        ),
+      );
+  }
+
+  /** Remove the profile photo (clears the field and deletes the file server-side). */
+  deletePhoto(): Observable<ProfileResponse> {
+    return this.http
+      .delete<ProfileResponse>(`${environment.apiUrl}api/profile/image`, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap(
+          (res) =>
+            res?.success &&
+            this._profile.update((prev) =>
+              prev ? { ...prev, image: "" } : prev,
+            ),
         ),
       );
   }

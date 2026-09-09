@@ -1,7 +1,25 @@
+const fs = require("fs");
+const path = require("path");
 const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
 const Profile = require("../models/profile.model");
 const { ERole } = require("../constants");
+const { UPLOADS_ROOT } = require("../middleware/upload.middleware");
+
+// Turn a stored value like "uploads/profile/x.png" into an absolute path on disk.
+// Returns null for external URLs, legacy base64 data URLs, or anything that would
+// escape the uploads folder (path-traversal guard).
+function resolveUploadPath(stored) {
+  if (!stored || /^(https?:\/\/|data:)/i.test(stored)) return null;
+  const rel = String(stored).replace(/^\/+/, "").replace(/^uploads\//, "");
+  const abs = path.resolve(UPLOADS_ROOT, rel);
+  return abs === UPLOADS_ROOT || abs.startsWith(UPLOADS_ROOT + path.sep) ? abs : null;
+}
+
+function removeUploadedFile(stored) {
+  const abs = resolveUploadPath(stored);
+  if (abs) fs.promises.unlink(abs).catch(() => {});
+}
 
 // Get Profile
 const getProfile = async (req, res) => {
@@ -39,13 +57,14 @@ const getProfile = async (req, res) => {
 const postProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { image, gender, homeAddress, dob, percentage } = req.body;
+    // `image` is intentionally not accepted here — the photo is managed via the
+    // dedicated /profile/image upload endpoints and stored on disk, not in Mongo.
+    const { gender, homeAddress, dob, percentage } = req.body;
 
     const profile = await Profile.findOneAndUpdate(
       { userId },
       {
         $set: {
-          ...(image !== undefined ? { image } : {}),
           ...(gender !== undefined ? { gender } : {}),
           ...(homeAddress !== undefined ? { homeAddress } : {}),
           ...(dob !== undefined ? { dob } : {}),
@@ -84,7 +103,6 @@ const updateProfile = async (req, res) => {
       homeAddress,
       dob,
       percentage,
-      image,
     } = req.body;
 
     // Role is backend-controlled — ignore client-provided role unless requester is SA
@@ -131,7 +149,6 @@ const updateProfile = async (req, res) => {
           ...(homeAddress !== undefined ? { homeAddress } : {}),
           ...(dob !== undefined ? { dob } : {}),
           ...(percentage !== undefined ? { percentage } : {}),
-          ...(image !== undefined ? { image } : {}),
         },
       },
       { new: true, upsert: true }
@@ -152,4 +169,73 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, postProfile, updateProfile };
+// Upload / replace the current user's profile photo.
+// The file is already on disk (multer) by the time we get here — we just record
+// its relative path and clean up the previous one.
+const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image uploaded." });
+    }
+
+    const userId = req.user.id;
+    const relPath = `uploads/profile/${req.file.filename}`;
+
+    const prev = await Profile.findOne({ userId }).select("image").lean();
+
+    const saved = await Profile.findOneAndUpdate(
+      { userId },
+      { $set: { image: relPath } },
+      { new: true, upsert: true }
+    );
+
+    if (prev && prev.image && prev.image !== relPath) {
+      removeUploadedFile(prev.image);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Photo updated successfully",
+      data: { image: saved.image },
+    });
+  } catch (error) {
+    // DB write failed — don't leave the just-uploaded file orphaned on disk.
+    if (req.file && req.file.path) {
+      fs.promises.unlink(req.file.path).catch(() => {});
+    }
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Remove the current user's profile photo (clears the field and deletes the file).
+const deleteProfileImage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const prev = await Profile.findOne({ userId }).select("image").lean();
+
+    await Profile.findOneAndUpdate(
+      { userId },
+      { $set: { image: "" } },
+      { new: true, upsert: true }
+    );
+
+    if (prev && prev.image) removeUploadedFile(prev.image);
+
+    return res.status(200).json({
+      success: true,
+      message: "Photo removed",
+      data: { image: "" },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {
+  getProfile,
+  postProfile,
+  updateProfile,
+  uploadProfileImage,
+  deleteProfileImage,
+};

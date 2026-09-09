@@ -66,6 +66,7 @@ export class ProfileComponent {
   });
 
   readonly isSaving = signal(false);
+  readonly isUploadingPhoto = signal(false);
   readonly passwordVisible = signal(false);
   readonly confirmPasswordVisible = signal(false);
 
@@ -104,7 +105,7 @@ export class ProfileComponent {
       next: (response) => {
         if (response.success && response.data) {
           this.profile.set({
-            image: response.data.image || "",
+            image: this.profileService.resolveImageUrl(response.data.image),
             fullName: `${response.data.firstName || ''} ${response.data.lastName || ''}`.trim(),
             username: response.data.userName || "",
             email: response.data.email || "",
@@ -207,6 +208,8 @@ export class ProfileComponent {
     const input = event.target as HTMLInputElement;
 
     const file = input.files?.[0];
+    // Allow re-selecting the same file after a failed/removed upload.
+    input.value = "";
 
     if (!file) {
       return;
@@ -214,35 +217,47 @@ export class ProfileComponent {
 
     if (!file.type.startsWith("image/")) {
       this.toastService.error("Unsupported file", "Please choose an image file.");
-      input.value = "";
       return;
     }
 
     if (file.size > ProfileComponent.MAX_IMAGE_BYTES) {
       this.toastService.error("Image too large", "Please choose an image up to 5 MB.");
-      input.value = "";
       return;
     }
 
-    const reader = new FileReader();
+    if (this.isUploadingPhoto()) return;
+    this.isUploadingPhoto.set(true);
 
-    reader.onload = () => {
-      this.profile.update((prev) => ({
-        ...prev,
-        image: reader.result as string,
-      }));
-    };
-
-    reader.readAsDataURL(file);
-    // Allow re-selecting the same file after a failed/removed upload.
-    input.value = "";
+    this.profileService.uploadPhoto(file).subscribe({
+      next: (res) => {
+        this.isUploadingPhoto.set(false);
+        this.profile.update((prev) => ({
+          ...prev,
+          image: this.profileService.resolveImageUrl(res.data?.image),
+        }));
+        this.toastService.success("Photo updated.");
+      },
+      error: () => {
+        // The HTTP interceptor already surfaces the server message as a toast.
+        this.isUploadingPhoto.set(false);
+      },
+    });
   }
 
   removeImage(): void {
-    this.profile.update((prev) => ({
-      ...prev,
-      image: "",
-    }));
+    if (this.isUploadingPhoto()) return;
+    this.isUploadingPhoto.set(true);
+
+    this.profileService.deletePhoto().subscribe({
+      next: () => {
+        this.isUploadingPhoto.set(false);
+        this.profile.update((prev) => ({ ...prev, image: "" }));
+        this.toastService.success("Photo removed.");
+      },
+      error: () => {
+        this.isUploadingPhoto.set(false);
+      },
+    });
   }
 
   saveProfile(): void {
@@ -272,8 +287,7 @@ export class ProfileComponent {
       gender: raw.gender,
       dob: raw.dob,
       // `percentage` is intentionally omitted — it's managed by SA on the Users page.
-      // Always send image (even "") so clearing the photo persists.
-      image: this.profile().image ?? "",
+      // `image` is omitted too — the photo is uploaded separately via ProfileService.
     };
 
     if (raw.password) {

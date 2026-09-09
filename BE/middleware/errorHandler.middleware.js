@@ -29,7 +29,9 @@ function errorHandler(error, req, res, next) {
     error.code === 11000;
 
   const errors = formatMongooseErrors(error);
-  const status = mongooseLike ? 400 : 500;
+  // Honour an explicit status (e.g. 404 from express.static with fallthrough:false).
+  const explicitStatus = Number(error.status || error.statusCode) || 0;
+  const status = explicitStatus || (mongooseLike ? 400 : 500);
 
   return res.status(status).json({
     success: false,

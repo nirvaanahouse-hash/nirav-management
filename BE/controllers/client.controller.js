@@ -5,6 +5,8 @@ const { calculateTicketFinancials } = require("../utils/ticket-financials");
 const { buildClientInvoicePdf } = require("../utils/invoice-pdf");
 const { TICKET_STATUS } = require("../constants");
 const { hasPermission } = require("../utils/permissions");
+const { removeUploadedFile } = require("../utils/uploads");
+const fs = require("fs");
 
 // Get all clients (active by default, SA can see all)
 const getClient = async (req, res) => {
@@ -520,6 +522,66 @@ const downloadClientBillingPdf = async (req, res) => {
   }
 };
 
+// Upload / replace a client's photo. Multer has already written the file by the
+// time we get here — record its path and delete the one it replaces.
+const uploadClientImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image uploaded." });
+    }
+
+    const client = await Client.findById(req.params.id).select("image");
+    if (!client) {
+      removeUploadedFile(`uploads/client/${req.file.filename}`);
+      return res.status(404).json({ success: false, message: "Client not found" });
+    }
+
+    const previous = client.image;
+    client.image = `uploads/client/${req.file.filename}`;
+    await client.save();
+
+    if (previous && previous !== client.image) {
+      removeUploadedFile(previous);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Client photo updated",
+      data: { _id: String(client._id), image: client.image },
+    });
+  } catch (error) {
+    // DB write failed — don't leave the just-uploaded file orphaned on disk.
+    if (req.file && req.file.path) {
+      fs.promises.unlink(req.file.path).catch(() => {});
+    }
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Remove a client's photo (clears the field and deletes the file).
+const deleteClientImage = async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id).select("image");
+    if (!client) {
+      return res.status(404).json({ success: false, message: "Client not found" });
+    }
+
+    const previous = client.image;
+    client.image = "";
+    await client.save();
+
+    if (previous) removeUploadedFile(previous);
+
+    return res.status(200).json({
+      success: true,
+      message: "Client photo removed",
+      data: { _id: String(client._id), image: "" },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getClient,
   getClientById,
@@ -531,4 +593,6 @@ module.exports = {
   reactivateClient,
   getClientBilling,
   downloadClientBillingPdf,
+  uploadClientImage,
+  deleteClientImage,
 };

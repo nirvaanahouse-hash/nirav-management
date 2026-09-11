@@ -10,6 +10,12 @@ export interface TableColumn<T> {
   format?: (row: T) => string;
   /** Whether this column renders as a pill badge. */
   badge?: boolean;
+  /**
+   * Renders a round photo before the cell text — return a ready-to-use image
+   * URL, or an empty value to fall back to the text's initials. Shows in the
+   * table cell and, when this is the card heading, on the phone card too.
+   */
+  avatar?: (row: T) => string | null | undefined;
   /** Semantic badge variant (neutral | accent | success | warning | danger | info). */
   badgeVariant?: (row: T) => string;
   /** Optional style for the cell content. */

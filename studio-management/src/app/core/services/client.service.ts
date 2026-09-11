@@ -154,6 +154,41 @@ export class ClientService {
       );
   }
 
+  /** Upload / replace a client's photo. Sends the raw file as multipart/form-data. */
+  uploadImage(id: string, file: File): Observable<{ success: boolean; data: { image: string } }> {
+    const body = new FormData();
+    body.append('image', file);
+    return this.http
+      .post<{ success: boolean; data: { image: string } }>(
+        `${environment.apiUrl}api/client/${id}/image`,
+        body,
+        { withCredentials: true },
+      )
+      .pipe(tap((res) => this.patchImage(id, res.data.image)));
+  }
+
+  /** Remove a client's photo (clears the field and deletes the file server-side). */
+  deleteImage(id: string): Observable<{ success: boolean; data: { image: string } }> {
+    return this.http
+      .delete<{ success: boolean; data: { image: string } }>(
+        `${environment.apiUrl}api/client/${id}/image`,
+        { withCredentials: true },
+      )
+      .pipe(tap(() => this.patchImage(id, '')));
+  }
+
+  private patchImage(id: string, image: string): void {
+    this._clients.update((list) => list.map((c) => (c._id === id ? { ...c, image } : c)));
+  }
+
+  /** Resolve a stored `image` path to something an <img> can load. */
+  imageUrl(image?: string | null): string {
+    const value = (image || '').trim();
+    if (!value) return '';
+    if (/^(https?:\/\/|data:)/i.test(value)) return value;
+    return `${environment.apiUrl}${value.replace(/^\/+/, '')}`;
+  }
+
   getPayments(clientId: string): Observable<{ success: boolean; message: string; data: any[] }> {
     return this.http.get<{ success: boolean; message: string; data: any[] }>(
       `${environment.apiUrl}api/client/${clientId}/payments`,

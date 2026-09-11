@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { requirePermission } = require('../middleware/permission.middleware');
+const { handleClientImageUpload } = require('../middleware/upload.middleware');
 const {
   getClient,
   getClientById,
@@ -12,6 +13,8 @@ const {
   reactivateClient,
   getClientBilling,
   downloadClientBillingPdf,
+  uploadClientImage,
+  deleteClientImage,
 } = require('../controllers/client.controller');
 const { mongoIdParam } = require('../middleware/validate.middleware');
 const {
@@ -30,5 +33,9 @@ router.post('/client', requirePermission('clients.create'), validateCreateClient
 router.put('/client/:id', mongoIdParam, requirePermission('clients.edit'), validateUpdateClient, updateClient);
 router.delete('/client/:id', mongoIdParam, requirePermission('clients.delete'), deleteClient);
 router.put('/client/:id/reactivate', mongoIdParam, requirePermission('clients.edit'), reactivateClient);
+
+// Client photo — stored on disk, only the path is kept in Mongo.
+router.post('/client/:id/image', mongoIdParam, requirePermission('clients.edit'), handleClientImageUpload, uploadClientImage);
+router.delete('/client/:id/image', mongoIdParam, requirePermission('clients.edit'), deleteClientImage);
 
 module.exports = router;

@@ -46,6 +46,11 @@
                     <span [class]="'badge badge--' + col.badgeVariant(row)">
                       {{ cellText(col, row) }}
                     </span>
+                  } @else if (col.avatar) {
+                    <span class="app-table__identity">
+                      <app-avatar size="sm" [photo]="col.avatar(row)" [name]="cellText(col, row)" />
+                      <span>{{ cellText(col, row) }}</span>
+                    </span>
                   } @else {
                     {{ cellText(col, row) }}
                   }
@@ -70,6 +75,11 @@
             @if (primaryColumn(); as pcol) {
               @if (pcol.badge && pcol.badgeVariant) {
                 <span [class]="'badge badge--' + pcol.badgeVariant(row)">{{ cellText(pcol, row) }}</span>
+              } @else if (pcol.avatar) {
+                <div class="app-card__identity">
+                  <app-avatar [photo]="pcol.avatar(row)" [name]="cellText(pcol, row)" />
+                  <h4 class="app-card__title">{{ cellText(pcol, row) }}</h4>
+                </div>
               } @else {
                 <h4 class="app-card__title">{{ cellText(pcol, row) }}</h4>
               }
@@ -90,7 +100,14 @@
               @for (col of detailColumns(); track col.key) {
                 <div class="app-card__row">
                   <dt>{{ col.label }}</dt>
-                  <dd>{{ cellText(col, row) }}</dd>
+                  @if (col.avatar) {
+                    <dd class="app-card__identity">
+                      <app-avatar size="sm" [photo]="col.avatar(row)" [name]="cellText(col, row)" />
+                      <span>{{ cellText(col, row) }}</span>
+                    </dd>
+                  } @else {
+                    <dd>{{ cellText(col, row) }}</dd>
+                  }
                 </div>
               }
             </dl>

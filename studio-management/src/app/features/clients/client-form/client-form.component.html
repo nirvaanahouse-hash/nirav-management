@@ -1,4 +1,19 @@
 <form [formGroup]="form" class="client-form" (ngSubmit)="onSubmit()">
+  <!-- Photo. Uploaded after the client is saved, so a new client works too. -->
+  <div class="client-photo">
+    <app-avatar class="client-photo__preview" [photo]="photoUrl()" [name]="form.controls.name.value" />
+    <div class="client-photo__actions">
+      <label class="client-photo__pick">
+        <input type="file" accept="image/*" (change)="onPhotoPicked($event)" hidden />
+        <span>{{ hasPhoto() ? 'Change photo' : 'Add photo' }}</span>
+      </label>
+      @if (hasPhoto()) {
+        <app-button type="button" variant="ghost" size="sm" (clicked)="removePhoto()">Remove</app-button>
+      }
+      <small class="client-photo__hint">JPG, PNG or WebP up to 5 MB.</small>
+    </div>
+  </div>
+
   <div class="client-form__row">
     <app-form-field
       label="Full Name"

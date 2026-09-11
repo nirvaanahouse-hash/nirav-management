@@ -163,6 +163,8 @@ const getTickets = async (req, res) => {
         createdByName: nameOf(creatorDetails, ticketObj.createdByName),
         assignedEmployeeName: nameOf(employeeDetails, ""),
         clientName: clientDetails ? clientDetails.name || "" : "",
+        // Client photo, so ticket rows can show the same avatar as the client list.
+        clientPhoto: clientDetails ? clientDetails.image || "" : "",
         ...financials,
         hrPrice: Number(t.hrPrice || 0),
         // What the studio still owes the assigned employee for this ticket.

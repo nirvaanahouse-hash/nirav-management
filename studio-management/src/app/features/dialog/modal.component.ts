@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, HostListener, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  afterNextRender,
+  inject,
+  input,
+  output,
+} from '@angular/core';
 
 @Component({
   selector: 'app-modal',
@@ -7,7 +17,32 @@ import { ChangeDetectionStrategy, Component, HostListener, input, output } from 
   templateUrl:'./modal.component.html',
   styleUrl: './modal.component.scss',
 })
-export class ModalComponent {
+export class ModalComponent implements OnDestroy {
+  private readonly host = inject(ElementRef<HTMLElement>);
+
+  constructor() {
+    /**
+     * Dialogs are declared deep inside `.main-layout__outlet`, which carries
+     * `view-transition-name: page` for the route animation — and that forms a
+     * stacking context. Any z-index in here is therefore scoped to that
+     * subtree, so the fixed bottom tab bar (z-index 50, at the root) painted
+     * straight over the sheet and hid its Save / Cancel row on phones.
+     *
+     * Moving the host to <body> puts the dialog back in the root stacking
+     * context, where its z-index actually means something.
+     */
+    // afterNextRender, not the constructor: Angular inserts the host element
+    // into its declared position after the component is built, which would
+    // undo an earlier move.
+    afterNextRender(() => document.body.appendChild(this.host.nativeElement));
+  }
+
+  ngOnDestroy(): void {
+    // Angular would look for this element under its original parent, so take
+    // it out ourselves now that it lives on <body>.
+    this.host.nativeElement.remove();
+  }
+
   title = input<string>('');
   maxWidth = input<number>(560);
   hasFooter = input<boolean>(true);

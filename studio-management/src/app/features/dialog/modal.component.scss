@@ -95,7 +95,10 @@
   .app-modal {
     width: 100%;
     max-width: none !important;
-    max-height: 92dvh;
+    /* Leave the app bar showing above the sheet, so the sheet can never be
+       taller than the space it actually has — the footer then always lands
+       on screen. The tab bar below is covered by the backdrop. */
+    max-height: calc(100dvh - var(--navbar-h-mobile) - env(safe-area-inset-top, 0px));
     border-radius: var(--r-lg) var(--r-lg) 0 0;
     border-bottom: none;
     animation: modal-sheet-up var(--transition-slow);

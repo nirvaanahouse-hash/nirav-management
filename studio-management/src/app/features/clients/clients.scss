@@ -110,6 +110,14 @@
 .work-view-filters__search { flex: 1; min-width: 220px; }
 .work-view-filters__select { cursor: pointer; }
 
+/* Work / payment-history tables live inside a modal — on a phone sheet they
+   have to scroll sideways rather than widen it. */
+.work-view-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .work-view-table {
   width: 100%;
   border-collapse: collapse;
@@ -453,8 +461,14 @@
     gap: var(--sp-4);
   }
 
-  .client-page__actions .ui-btn {
-    flex: 1;
+  /* Row actions: six icon buttons on this page — let them wrap in the card's
+     action row instead of overflowing it. */
+  .client-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--sp-2);
+    width: 100%;
   }
 
   .client-toolbar {
@@ -486,11 +500,28 @@
     gap: var(--sp-2);
   }
 
-  /* Wide, hand-rolled tables keep their own horizontal scroller. */
+  /* Wide, hand-rolled tables scroll inside their modal sheet — squeezing
+     seven columns into 375px makes them unreadable. */
   .work-view-table-wrap,
   .billing__table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .work-view-table {
+    min-width: 620px;
+  }
+
+  .billing__table {
+    min-width: 520px;
+  }
+
+  .work-view-table th,
+  .work-view-table td,
+  .billing__table th,
+  .billing__table td {
+    padding: var(--sp-2) var(--sp-3);
+    white-space: nowrap;
   }
 
   .billing__range {

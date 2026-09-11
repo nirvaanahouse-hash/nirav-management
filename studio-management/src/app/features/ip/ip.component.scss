@@ -355,9 +355,15 @@
 
   .ip-panel__actions {
     display: flex;
+    gap: var(--sp-2);
 
-    .ui-btn {
-      flex: 1;
+    ::ng-deep app-button {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    ::ng-deep .ui-btn {
+      width: 100%;
     }
   }
 

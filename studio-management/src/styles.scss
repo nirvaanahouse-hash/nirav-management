@@ -169,8 +169,7 @@ button {
     max-width: 100%;
   }
 
-  /* ---- filter strips scroll sideways instead of wrapping into a wall ---- */
-  .tickets-page__filters,
+  /* ---- the audit-log filter strip scrolls sideways ---- */
   .ip-filters {
     overflow-x: auto;
     scroll-snap-type: x proximity;

@@ -124,18 +124,29 @@
       overscroll-behavior: contain;
     }
 
-    /* Footer buttons stack full-width and clear the home indicator. */
+    /* Footer buttons share the width and clear the home indicator.
+       The buttons are projected content, so they only match through
+       ::ng-deep — a plain `> *` here carries this component's scoping
+       attribute and silently matches nothing. */
     &__footer {
-      position: sticky;
-      bottom: 0;
       padding: var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
       gap: var(--sp-2);
 
-      > * {
-        flex: 1;
+      /* A footer may hold the buttons directly (ng-container) or wrap them
+         in one element (the confirm dialog) — stretch either shape. */
+      ::ng-deep > * {
+        display: flex;
+        flex: 1 1 0;
+        gap: var(--sp-2);
+        min-width: 0;
       }
 
-      .ui-btn {
+      ::ng-deep app-button {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      ::ng-deep .ui-btn {
         width: 100%;
         min-height: var(--tap-target);
       }

@@ -26,13 +26,17 @@ const locationRoutes = require("./routes/location.routes");
 const ipRoutes = require("./routes/ip.routes");
 const permissionRoutes = require("./routes/permission.routes");
 const comparisonRoutes = require("./routes/comparison.routes");
+const ticketTypeRoutes = require("./routes/ticketType.routes");
 const { seedUserPermissions } = require("./utils/seed-permissions");
+const { seedTicketTypes } = require("./utils/seed-ticket-types");
 
 const app = express();
 
 connectDB();
 // One-time, idempotent backfill so nobody is locked out by the permission layer.
 seedUserPermissions();
+// First-boot copy of the built-in ticket types into their SA-managed collection.
+seedTicketTypes();
 
 // Needed so req.ip reflects the real client behind a LAN proxy / phone.
 app.set("trust proxy", process.env.TRUST_PROXY || "loopback, linklocal, uniquelocal");
@@ -83,6 +87,7 @@ app.use("/api", locationRoutes);
 app.use("/api", ipRoutes);
 app.use("/api", permissionRoutes);
 app.use("/api", comparisonRoutes);
+app.use("/api", ticketTypeRoutes);
 
 app.use(errorHandler);
 

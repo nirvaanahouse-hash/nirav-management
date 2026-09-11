@@ -69,3 +69,47 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--r-lg);
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .tickets-page {
+    gap: var(--sp-4);
+  }
+
+  /* Search on its own row; the three filters scroll sideways underneath. */
+  .tickets-page__toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2);
+  }
+
+  .tickets-page__search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tickets-page__filters {
+    display: flex;
+    gap: var(--sp-2);
+  }
+
+  .tickets-page__filter {
+    min-width: 0;
+    flex: 0 0 auto;
+    max-width: 60vw;
+  }
+
+  /* The card list replaces the table, so drop the table's width floor. */
+  .tickets-page__table {
+    overflow: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+
+    app-table {
+      min-width: 0;
+      display: block;
+    }
+  }
+}

@@ -50,6 +50,12 @@
   --sidebar-w-collapsed: 76px;
   --navbar-h: 68px;
   --content-max: 1440px;
+
+  // Phone shell (see layout/mobile-nav). The tab bar is fixed, so every
+  // scrolling surface reserves this much room at the bottom.
+  --navbar-h-mobile: 56px;
+  --mobile-nav-h: 60px;
+  --tap-target: 44px;
 }
 
 @mixin surface-card {

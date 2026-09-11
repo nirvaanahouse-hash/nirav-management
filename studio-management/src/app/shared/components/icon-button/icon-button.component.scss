@@ -50,3 +50,17 @@
     }
   }
 }
+
+/* Phone: row actions need a real tap target (28px is finger-hostile). */
+@media (max-width: 768px) {
+  .icon-button {
+    min-width: 40px;
+    min-height: 40px;
+    padding: var(--sp-2);
+  }
+
+  :host ::ng-deep svg {
+    width: 18px;
+    height: 18px;
+  }
+}

@@ -44,6 +44,26 @@ export class TableComponent<T> {
     });
   });
 
+  /**
+   * Phone layout. Under 769px the table is swapped for a card list (CSS only —
+   * both markups render, one is hidden), so the columns are regrouped:
+   * one heading, the badge columns as chips, the rest as label/value rows.
+   */
+  private readonly mobileColumns = computed(() => this.columns().filter((c) => !c.hideOnMobile));
+
+  primaryColumn = computed<TableColumn<T> | null>(() => {
+    const cols = this.mobileColumns();
+    return cols.find((c) => c.primary) ?? cols.find((c) => !c.badge) ?? cols[0] ?? null;
+  });
+
+  badgeColumns = computed(() =>
+    this.mobileColumns().filter((c) => c.badge && c !== this.primaryColumn()),
+  );
+
+  detailColumns = computed(() =>
+    this.mobileColumns().filter((c) => !c.badge && c !== this.primaryColumn()),
+  );
+
   totalPages = computed(() => Math.max(1, Math.ceil(this.sortedRows().length / this.pageSize())));
   startIndex = computed(() => (this.page() - 1) * this.pageSize());
   endIndex = computed(() => Math.min(this.startIndex() + this.pageSize(), this.rows().length));

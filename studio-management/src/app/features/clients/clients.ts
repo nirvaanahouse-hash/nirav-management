@@ -34,6 +34,7 @@ import { AuthService } from "../../core/services/auth.service";
 import { UserService } from "../../core/services/user.service";
 import { User } from "../../core/models/user.model";
 import { AmountService } from "../../core/services/amount.service";
+import { TicketMetaService } from "../../core/services/ticket-meta.service";
 import { AmountEntry, AmountEntryDraft } from "../../core/models/amountEntry.model";
 
 type StatusFilter = "all" | ClientStatus;
@@ -63,6 +64,7 @@ export class ClientsComponent {
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private amountService = inject(AmountService);
+  private ticketMeta = inject(TicketMetaService);
 
    showPaymentEntry = signal<Client | null>(null);
   paymentAmount = 0;
@@ -183,6 +185,8 @@ export class ClientsComponent {
   constructor() {
     this.fetchClients();
     this.loadEmployees();
+    // Billing rows show ticket-type names from the SA-managed registry.
+    this.ticketMeta.ensureLoaded();
   }
 
   private fetchClients(): void {
@@ -511,17 +515,7 @@ export class ClientsComponent {
   });
 
   formatTicketType(type: string): string {
-    const map: Record<string, string> = {
-      weddingJob: "Wedding JOB",
-      preweddingJob: "Prewedding JOB",
-      babyShowerJob: "Baby Shower JOB",
-      weddingHighlight: "Wedding HighLight",
-      preweddingHighlight: "Prewedding HighLight",
-      babyShowerHighlight: "Baby Shower HighLight",
-      reels: "Reels",
-      shortFilm: "Short Film",
-    };
-    return map[type] || type;
+    return this.ticketMeta.typeLabel(type);
   }
 
   formatStatus(s: string): string {

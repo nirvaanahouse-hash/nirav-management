@@ -142,3 +142,90 @@ button {
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   Phone shell (≤768px)
+   The app ships as an APK, so the small-screen layout is a first-class target,
+   not a fallback: no horizontal scrolling, thumb-sized controls, and chrome
+   that clears the status bar and the home indicator.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  html,
+  body {
+    /* Stops iOS/Android rubber-banding the whole document behind the shell. */
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    font-size: var(--fs-base);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Nothing may push the viewport sideways. */
+  .main-layout,
+  .main-layout__page,
+  .main-layout__outlet {
+    max-width: 100%;
+  }
+
+  /* ---- filter strips scroll sideways instead of wrapping into a wall ---- */
+  .tickets-page__filters,
+  .ip-filters {
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--sp-1);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    > * {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+    }
+  }
+
+  /* ---- form controls: thumb-sized, and never zoom on focus ----
+     !important because every page styles its own inputs with a class, which
+     outranks this element selector — and a sub-16px font makes mobile Safari
+     zoom the whole page the moment a field takes focus. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: var(--tap-target);
+  }
+
+  textarea {
+    min-height: 96px;
+  }
+
+  /* Any remaining multi-column form grid collapses to one column. */
+  .ip-limits__grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---- charts and wide blocks keep their own scroller ---- */
+  .chart-scroll,
+  pre,
+  .app-table-wrap {
+    overflow-x: auto;
+  }
+
+  /* Long ids / emails wrap rather than widen the page. */
+  .app-card dd,
+  .badge {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Landscape phones / small tablets: keep the tab bar but relax the padding. */
+@media (max-width: 768px) and (orientation: landscape) {
+  .main-layout__page {
+    padding-left: var(--sp-5);
+    padding-right: var(--sp-5);
+  }
+}

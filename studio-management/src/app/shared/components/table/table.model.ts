@@ -14,6 +14,13 @@ export interface TableColumn<T> {
   badgeVariant?: (row: T) => string;
   /** Optional style for the cell content. */
   cellClass?: (row: T) => string;
+  /**
+   * Phone layout (the table becomes a card list under 769px):
+   * `primary` makes this the card heading — otherwise the first non-badge
+   * column is used; `hideOnMobile` leaves the field off the card entirely.
+   */
+  primary?: boolean;
+  hideOnMobile?: boolean;
 }
 
 export interface SortState<T> {

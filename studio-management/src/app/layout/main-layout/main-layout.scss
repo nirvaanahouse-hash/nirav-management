@@ -1,36 +1,17 @@
 .main-layout {
   display: flex;
-  height: 100vh;
+  height: 100vh; /* fallback for older Android WebViews */
+  height: 100dvh;
   overflow: hidden;
 
   &__content {
     flex: 1;
     min-width: 0;
     height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     position: relative;
-  }
-
-  &__mobile-menu-btn {
-    display: none;
-    position: fixed;
-    top: var(--sp-3);
-    left: var(--sp-3);
-    z-index: 35;
-    width: 40px;
-    height: 40px;
-    background: var(--surface-1);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--r-sm);
-    color: var(--text-primary);
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-
-    @media (max-width: 768px) {
-      display: flex;
-    }
   }
 
   /* Scroll lives here — the page content is a card that fills the viewport
@@ -47,9 +28,17 @@
     border-radius: var(--r-lg);
     box-shadow: var(--shadow-card);
 
+    /* Phone: drop the card frame so content runs edge-to-edge like a native
+       screen, and leave room for the fixed bottom tab bar. */
     @media (max-width: 768px) {
-      margin: var(--sp-3);
-      padding: var(--sp-4);
+      margin: 0;
+      padding: var(--sp-4) var(--sp-4) calc(var(--mobile-nav-h) + var(--sp-5));
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
     }
   }
 

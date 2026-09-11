@@ -446,3 +446,54 @@
     app-form-field { min-width: 100%; }
   }
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .client-page {
+    gap: var(--sp-4);
+  }
+
+  .client-page__actions .ui-btn {
+    flex: 1;
+  }
+
+  .client-toolbar {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .client-toolbar__search,
+  .work-view-filters__search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .client-toolbar__filter {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* The shared table renders as cards here, so the wrapper frame goes away. */
+  .client-table {
+    overflow: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .work-view-filters {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  /* Wide, hand-rolled tables keep their own horizontal scroller. */
+  .work-view-table-wrap,
+  .billing__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .billing__range {
+    flex-wrap: wrap;
+  }
+}

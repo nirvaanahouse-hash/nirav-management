@@ -17,41 +17,43 @@
       (ngModelChange)="searchTerm.set($event)"
     />
 
-    <select
-      class="tickets-page__filter"
-      aria-label="Filter by status"
-      [ngModel]="statusFilter()"
-      (ngModelChange)="statusFilter.set($event)"
-    >
-      <option value="">All statuses</option>
-      @for (opt of statusOptions; track opt.value) {
-        <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
+    <div class="tickets-page__filters">
+      <select
+        class="tickets-page__filter"
+        aria-label="Filter by status"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event)"
+      >
+        <option value="">All statuses</option>
+        @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
 
-    <select
-      class="tickets-page__filter"
-      aria-label="Filter by type"
-      [ngModel]="typeFilter()"
-      (ngModelChange)="typeFilter.set($event)"
-    >
-      <option value="">All types</option>
-      @for (opt of ticketTypeOptions; track opt.value) {
-        <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
+      <select
+        class="tickets-page__filter"
+        aria-label="Filter by type"
+        [ngModel]="typeFilter()"
+        (ngModelChange)="typeFilter.set($event)"
+      >
+        <option value="">All types</option>
+        @for (opt of ticketTypeOptions(); track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
 
-    <select
-      class="tickets-page__filter"
-      aria-label="Filter by priority"
-      [ngModel]="priorityFilter()"
-      (ngModelChange)="priorityFilter.set($event)"
-    >
-      <option value="">All priorities</option>
-      @for (opt of priorityOptions; track opt.value) {
-        <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
+      <select
+        class="tickets-page__filter"
+        aria-label="Filter by priority"
+        [ngModel]="priorityFilter()"
+        (ngModelChange)="priorityFilter.set($event)"
+      >
+        <option value="">All priorities</option>
+        @for (opt of priorityOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
   </div>
 
   @if (loading()) {

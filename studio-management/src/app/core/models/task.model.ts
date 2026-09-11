@@ -1,4 +1,4 @@
-import { Priority, TicketType } from "../constants/app.constants";
+import { BadgeVariant, Priority } from "../constants/app.constants";
 
 export type TicketStatus = "pending" | "inProgress" | "completed" | "hold";
 
@@ -11,7 +11,8 @@ export interface TicketRecord {
   assignedEmployee: string | null;
   client: string | null;
   coupleName: string;
-  ticketType: TicketType;
+  /** `key` of an SA-managed ticket type (see /sa/ticket-types). */
+  ticketType: string;
   HR: string;
   mainHr: string;
   priorety: Priority;
@@ -32,6 +33,9 @@ export interface TicketRecord {
   // Enriched fields from BE
   priorityColor?: string;
   ticketTypeColor?: string;
+  /** Ticket type display name, resolved from the registry on every read. */
+  ticketTypeLabel?: string;
+  ticketTypeVariant?: BadgeVariant;
   creatorDetails?: {
     _id: string;
     firstName: string;
@@ -67,7 +71,7 @@ export interface TicketRecord {
 
 export interface TicketDraft {
   coupleName?: string;
-  ticketType?: TicketType;
+  ticketType?: string;
   HR?: string;
   mainHr?: string;
   hrPrice?: number;

@@ -1,9 +1,5 @@
 const mongoose = require("mongoose");
-const {
-  TICKET_TYPES,
-  PRIORITY,
-  TICKET_STATUS,
-} = require("../constants");
+const { PRIORITY, TICKET_STATUS } = require("../constants");
 
 const ticketSchema = new mongoose.Schema(
   {
@@ -44,9 +40,12 @@ const ticketSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // The `key` of a TicketType. Not an enum — the SA manages that list at
+    // /sa/ticket-types, and the value is checked against the live registry in
+    // middleware/ticketType.middleware.js. Old tickets keep their key even if
+    // the type is later switched off.
     ticketType: {
       type: String,
-      enum: Object.keys(TICKET_TYPES),
       required: true,
       trim: true,
     },

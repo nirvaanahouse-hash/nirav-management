@@ -16,14 +16,13 @@ import { TicketDraft, TicketRecord, TicketStatus } from "../../core/models/task.
 import {
   PRIORITY_OPTIONS,
   PRIORITY_VARIANT,
-  TICKET_TYPE_VARIANT,
   TICKET_STATUS_VARIANT,
   TICKET_STATUS_LABELS,
   TICKET_STATUS_OPTIONS,
-  TICKET_TYPE_OPTIONS,
 } from "../../core/constants/app.constants";
 import { AuthService } from "../../core/services/auth.service";
 import { PermissionService } from "../../core/services/permission.service";
+import { TicketMetaService } from "../../core/services/ticket-meta.service";
 import { TableColumn } from "../../shared/components/table/table.model";
 
 @Component({
@@ -48,6 +47,7 @@ export class TicketsComponent {
   private authService = inject(AuthService);
   private permissions = inject(PermissionService);
   private confirmDialog = inject(ConfirmDialogService);
+  private ticketMeta = inject(TicketMetaService);
   private router = inject(Router);
 
   searchTerm = signal("");
@@ -65,7 +65,8 @@ export class TicketsComponent {
   isSA = this.authService.isSuperAdmin;
   isEmployee = this.authService.isEmployee;
 
-  readonly ticketTypeOptions = TICKET_TYPE_OPTIONS;
+  /** SA-managed ticket types, for the type filter. */
+  readonly ticketTypeOptions = this.ticketMeta.ticketTypes;
   readonly priorityOptions = PRIORITY_OPTIONS;
   readonly statusOptions = TICKET_STATUS_OPTIONS;
 
@@ -95,8 +96,8 @@ export class TicketsComponent {
         label: "Type",
         sortable: true,
         badge: true,
-        badgeVariant: (row) => TICKET_TYPE_VARIANT[row.ticketType] ?? "neutral",
-        format: (row) => this.formatTicketType(row.ticketType),
+        badgeVariant: (row) => row.ticketTypeVariant ?? this.ticketMeta.typeVariant(row.ticketType),
+        format: (row) => row.ticketTypeLabel || this.formatTicketType(row.ticketType),
       },
       { key: "coupleName", label: "Couple", sortable: true },
       { key: "createdByName", label: "Created By", sortable: true },
@@ -184,17 +185,7 @@ export class TicketsComponent {
   });
 
   formatTicketType(type: string): string {
-    const map: Record<string, string> = {
-      weddingJob: "Wedding JOB",
-      preweddingJob: "Prewedding JOB",
-      babyShowerJob: "Baby Shower JOB",
-      weddingHighlight: "Wedding HighLight",
-      preweddingHighlight: "Prewedding HighLight",
-      babyShowerHighlight: "Baby Shower HighLight",
-      reels: "Reels",
-      shortFilm: "Short Film",
-    };
-    return map[type] || type;
+    return this.ticketMeta.typeLabel(type);
   }
 
   formatPriority(p: string): string {
@@ -288,6 +279,8 @@ export class TicketsComponent {
 
   constructor() {
     this.loadTasks();
+    // Ticket types come from the SA registry — needed for the filter and badges.
+    this.ticketMeta.ensureLoaded();
 
     // Open the requested ticket exactly once — never re-open it when the list
     // refreshes, otherwise closing the dialog looks like it "won't close".

@@ -253,3 +253,52 @@
 .cmp-h2h__radar {
   padding: var(--sp-2);
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .cmp-page {
+    gap: var(--sp-4);
+  }
+
+  .cmp-toolbar {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .cmp-seg,
+  .cmp-select,
+  .cmp-date {
+    width: 100%;
+  }
+
+  .cmp-seg {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+  }
+
+  .cmp-panel {
+    padding: var(--sp-4);
+  }
+
+  /* Name over the bar so the track stays readable at 375px. */
+  .cmp-bars li {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'name value'
+      'bar bar';
+    gap: var(--sp-1) var(--sp-2);
+  }
+
+  .cmp-bars__name {
+    grid-area: name;
+  }
+
+  .cmp-bars__track {
+    grid-area: bar;
+  }
+
+  .cmp-bars__val {
+    grid-area: value;
+  }
+}

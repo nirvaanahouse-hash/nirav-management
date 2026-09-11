@@ -5,17 +5,17 @@ import { filter } from 'rxjs';
 import { Sidebar } from '../sidebar/sidebar';
 import { Navbar } from '../navbar/navbar';
 import { ConfirmDialogHostComponent } from '../../features/dialog/confirm-dialog/confirm-dialog-host.component';
+import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, Sidebar, Navbar, ConfirmDialogHostComponent],
+  imports: [RouterOutlet, Sidebar, Navbar, MobileNavComponent, ConfirmDialogHostComponent],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainLayout {
-  @ViewChild(Sidebar) sidebar!: Sidebar;
   @ViewChild('pageScroll') private pageScroll?: ElementRef<HTMLElement>;
 
   private readonly router = inject(Router);
@@ -29,9 +29,5 @@ export class MainLayout {
         takeUntilDestroyed(),
       )
       .subscribe(() => this.pageScroll?.nativeElement.scrollTo({ top: 0 }));
-  }
-
-  toggleMobileMenu(): void {
-    this.sidebar.toggleMobileMenu();
   }
 }

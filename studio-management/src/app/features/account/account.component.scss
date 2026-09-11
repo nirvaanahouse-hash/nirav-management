@@ -153,3 +153,20 @@
 @media (max-width: 768px) {
   .account-page__stats { grid-template-columns: 1fr; }
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .account-page {
+    gap: var(--sp-4);
+  }
+
+  .account-page__stats {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+
+  .account-page__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

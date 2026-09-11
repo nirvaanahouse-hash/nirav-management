@@ -1,0 +1,140 @@
+<div class="tt-page">
+  <app-page-header
+    title="Ticket Types"
+    subtitle="The list every ticket picks from. Add a type, rename it, or switch one off."
+  >
+    <span actions>
+      <app-button variant="secondary" (clicked)="load()">Refresh</app-button>
+      <app-button (clicked)="openCreate()">Add type</app-button>
+    </span>
+  </app-page-header>
+
+  <section class="tt-panel">
+    <div class="tt-panel__bar">
+      <div class="tt-panel__title">
+        Ticket types
+        <span class="tt-muted">({{ activeCount() }} active of {{ types().length }})</span>
+      </div>
+    </div>
+
+    @if (loading() && !types().length) {
+      <div class="tt-state">Loading ticket types…</div>
+    } @else if (!types().length) {
+      <div class="tt-state">
+        No ticket types yet. Add one so tickets can be created.
+      </div>
+    } @else {
+      <div class="tt-table-wrap">
+        <table class="tt-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Pricing</th>
+              <th class="tt-table__num">In use</th>
+              <th>Status</th>
+              <th>Stored key</th>
+              <th class="tt-table__actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (type of types(); track trackById($index, type)) {
+              <tr [class.tt-row--muted]="!type.isActive">
+                <td>
+                  <span class="badge badge--{{ type.variant }}">{{ type.label }}</span>
+                </td>
+                <td data-label="Pricing">
+                  {{ type.isJob ? 'Hour-wise (HR × HR price)' : 'Flat amount' }}
+                </td>
+                <td class="tt-table__num" data-label="In use">{{ type.usageCount }}</td>
+                <td data-label="Status">
+                  <span class="badge {{ type.isActive ? 'badge--success' : 'badge--neutral' }}">
+                    {{ type.isActive ? 'Active' : 'Off' }}
+                  </span>
+                </td>
+                <td class="tt-mono" data-label="Stored key">{{ type.key }}</td>
+                <td>
+                  <div class="tt-row-actions">
+                    <app-icon-button
+                      [label]="type.isActive ? 'Hide from ticket form' : 'Show on ticket form'"
+                      (clicked)="toggleActive(type)"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9"></path><path d="M6.4 6.4a9 9 0 1 0 11.2 0"></path></svg>
+                    </app-icon-button>
+                    <app-icon-button label="Edit ticket type" (clicked)="openEdit(type)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 3.5a2.5 2.5 0 1 1 3.5 3.5L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </app-icon-button>
+                    <app-icon-button
+                      label="Delete ticket type"
+                      variant="danger"
+                      [disabled]="type.usageCount > 0"
+                      (clicked)="remove(type)"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L7 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                    </app-icon-button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="tt-note">
+        A type that tickets already use can't be deleted — switch it off instead and it
+        disappears from the ticket form while old tickets still read correctly.
+      </p>
+    }
+  </section>
+</div>
+
+@if (showModal()) {
+  <app-modal
+    [title]="editing() ? 'Edit ticket type' : 'Add ticket type'"
+    [maxWidth]="460"
+    (close)="closeModal()"
+  >
+    <form class="tt-form" [formGroup]="form" (ngSubmit)="submit()">
+      <app-form-field
+        label="Type name"
+        [control]="form.controls.label"
+        [required]="true"
+        placeholder="e.g. Drone Coverage"
+        hint="Shown on the ticket form and on every ticket badge."
+      />
+      <app-form-field
+        label="Badge colour"
+        type="select"
+        [control]="form.controls.variant"
+        [options]="variantOptions"
+        [required]="true"
+      />
+
+      @if (editing()) {
+        <p class="tt-form__fixed">
+          Pricing is <strong>{{ editing()!.isJob ? 'hour-wise' : 'a flat amount' }}</strong> and the
+          stored key is <code>{{ editing()!.key }}</code> — both are fixed so existing tickets keep
+          working.
+        </p>
+      } @else {
+        <label class="tt-check">
+          <input type="checkbox" formControlName="isJob" />
+          <span>
+            Hour-wise pricing — the amount is work hours × HR price, like the JOB types.
+            Leave this off for a flat-amount type.
+          </span>
+        </label>
+      }
+
+      <label class="tt-check">
+        <input type="checkbox" formControlName="isActive" />
+        <span>Offer this type on the ticket form</span>
+      </label>
+    </form>
+    <ng-container modal-footer>
+      <app-button variant="secondary" (clicked)="closeModal()">Cancel</app-button>
+      <app-button [loading]="saving()" (clicked)="submit()">
+        {{ editing() ? 'Save changes' : 'Add type' }}
+      </app-button>
+    </ng-container>
+  </app-modal>
+}

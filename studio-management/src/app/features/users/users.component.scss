@@ -287,3 +287,32 @@
 @media (max-width: 768px) {
   .users-page__stats { grid-template-columns: 1fr; }
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .users-page {
+    gap: var(--sp-4);
+  }
+
+  .users-page__stats {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+
+  .users-page__toolbar {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .users-page__search,
+  .users-page__filter {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Hand-rolled table — keep it scrollable rather than squashing it. */
+  .users-page__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

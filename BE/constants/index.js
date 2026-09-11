@@ -74,6 +74,42 @@ const TICKET_TYPE_COLORS = Object.freeze({
   shortFilm: "#FF6FB0",
 });
 
+// Semantic badge variants shared with the frontend (`BadgeVariant` in
+// core/constants/app.constants.ts). SA-managed ticket types pick one of these
+// instead of a raw hex colour, so every badge stays inside the theme tokens.
+const BADGE_VARIANTS = Object.freeze([
+  "neutral",
+  "accent",
+  "success",
+  "warning",
+  "danger",
+  "info",
+]);
+
+// Hex fallback per variant — only used for API payloads (charts, PDFs) that
+// need an actual colour rather than a CSS class.
+const BADGE_VARIANT_COLORS = Object.freeze({
+  neutral: "#8792AC",
+  accent: "#FF6A4D",
+  success: "#17A672",
+  warning: "#D68A11",
+  danger: "#E13B54",
+  info: "#2D6BE0",
+});
+
+// Badge variant for each built-in ticket type — used once, when the
+// TicketType collection is seeded (see utils/seed-ticket-types.js).
+const TICKET_TYPE_VARIANTS = Object.freeze({
+  weddingJob: "accent",
+  preweddingJob: "accent",
+  babyShowerJob: "accent",
+  weddingHighlight: "info",
+  preweddingHighlight: "info",
+  babyShowerHighlight: "info",
+  reels: "success",
+  shortFilm: "success",
+});
+
 const TICKET_STATUS_COLORS = Object.freeze({
   pending: "#CBD5E1",
   inProgress: "#3B82F6",
@@ -110,7 +146,10 @@ module.exports = {
   TICKET_STATUS_VALUES,
   TICKET_STATUS_LABELS,
   TICKET_TYPE_COLORS,
+  TICKET_TYPE_VARIANTS,
   TICKET_STATUS_COLORS,
+  BADGE_VARIANTS,
+  BADGE_VARIANT_COLORS,
   IP_RULE_MODES,
   IP_RULE_MODE_VALUES,
   PERMISSION_GROUPS,

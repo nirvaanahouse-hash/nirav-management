@@ -15,6 +15,7 @@ const {
   addTicketComment,
 } = require('../controllers/ticket.controller');
 const { requirePermission } = require('../middleware/permission.middleware');
+const { attachTicketTypes } = require('../middleware/ticketType.middleware');
 const { mongoIdParam, validateCustom } = require('../middleware/validate.middleware');
 const {
   validateCreateTicket,
@@ -25,9 +26,9 @@ const {
 
 router.get('/ticket', requirePermission('tickets.view'), getTickets);
 router.get('/ticket/form-meta', requirePermission('tickets.view'), getTicketFormMeta);
-router.post('/ticket', requirePermission('tickets.create'), validateCustom(validateCreateTicket), createTicket);
+router.post('/ticket', requirePermission('tickets.create'), attachTicketTypes('active'), validateCustom(validateCreateTicket), createTicket);
 router.get('/ticket/:id', mongoIdParam, requirePermission('tickets.view'), getTicketById);
-router.put('/ticket/:id', mongoIdParam, requirePermission('tickets.edit'), validateCustom(validateUpdateTicket), updateTicket);
+router.put('/ticket/:id', mongoIdParam, requirePermission('tickets.edit'), attachTicketTypes('all'), validateCustom(validateUpdateTicket), updateTicket);
 router.delete('/ticket/:id', mongoIdParam, requirePermission('tickets.delete'), deleteTicket);
 router.put('/ticket/:id/assign', mongoIdParam, requirePermission('tickets.assign'), validateAssignEmployee, assignEmployee);
 router.put('/ticket/:id/complete', mongoIdParam, requirePermission('tickets.complete'), completeTicket);

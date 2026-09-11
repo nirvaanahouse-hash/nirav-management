@@ -15,11 +15,11 @@
     @if (range() === 'custom') {
       <label class="cmp-date">
         <span>From</span>
-        <input type="date" [max]="customTo() || today" [ngModel]="customFrom()" (ngModelChange)="setCustomFrom($event)" />
+        <app-datepicker ariaLabel="From date" placeholder="From" [max]="customTo() || today" [ngModel]="customFrom()" (ngModelChange)="setCustomFrom($event)" />
       </label>
       <label class="cmp-date">
         <span>To</span>
-        <input type="date" [min]="customFrom()" [max]="today" [ngModel]="customTo()" (ngModelChange)="setCustomTo($event)" />
+        <app-datepicker ariaLabel="To date" placeholder="To" [min]="customFrom()" [max]="today" [ngModel]="customTo()" (ngModelChange)="setCustomTo($event)" />
       </label>
     }
   </div>
@@ -76,9 +76,14 @@
     <section class="cmp-panel">
       <div class="cmp-panel__hd">
         <h3>Who does more</h3>
-        <select class="cmp-select" [ngModel]="barMetric()" (ngModelChange)="barMetric.set($event)">
-          @for (o of barMetricOptions; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
-        </select>
+        <app-select
+          class="cmp-select"
+          ariaLabel="Bar metric"
+          sheetTitle="Metric"
+          [options]="barMetricOptions"
+          [ngModel]="barMetric()"
+          (ngModelChange)="barMetric.set($event)"
+        />
       </div>
       <ul class="cmp-bars">
         @for (b of barRows(); track b._id) {
@@ -102,16 +107,24 @@
         <div class="cmp-h2h__picks">
           <label>
             <span class="cmp-h2h__dot cmp-h2h__dot--a"></span>
-            <select [ngModel]="pickA()" (ngModelChange)="pickA.set($event)">
-              @for (r of rows(); track r._id) { <option [value]="r._id">{{ r.name }}</option> }
-            </select>
+            <app-select
+              ariaLabel="First employee"
+              sheetTitle="Employee A"
+              [options]="employeePickOptions()"
+              [ngModel]="pickA()"
+              (ngModelChange)="pickA.set($event)"
+            />
           </label>
           <span class="cmp-h2h__vs">vs</span>
           <label>
             <span class="cmp-h2h__dot cmp-h2h__dot--b"></span>
-            <select [ngModel]="pickB()" (ngModelChange)="pickB.set($event)">
-              @for (r of rows(); track r._id) { <option [value]="r._id">{{ r.name }}</option> }
-            </select>
+            <app-select
+              ariaLabel="Second employee"
+              sheetTitle="Employee B"
+              [options]="employeePickOptions()"
+              [ngModel]="pickB()"
+              (ngModelChange)="pickB.set($event)"
+            />
           </label>
         </div>
 

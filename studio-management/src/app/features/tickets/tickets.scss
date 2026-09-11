@@ -36,6 +36,13 @@
   min-width: 150px;
 }
 
+/* The three filters sit in a row next to the search box. */
+.tickets-page__filters {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
 .tickets-page__table {
   overflow-x: auto;
   border-radius: var(--r-lg);

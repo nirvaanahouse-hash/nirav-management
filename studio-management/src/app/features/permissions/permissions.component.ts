@@ -12,13 +12,14 @@ import { DEFAULT_USER_PERMISSIONS } from '../../core/constants/permissions';
 import { ToastService } from '../../features/toast/toast.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../shared/components/button/button';
+import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 
 type GroupState = 'all' | 'some' | 'none';
 
 @Component({
   selector: 'app-permissions',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageHeaderComponent, ButtonComponent],
+  imports: [CommonModule, FormsModule, PageHeaderComponent, ButtonComponent, CheckboxComponent],
   templateUrl: './permissions.component.html',
   styleUrls: ['./permissions.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

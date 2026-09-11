@@ -58,14 +58,13 @@
               </button>
             </div>
 
-            <label class="nnote__deleted">
-              <input
-                type="checkbox"
-                [ngModel]="showDeleted()"
-                (ngModelChange)="setShowDeleted($event)"
-              />
-              <span>Show deleted</span>
-            </label>
+            <app-checkbox
+              class="nnote__deleted"
+              [ngModel]="showDeleted()"
+              (ngModelChange)="setShowDeleted($event)"
+            >
+              Show deleted
+            </app-checkbox>
 
             <div class="nnote__list">
               @if (socketService.notificationsLoading()) {

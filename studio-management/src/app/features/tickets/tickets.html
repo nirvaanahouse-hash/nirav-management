@@ -18,41 +18,35 @@
     />
 
     <div class="tickets-page__filters">
-      <select
+      <app-select
         class="tickets-page__filter"
-        aria-label="Filter by status"
+        ariaLabel="Filter by status"
+        placeholder="All statuses"
+        sheetTitle="Status"
+        [options]="statusFilterOptions"
         [ngModel]="statusFilter()"
         (ngModelChange)="statusFilter.set($event)"
-      >
-        <option value="">All statuses</option>
-        @for (opt of statusOptions; track opt.value) {
-          <option [value]="opt.value">{{ opt.label }}</option>
-        }
-      </select>
+      />
 
-      <select
+      <app-select
         class="tickets-page__filter"
-        aria-label="Filter by type"
+        ariaLabel="Filter by type"
+        placeholder="All types"
+        sheetTitle="Ticket type"
+        [options]="typeFilterOptions()"
         [ngModel]="typeFilter()"
         (ngModelChange)="typeFilter.set($event)"
-      >
-        <option value="">All types</option>
-        @for (opt of ticketTypeOptions(); track opt.value) {
-          <option [value]="opt.value">{{ opt.label }}</option>
-        }
-      </select>
+      />
 
-      <select
+      <app-select
         class="tickets-page__filter"
-        aria-label="Filter by priority"
+        ariaLabel="Filter by priority"
+        placeholder="All priorities"
+        sheetTitle="Priority"
+        [options]="priorityFilterOptions"
         [ngModel]="priorityFilter()"
         (ngModelChange)="priorityFilter.set($event)"
-      >
-        <option value="">All priorities</option>
-        @for (opt of priorityOptions; track opt.value) {
-          <option [value]="opt.value">{{ opt.label }}</option>
-        }
-      </select>
+      />
     </div>
   </div>
 

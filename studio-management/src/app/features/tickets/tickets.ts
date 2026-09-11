@@ -25,6 +25,8 @@ import { PermissionService } from "../../core/services/permission.service";
 import { TicketMetaService } from "../../core/services/ticket-meta.service";
 import { ClientService } from "../../core/services/client.service";
 import { TableColumn } from "../../shared/components/table/table.model";
+import { SelectComponent } from "../../shared/components/select/select.component";
+import { SelectItem } from "../../shared/components/select/select.model";
 
 @Component({
   selector: "app-tickets",
@@ -38,6 +40,7 @@ import { TableColumn } from "../../shared/components/table/table.model";
     PageHeaderComponent,
     IconButtonComponent,
     TicketFormComponent,
+    SelectComponent,
   ],
   templateUrl: "./tickets.html",
   styleUrls: ["./tickets.scss"],
@@ -69,6 +72,20 @@ export class TicketsComponent {
 
   /** SA-managed ticket types, for the type filter. */
   readonly ticketTypeOptions = this.ticketMeta.ticketTypes;
+
+  /** Filter lists carry their own "everything" row, which clears the filter. */
+  readonly statusFilterOptions: SelectItem[] = [
+    { value: "", label: "All statuses" },
+    ...TICKET_STATUS_OPTIONS,
+  ];
+  readonly priorityFilterOptions: SelectItem[] = [
+    { value: "", label: "All priorities" },
+    ...PRIORITY_OPTIONS,
+  ];
+  readonly typeFilterOptions = computed<SelectItem[]>(() => [
+    { value: "", label: "All types" },
+    ...this.ticketTypeOptions().map((t) => ({ value: t.value, label: t.label })),
+  ]);
   readonly priorityOptions = PRIORITY_OPTIONS;
   readonly statusOptions = TICKET_STATUS_OPTIONS;
 

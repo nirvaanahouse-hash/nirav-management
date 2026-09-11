@@ -182,14 +182,12 @@
         <section class="ip-panel">
           <div class="ip-panel__title">Rate limiting &amp; audit</div>
           <form class="ip-limits" [formGroup]="limitsForm" (ngSubmit)="saveLimits()">
-            <label class="ip-check">
-              <input type="checkbox" formControlName="rateLimitEnabled" />
-              <span>Enable per-IP rate limiting (stricter on <code>/api/auth</code>)</span>
-            </label>
-            <label class="ip-check">
-              <input type="checkbox" formControlName="logRequests" />
-              <span>Record an audit row for every authenticated API request</span>
-            </label>
+            <app-checkbox formControlName="rateLimitEnabled">
+              Enable per-IP rate limiting (stricter on <code>/api/auth</code>)
+            </app-checkbox>
+            <app-checkbox formControlName="logRequests">
+              Record an audit row for every authenticated API request
+            </app-checkbox>
 
             <div class="ip-limits__grid">
               <app-form-field
@@ -236,11 +234,14 @@
                 [(ngModel)]="loginFilter.ip"
                 (keyup.enter)="loadLogins()"
               />
-              <select class="ip-input" [(ngModel)]="loginFilter.success" (change)="loadLogins()">
-                @for (o of successOptions; track o.value) {
-                  <option [value]="o.value">{{ o.label }}</option>
-                }
-              </select>
+              <app-select
+                class="ip-input"
+                ariaLabel="Filter by outcome"
+                sheetTitle="Outcome"
+                [options]="successOptions"
+                [ngModel]="loginFilter.success"
+                (ngModelChange)="loginFilter.success = $event; loadLogins()"
+              />
               <app-button variant="secondary" size="sm" (clicked)="loadLogins()">Apply</app-button>
             </div>
           </div>
@@ -316,16 +317,22 @@
                 [(ngModel)]="requestFilter.path"
                 (keyup.enter)="loadRequests()"
               />
-              <select class="ip-input" [(ngModel)]="requestFilter.method" (change)="loadRequests()">
-                @for (o of methodOptions; track o.value) {
-                  <option [value]="o.value">{{ o.label }}</option>
-                }
-              </select>
-              <select class="ip-input" [(ngModel)]="requestFilter.statusClass" (change)="loadRequests()">
-                @for (o of statusOptions; track o.value) {
-                  <option [value]="o.value">{{ o.label }}</option>
-                }
-              </select>
+              <app-select
+                class="ip-input"
+                ariaLabel="Filter by method"
+                sheetTitle="Method"
+                [options]="methodOptions"
+                [ngModel]="requestFilter.method"
+                (ngModelChange)="requestFilter.method = $event; loadRequests()"
+              />
+              <app-select
+                class="ip-input"
+                ariaLabel="Filter by status"
+                sheetTitle="Status"
+                [options]="statusOptions"
+                [ngModel]="requestFilter.statusClass"
+                (ngModelChange)="requestFilter.statusClass = $event; loadRequests()"
+              />
               <app-button variant="secondary" size="sm" (clicked)="loadRequests()">Apply</app-button>
             </div>
           </div>

@@ -21,6 +21,8 @@ import { ModalComponent } from '../../features/dialog/modal.component';
 import { ButtonComponent } from '../../shared/components/button/button';
 import { IconButtonComponent } from '../../shared/components/icon-button/icon-button.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
+import { SelectComponent } from '../../shared/components/select/select.component';
+import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 
 type TabKey = 'rules' | 'limits' | 'logins' | 'requests';
 
@@ -38,6 +40,8 @@ const PAGE_SIZE = 25;
     ButtonComponent,
     IconButtonComponent,
     FormFieldComponent,
+    SelectComponent,
+    CheckboxComponent,
   ],
   templateUrl: './ip.component.html',
   styleUrls: ['./ip.component.scss'],

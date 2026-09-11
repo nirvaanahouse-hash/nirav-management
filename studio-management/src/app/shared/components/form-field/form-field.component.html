@@ -15,16 +15,28 @@
           ></textarea>
         }
         @case ('select') {
-          <select
-            class="app-field__control"
-            [class.app-field__control--invalid]="showError()"
+          <app-select
             [formControl]="control()"
-          >
-            <option value="" disabled>{{ placeholder() || 'Select...' }}</option>
-            @for (opt of options(); track opt.value) {
-              <option [value]="opt.value">{{ opt.label }}</option>
-            }
-          </select>
+            [options]="options()"
+            [multiple]="multiple()"
+            [placeholder]="placeholder() || 'Select…'"
+            [sheetTitle]="label()"
+            [invalid]="showError()"
+            [ariaLabel]="label()"
+          />
+        }
+        @case ('date') {
+          <app-datepicker
+            [formControl]="control()"
+            [placeholder]="placeholder() || 'Select a date'"
+            [min]="min()"
+            [max]="max()"
+            [invalid]="showError()"
+            [ariaLabel]="label()"
+          />
+        }
+        @case ('checkbox') {
+          <app-checkbox [formControl]="control()" [ariaLabel]="label()" />
         }
         @default {
           <input

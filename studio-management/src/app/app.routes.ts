@@ -61,6 +61,15 @@ export const routes: Routes = [
           import('./features/permissions/permissions.component').then((m) => m.PermissionsComponent)
       },
       {
+        path: 'sa/ticket-types',
+        canActivate: [roleGuard, permissionGuard],
+        data: { roles: ['SA'], permission: 'tickets.types.manage', pageTitle: 'Ticket Types' },
+        loadComponent: () =>
+          import('./features/ticket-types/ticket-types.component').then(
+            (m) => m.TicketTypesComponent
+          )
+      },
+      {
         path: 'sa/comparison',
         canActivate: [roleGuard, permissionGuard],
         data: { roles: ['SA'], permission: 'comparison.view', pageTitle: 'Comparison' },

@@ -17,6 +17,11 @@ const {
 } = require("../constants");
 const { calculateTicketFinancials } = require("../utils/ticket-financials");
 const { hasPermission } = require("../utils/permissions");
+const {
+  getActiveTicketTypes,
+  getTicketTypeMap,
+  ticketTypeColor: colorOfTicketType,
+} = require("../utils/ticket-types");
 
 const isJobTicketType = (t) => typeof t === "string" && t.endsWith("Job");
 
@@ -28,6 +33,16 @@ const normalizeHourFields = (ticket) => {
     ticket.hrPrice = 0;
   }
 };
+
+// Display fields for a ticket's type. A type an SA deleted still renders —
+// it falls back to the built-in constants, then to the raw key.
+const ticketTypeView = (type, key) => ({
+  ticketTypeLabel: type?.label || TICKET_TYPES[key] || key,
+  ticketTypeVariant: type?.variant || "neutral",
+  ticketTypeColor: type
+    ? colorOfTicketType(type)
+    : TICKET_TYPE_COLORS[key] || "#8792AC",
+});
 
 // Build [{ value, label, color }] option lists from the shared constant maps.
 const toOptions = (valueMap, labelMap, colorMap) =>
@@ -75,6 +90,9 @@ const getTickets = async (req, res) => {
     const clients = await Client.find({
       _id: { $in: clientIds },
     }).lean();
+
+    // SA-managed labels / colours for the types these tickets carry.
+    const ticketTypeMap = await getTicketTypeMap();
 
     // Payments already made to the assigned employee against each ticket.
     const ticketIdStrings = tickets.map((t) => t._id.toString());
@@ -136,7 +154,7 @@ const getTickets = async (req, res) => {
       const enriched = {
         ...ticketObj,
         priorityColor: PRIORITY_COLORS[t.priorety] || "#8792AC",
-        ticketTypeColor: TICKET_TYPE_COLORS[t.ticketType] || "#8792AC",
+        ...ticketTypeView(ticketTypeMap[t.ticketType], t.ticketType),
         creatorDetails,
         employeeDetails,
         clientDetails,
@@ -749,7 +767,8 @@ const addTicketComment = async (req, res) => {
 // Options for every ticket-form dropdown, in one request.
 const getTicketFormMeta = async (req, res) => {
   try {
-    const [clients, employees] = await Promise.all([
+    const [ticketTypes, clients, employees] = await Promise.all([
+      getActiveTicketTypes(),
       Client.find({ isActive: true }).select("name company").sort({ name: 1 }).lean(),
       User.find({ role: ERole.U, isActive: true })
         .select("firstName lastName userName")
@@ -772,7 +791,13 @@ const getTicketFormMeta = async (req, res) => {
       success: true,
       message: "Ticket form meta fetched",
       data: {
-        ticketTypes: toOptions(TICKET_TYPES, TICKET_TYPES, TICKET_TYPE_COLORS),
+        ticketTypes: ticketTypes.map((t) => ({
+          value: t.key,
+          label: t.label,
+          color: colorOfTicketType(t),
+          variant: t.variant,
+          isJob: !!t.isJob,
+        })),
         priorities: [PRIORITY.high, PRIORITY.medium, PRIORITY.low].map((value) => ({
           value,
           label: PRIORITY_LABELS[value],

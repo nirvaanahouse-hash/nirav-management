@@ -1,21 +1,17 @@
-const {
-  TICKET_TYPE_KEYS,
-  PRIORITY_VALUES,
-  TICKET_STATUS_VALUES,
-  ERole,
-} = require("../constants");
+const { PRIORITY_VALUES, TICKET_STATUS_VALUES, ERole } = require("../constants");
 const { runSchema } = require("../utils/validate");
 const { validateBody } = require("../middleware/validate.middleware");
 
 function validateCreateTicket(req) {
   const isSA = req.user?.role === ERole.SA;
   const body = req.body || {};
-  const isJobType =
-    typeof body.ticketType === "string" && body.ticketType.endsWith("Job");
+  // Types come from the SA-managed registry, loaded by attachTicketTypes().
+  const typeKeys = req.ticketTypeKeys || [];
+  const isJobType = !!req.ticketTypeMap?.[body.ticketType]?.isJob;
 
   const schema = {
     coupleName: { required: true, label: "Couple name", minLength: 2 },
-    ticketType: { required: true, label: "Ticket type", enum: TICKET_TYPE_KEYS },
+    ticketType: { required: true, label: "Ticket type", enum: typeKeys },
     priorety: { required: true, label: "Priority", enum: PRIORITY_VALUES },
     // Hour fields only apply to job-type tickets.
     HR: { required: isJobType, label: "Work hours", type: "number", min: 0 },
@@ -45,9 +41,10 @@ function validateCreateTicket(req) {
 
 function validateUpdateTicket(req) {
   const body = req.body || {};
+  const typeKeys = req.ticketTypeKeys || [];
   const schema = {
     coupleName: { required: false, label: "Couple name", minLength: 2 },
-    ticketType: { required: false, label: "Ticket type", enum: TICKET_TYPE_KEYS },
+    ticketType: { required: false, label: "Ticket type", enum: typeKeys },
     priorety: { required: false, label: "Priority", enum: PRIORITY_VALUES },
     HR: { required: false, label: "Work hours", type: "number", min: 0 },
     mainHr: { required: false, label: "Main hours", type: "number", min: 0 },

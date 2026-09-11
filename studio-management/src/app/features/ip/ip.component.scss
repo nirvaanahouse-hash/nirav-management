@@ -323,3 +323,56 @@
     border-radius: var(--r-xs, 3px);
   }
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .ip-page {
+    gap: var(--sp-4);
+  }
+
+  .ip-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-2);
+  }
+
+  .ip-stat {
+    padding: var(--sp-3);
+  }
+
+  .ip-guard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ip-panel {
+    padding: var(--sp-4);
+  }
+
+  .ip-panel__bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ip-panel__actions {
+    display: flex;
+
+    .ui-btn {
+      flex: 1;
+    }
+  }
+
+  .ip-filters {
+    flex-wrap: nowrap;
+  }
+
+  .ip-input {
+    min-width: 0;
+    flex: 0 0 auto;
+    width: 60vw;
+    max-width: 240px;
+  }
+
+  .ip-table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+}

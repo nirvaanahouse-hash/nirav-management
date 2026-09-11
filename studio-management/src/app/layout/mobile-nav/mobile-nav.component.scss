@@ -1,0 +1,214 @@
+/* Phone-only shell chrome. The desktop sidebar takes over from 769px up. */
+:host {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  :host {
+    display: block;
+  }
+}
+
+/* ---- bottom tab bar ---- */
+.mnav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  align-items: stretch;
+  background: var(--surface-1);
+  border-top: 1px solid var(--border-subtle);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -1px 12px rgba(8, 11, 20, 0.08);
+
+  &__tab {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: var(--sp-2) 2px calc(var(--sp-2) + 2px);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--dur-fast) var(--ease-out);
+
+    &--active {
+      color: var(--accent);
+
+      .mnav__icon {
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  &__icon {
+    display: flex;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  &__label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ---- "More" sheet ---- */
+.msheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(8, 11, 20, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  animation: msheet-fade var(--transition-base);
+}
+
+.msheet {
+  width: 100%;
+  max-height: 82vh;
+  overflow-y: auto;
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-bottom, 0px));
+  background: var(--surface-1);
+  border-top-left-radius: var(--r-lg);
+  border-top-right-radius: var(--r-lg);
+  animation: msheet-up var(--transition-slow);
+
+  &__grabber {
+    justify-self: center;
+    width: 38px;
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: var(--border-strong);
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+    text-decoration: none;
+    color: var(--text-primary);
+  }
+
+  &__avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--text-on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__user-copy {
+    display: grid;
+    min-width: 0;
+
+    strong {
+      font-size: var(--fs-base);
+    }
+
+    small {
+      color: var(--text-muted);
+      font-size: var(--fs-xs);
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-2);
+  }
+
+  &__item {
+    display: grid;
+    justify-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-2);
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-1);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-align: center;
+
+    &--active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+  }
+
+  &__item-icon {
+    display: flex;
+  }
+
+  &__actions {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    width: 100%;
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-1);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+
+    &--danger {
+      color: var(--danger);
+      border-color: var(--danger-soft);
+    }
+  }
+}
+
+@keyframes msheet-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes msheet-up {
+  from { transform: translateY(18px); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}

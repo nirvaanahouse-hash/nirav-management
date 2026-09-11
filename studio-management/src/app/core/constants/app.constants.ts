@@ -1,5 +1,10 @@
 // Shared Constants & Enums between FE and BE
 
+/**
+ * Ticket types are managed by the SA at /sa/ticket-types and reach the app
+ * through TicketMetaService. These built-in maps are only the fallback used
+ * to render a type that has since been removed from the registry.
+ */
 export const TICKET_TYPES = {
   weddingJob: "Wedding JOB",
   preweddingJob: "Prewedding JOB",
@@ -10,19 +15,6 @@ export const TICKET_TYPES = {
   reels: "Reels",
   shortFilm: "Short Film",
 } as const;
-
-export type TicketType = keyof typeof TICKET_TYPES;
-
-export const TICKET_TYPE_OPTIONS: { value: TicketType; label: string }[] = [
-  { value: "weddingJob", label: TICKET_TYPES.weddingJob },
-  { value: "preweddingJob", label: TICKET_TYPES.preweddingJob },
-  { value: "babyShowerJob", label: TICKET_TYPES.babyShowerJob },
-  { value: "weddingHighlight", label: TICKET_TYPES.weddingHighlight },
-  { value: "preweddingHighlight", label: TICKET_TYPES.preweddingHighlight },
-  { value: "babyShowerHighlight", label: TICKET_TYPES.babyShowerHighlight },
-  { value: "reels", label: TICKET_TYPES.reels },
-  { value: "shortFilm", label: TICKET_TYPES.shortFilm },
-];
 
 export const PRIORITY = {
   low: "low",
@@ -56,7 +48,8 @@ export const PRIORITY_VARIANT: Record<Priority, BadgeVariant> = {
   low: "success",
 };
 
-export const TICKET_TYPE_VARIANT: Record<TicketType, BadgeVariant> = {
+/** Fallback badge variants for the built-in types (see TICKET_TYPES above). */
+export const TICKET_TYPE_VARIANT: Record<string, BadgeVariant> = {
   weddingJob: "accent",
   preweddingJob: "accent",
   babyShowerJob: "accent",
@@ -66,6 +59,16 @@ export const TICKET_TYPE_VARIANT: Record<TicketType, BadgeVariant> = {
   reels: "success",
   shortFilm: "success",
 };
+
+/** Pickable badge colours — mirrors BADGE_VARIANTS in BE/constants/index.js. */
+export const BADGE_VARIANT_OPTIONS: { value: BadgeVariant; label: string }[] = [
+  { value: "neutral", label: "Grey" },
+  { value: "accent", label: "Orange" },
+  { value: "info", label: "Blue" },
+  { value: "success", label: "Green" },
+  { value: "warning", label: "Amber" },
+  { value: "danger", label: "Red" },
+];
 
 export const TICKET_STATUS = {
   pending: "pending",

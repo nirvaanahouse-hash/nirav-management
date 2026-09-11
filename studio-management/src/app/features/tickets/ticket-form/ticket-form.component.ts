@@ -13,11 +13,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
-import {
-  TICKET_TYPE_OPTIONS,
-  PRIORITY_OPTIONS,
-  TicketStatus,
-} from '../../../core/constants/app.constants';
+import { PRIORITY_OPTIONS, TicketStatus } from '../../../core/constants/app.constants';
 import { TicketDraft, TicketRecord } from '../../../core/models/task.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { TicketMetaService } from '../../../core/services/ticket-meta.service';
@@ -53,7 +49,7 @@ export class TicketFormComponent implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     coupleName: ['', [Validators.required]],
-    ticketType: [TICKET_TYPE_OPTIONS[0]?.value ?? '', [Validators.required]],
+    ticketType: ['', [Validators.required]],
     priorety: [PRIORITY_OPTIONS[1]?.value ?? 'medium', [Validators.required]],
     HR: [''],
     mainHr: [''],
@@ -75,7 +71,9 @@ export class TicketFormComponent implements OnInit {
   });
 
   /** Job-type tickets are priced hour-wise; highlights / reels are priced directly. */
-  readonly isJobType = computed(() => (this.value().ticketType ?? '').endsWith('Job'));
+  readonly isJobType = computed(() =>
+    this.ticketMeta.isJobType(this.value().ticketType ?? ''),
+  );
   readonly isStatusCompleted = computed(() => this.value().status === 'completed');
   /** While a job ticket is still pending, hours aren't known yet. */
   readonly isPending = computed(() => (this.value().status ?? 'pending') === 'pending');
@@ -85,6 +83,16 @@ export class TicketFormComponent implements OnInit {
   private ticketEffect = effect(() => {
     const t = this.ticket;
     if (t) this.patchTicket(t);
+  });
+
+  /**
+   * New tickets start on the first type the SA configured. Runs once the
+   * form meta arrives, and never overwrites a type already in the form.
+   */
+  private defaultTypeEffect = effect(() => {
+    const options = this.ticketTypeOptions();
+    if (!options.length || this.ticket || this.form.controls.ticketType.value) return;
+    this.form.patchValue({ ticketType: options[0].value });
   });
 
   private statusEffect = effect(() => {

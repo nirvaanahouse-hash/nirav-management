@@ -84,3 +84,66 @@
   from { opacity: 0; transform: translateY(12px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ---- Phone: dialogs become bottom sheets ---- */
+@media (max-width: 768px) {
+  .app-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .app-modal {
+    width: 100%;
+    max-width: none !important;
+    max-height: 92dvh;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    border-bottom: none;
+    animation: modal-sheet-up var(--transition-slow);
+
+    &__header {
+      padding: var(--sp-4);
+      position: sticky;
+      top: 0;
+      background: var(--surface-1);
+      z-index: 1;
+
+      h3 {
+        font-size: var(--fs-base);
+      }
+    }
+
+    &__close {
+      width: var(--tap-target);
+      height: var(--tap-target);
+      font-size: 24px;
+    }
+
+    &__body {
+      padding: var(--sp-4);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    /* Footer buttons stack full-width and clear the home indicator. */
+    &__footer {
+      position: sticky;
+      bottom: 0;
+      padding: var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+      gap: var(--sp-2);
+
+      > * {
+        flex: 1;
+      }
+
+      .ui-btn {
+        width: 100%;
+        min-height: var(--tap-target);
+      }
+    }
+  }
+}
+
+@keyframes modal-sheet-up {
+  from { opacity: 0.4; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}

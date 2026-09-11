@@ -275,3 +275,20 @@
   gap: var(--sp-1);
   flex-wrap: wrap;
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .perm-page {
+    gap: var(--sp-4);
+  }
+
+  .perm-panel {
+    padding: var(--sp-4);
+  }
+
+  /* The user picker becomes a short, scrollable strip above the tree. */
+  .perm-users {
+    max-height: 220px;
+    overflow-y: auto;
+  }
+}

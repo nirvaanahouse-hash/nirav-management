@@ -8,12 +8,11 @@ import { AmountService } from "../../core/services/amount.service";
 import { TicketRecord } from "../../core/models/task.model";
 import { AmountEntry } from "../../core/models/amountEntry.model";
 import { AuthService } from "../../core/services/auth.service";
+import { TicketMetaService } from "../../core/services/ticket-meta.service";
 import {
   PRIORITY_VARIANT,
-  TICKET_TYPE_VARIANT,
   TICKET_STATUS_VARIANT,
   TICKET_STATUS_LABELS,
-  TICKET_TYPES,
   TicketStatus,
 } from "../../core/constants/app.constants";
 import { IconButtonComponent } from "../../shared/components/icon-button/icon-button.component";
@@ -57,6 +56,7 @@ export class DashboardComponent {
   private calculationService = inject(TaskCalculationService);
   private amountService = inject(AmountService);
   private authService = inject(AuthService);
+  private ticketMeta = inject(TicketMetaService);
   private router = inject(Router);
 
   loading = signal(true);
@@ -364,7 +364,7 @@ export class DashboardComponent {
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1])
       .map(([type, value]) => ({
-        label: (TICKET_TYPES as Record<string, string>)[type] || type,
+        label: this.ticketMeta.typeLabel(type),
         value,
         pct: Math.round((value / max) * 100),
         variant: this.ticketTypeVariant(type),
@@ -454,7 +454,7 @@ export class DashboardComponent {
   }
 
   ticketTypeVariant(t: string): string {
-    return TICKET_TYPE_VARIANT[t as keyof typeof TICKET_TYPE_VARIANT] ?? "neutral";
+    return this.ticketMeta.typeVariant(t);
   }
 
   statusVariant(s: TicketStatus): string {
@@ -466,7 +466,7 @@ export class DashboardComponent {
   }
 
   typeLabel(t: string): string {
-    return (TICKET_TYPES as Record<string, string>)[t] || t;
+    return this.ticketMeta.typeLabel(t);
   }
 
   formatCurrency(value: number): string {
@@ -481,6 +481,8 @@ export class DashboardComponent {
   constructor() {
     this.loadTickets();
     this.loadEntries();
+    // Type names / badge colours come from the SA-managed ticket type registry.
+    this.ticketMeta.ensureLoaded();
   }
 
   loadEntries(): void {

@@ -498,3 +498,25 @@
     margin: 0 0 var(--sp-2);
   }
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .pf-grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+
+  /* A sticky aside eats the whole screen on a phone — let it scroll away. */
+  .pf-aside {
+    position: static;
+  }
+
+  .pf-fields {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+
+  .pf-hero {
+    text-align: center;
+  }
+}

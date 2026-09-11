@@ -52,3 +52,20 @@ The backend is plain CommonJS JavaScript — no TypeScript or Prisma.
 - **Request audit** (`middleware/requestLog.middleware.js`) — a `RequestLog` per authed API call,
   TTL-expired after `REQUEST_LOG_TTL_DAYS` (default 30).
 - Optional env: `TRUST_PROXY`, `REQUEST_LOG_TTL_DAYS` (see `.env`).
+
+## Ticket types (SA-managed, `/api/ticket-type`, UI at `/sa/ticket-types`)
+- Types live in the `TicketType` collection (`models/ticketType.model.js`), not in
+  `constants/index.js`. The old `TICKET_TYPES` constant now only seeds that collection on
+  first boot (`utils/seed-ticket-types.js`) and acts as a display fallback.
+- `key` (e.g. `weddingJob`) is what each ticket stores and never changes; the label,
+  badge variant and active flag can be edited. Hour-wise ("JOB") types always end in
+  `Job` — the whole codebase detects hour-wise pricing from that suffix — so `isJob` is
+  fixed when a type is created.
+- A type that tickets already reference cannot be deleted (409); switch it off instead and
+  it drops out of the ticket form while old tickets still render their label.
+- `utils/ticket-types.js` caches the registry in-process (60 s TTL, invalidated on write).
+  `middleware/ticketType.middleware.js` loads it onto the request so the sync ticket
+  validators can check `ticketType` against the live list.
+- Frontend: `TicketMetaService` (`GET /api/ticket/form-meta`) is the single source for
+  type options, labels and badge variants; `TicketTypeService` is the SA CRUD client.
+- Permission: `tickets.types.manage` (SA bypasses all permission checks).

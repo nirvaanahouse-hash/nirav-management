@@ -1,0 +1,227 @@
+.tt-page {
+  display: grid;
+  gap: var(--sp-5);
+  width: 100%;
+}
+
+.tt-panel {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-card);
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-md, 1rem);
+    font-weight: 700;
+  }
+}
+
+.tt-muted {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: var(--fs-sm);
+}
+
+.tt-state {
+  padding: var(--sp-8) var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.tt-note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* ---- table ---- */
+.tt-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+}
+
+.tt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+
+  th,
+  td {
+    padding: var(--sp-3);
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  th {
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  &__num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__actions-col {
+    width: 1%;
+    white-space: nowrap;
+  }
+}
+
+.tt-row--muted td {
+  opacity: 0.55;
+}
+
+.tt-row-actions {
+  display: inline-flex;
+  gap: var(--sp-1);
+}
+
+.tt-mono {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+/* ---- modal form ---- */
+.tt-form {
+  display: grid;
+  gap: var(--sp-4);
+
+  &__fixed {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+
+    code {
+      font-family: var(--font-mono, ui-monospace, monospace);
+      font-size: 0.9em;
+      background: var(--surface-2);
+      padding: 1px 4px;
+      border-radius: var(--r-xs, 3px);
+    }
+  }
+}
+
+.tt-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  input {
+    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .tt-page {
+    gap: var(--sp-4);
+  }
+
+  .tt-panel {
+    padding: var(--sp-3);
+    gap: var(--sp-3);
+  }
+
+  /* Table → stacked cards, matching the shared table's phone layout. */
+  .tt-table-wrap {
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .tt-table {
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody,
+    tr {
+      display: block;
+    }
+
+    tr {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--sp-2) var(--sp-3);
+      padding: var(--sp-3);
+      margin-bottom: var(--sp-3);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      background: var(--surface-1);
+      box-shadow: var(--shadow-card);
+    }
+
+    td {
+      padding: 0;
+      border: none;
+
+      /* Name badge first, actions pinned to its right. */
+      &:first-child {
+        grid-column: 1;
+        grid-row: 1;
+      }
+    }
+
+    /* Label every value so the card reads without a header row. */
+    td:not(:first-child):not(:last-child)::before {
+      content: attr(data-label);
+      display: block;
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    td:nth-child(2),
+    td:nth-child(3),
+    td:nth-child(4),
+    td:nth-child(5) {
+      grid-column: span 2;
+    }
+
+    &__num {
+      text-align: left;
+    }
+
+    td:last-child {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+    }
+  }
+}

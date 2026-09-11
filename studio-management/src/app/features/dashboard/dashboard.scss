@@ -795,3 +795,100 @@
   .dash__main-row--three > .dash__panel:nth-child(3) { animation-delay: 0.42s; }
   .dash > .dash__panel { animation-delay: 0.48s; }
 }
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .dash {
+    gap: var(--sp-4);
+  }
+
+  .dash__skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  /* Header: title over a full-width range picker that scrolls sideways. */
+  .dash__head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-3);
+  }
+
+  .dash__range {
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .dash__seg {
+    flex: 0 0 auto;
+    min-height: 38px;
+  }
+
+  .dash__custom {
+    flex-wrap: wrap;
+
+    input {
+      flex: 1 1 140px;
+      min-width: 0;
+    }
+  }
+
+  /* One card per row — two 165px columns are unreadable on a phone. */
+  .dash__bal,
+  .dash__kpis,
+  .dash__mini {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+
+  .dash__panel {
+    padding: var(--sp-4);
+  }
+
+  .dash__hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash__hero-num {
+    font-size: var(--fs-2xl);
+  }
+
+  /* Type breakdown: label above the bar so the track keeps a usable width. */
+  .dash__bars > * {
+    grid-template-columns: 1fr 40px;
+    grid-template-areas:
+      'label label'
+      'track value';
+    row-gap: 4px;
+  }
+
+  .dash__bar-l {
+    grid-area: label;
+  }
+
+  .dash__bar-track {
+    grid-area: track;
+  }
+
+  .dash__bar-v {
+    grid-area: value;
+  }
+
+  /* The recent-tickets table has a 660px floor — give it its own scroller. */
+  .dash__tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dash__donut-row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .dash__legend {
+    width: 100%;
+  }
+}

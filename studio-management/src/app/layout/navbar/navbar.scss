@@ -484,8 +484,45 @@
   50% { opacity: 0.45; transform: scale(0.8); }
 }
 
-@media (max-width: 640px) {
+/* ---- phone app bar ---- */
+@media (max-width: 768px) {
+  .navbar {
+    height: auto;
+    min-height: var(--navbar-h-mobile);
+    padding: env(safe-area-inset-top, 0px) var(--sp-4) 0;
+    gap: var(--sp-2);
+
+    &__page-title strong {
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &__page-eyebrow {
+      font-size: 0.6rem;
+    }
+
+    &__icon-btn {
+      width: 38px;
+      height: 38px;
+    }
+
+    /* Dropdowns become full-width sheets anchored under the bar. */
+    &__dropdown {
+      position: fixed;
+      top: calc(var(--navbar-h-mobile) + env(safe-area-inset-top, 0px) + var(--sp-1));
+      left: var(--sp-3);
+      right: var(--sp-3);
+      width: auto !important;
+      max-width: none;
+      max-height: 70dvh;
+      overflow-y: auto;
+    }
+  }
+
   .navbar__user-copy { display: none; }
-  .navbar__dropdown--notifications { width: 320px; }
+  .navbar__user-caret { display: none; }
   .navbar__loc { display: none; }
+  .navbar__user { padding: 2px; border: none; background: none; }
 }

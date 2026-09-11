@@ -34,6 +34,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       { key: "tickets.complete", label: "Mark a ticket complete" },
       { key: "tickets.finalize", label: "Finalise a ticket (lock financials)" },
       { key: "tickets.comment", label: "Comment on tickets" },
+      { key: "tickets.types.manage", label: "Add / remove ticket types" },
     ],
   },
   {

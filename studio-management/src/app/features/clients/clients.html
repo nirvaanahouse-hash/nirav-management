@@ -132,41 +132,43 @@
   @if (workLoading()) {
     <div>Loading work details...</div>
   } @else {
+  <div class="work-view-table-wrap">
   <table class="work-view-table">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Couple</th>
-        <th>User</th>
-        <th>Amount</th>
-        <th>Main Amount</th>
-        <th>Status</th>
-        <th>Delivery</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (ticket of filteredTickets(); track ticket._id) {
+      <thead>
         <tr>
-          <td>{{ formatTicketType(ticket.ticketType) }}</td>
-          <td>{{ ticket.coupleName }}</td>
-          <td>{{ ticket.createdByName }}</td>
-          <td>₹{{ toNumber(ticket.amount) | number:'1.0-0':'en-IN' }}</td>
-          <td>₹{{ toNumber(ticket.mainAmount) | number:'1.0-0':'en-IN' }}</td>
-          <td>
-            <span [class]="'badge badge--' + statusVariant(ticket.status)">
-              {{ formatStatus(ticket.status) }}
-            </span>
-          </td>
-          <td>{{ ticket.deleveryDate }}</td>
+          <th>Type</th>
+          <th>Couple</th>
+          <th>User</th>
+          <th>Amount</th>
+          <th>Main Amount</th>
+          <th>Status</th>
+          <th>Delivery</th>
         </tr>
-      }
-      @empty {
-        <tr>
-          <td colspan="7">No tickets found for this client.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (ticket of filteredTickets(); track ticket._id) {
+          <tr>
+            <td>{{ formatTicketType(ticket.ticketType) }}</td>
+            <td>{{ ticket.coupleName }}</td>
+            <td>{{ ticket.createdByName }}</td>
+            <td>₹{{ toNumber(ticket.amount) | number:'1.0-0':'en-IN' }}</td>
+            <td>₹{{ toNumber(ticket.mainAmount) | number:'1.0-0':'en-IN' }}</td>
+            <td>
+              <span [class]="'badge badge--' + statusVariant(ticket.status)">
+                {{ formatStatus(ticket.status) }}
+              </span>
+            </td>
+            <td>{{ ticket.deleveryDate }}</td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="7">No tickets found for this client.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+</div>
   }
   <ng-container modal-footer>
     <app-button variant="secondary" (click)="closeWorkDialog()">Close</app-button>
@@ -182,42 +184,44 @@
   @if (paymentLoading()) {
     <div>Loading payments...</div>
   } @else {
+  <div class="work-view-table-wrap">
   <table class="work-view-table">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Recorded By</th>
-          <th>Description</th>
-          @if (isAdmin()) {
-            <th>Actions</th>
-          }
-        </tr>
-      </thead>
-      <tbody>
-        @for (entry of paymentEntries(); track entry._id) {
+        <thead>
           <tr>
-            <td>{{ entry.type === 'received' ? 'Received' : 'Sent' }}</td>
-            <td>₹{{ toNumber(entry.amount) | number:'1.0-0':'en-IN' }}</td>
-            <td>{{ entry.entryDate | date:'shortDate' }}</td>
-            <td>{{ entry.recordedBy }}</td>
-            <td>{{ entry.description || '-' }}</td>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Recorded By</th>
+            <th>Description</th>
             @if (isAdmin()) {
-              <td>
-                <app-button variant="ghost" size="sm" (click)="openEditPaymentEntry(entry, historyClient)">Edit</app-button>
-                <app-button variant="ghost" size="sm" (click)="onDeletePaymentEntry(entry)">Delete</app-button>
-              </td>
+              <th>Actions</th>
             }
           </tr>
+        </thead>
+        <tbody>
+          @for (entry of paymentEntries(); track entry._id) {
+            <tr>
+              <td>{{ entry.type === 'received' ? 'Received' : 'Sent' }}</td>
+              <td>₹{{ toNumber(entry.amount) | number:'1.0-0':'en-IN' }}</td>
+              <td>{{ entry.entryDate | date:'shortDate' }}</td>
+              <td>{{ entry.recordedBy }}</td>
+              <td>{{ entry.description || '-' }}</td>
+              @if (isAdmin()) {
+                <td>
+                  <app-button variant="ghost" size="sm" (click)="openEditPaymentEntry(entry, historyClient)">Edit</app-button>
+                  <app-button variant="ghost" size="sm" (click)="onDeletePaymentEntry(entry)">Delete</app-button>
+                </td>
+              }
+            </tr>
+          }
+        @empty {
+          <tr>
+            <td colspan="5">No payment history found.</td>
+          </tr>
         }
-      @empty {
-        <tr>
-          <td colspan="5">No payment history found.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+</div>
   }
   <ng-container modal-footer>
     <app-button variant="secondary" (click)="closePaymentHistory()">Close</app-button>

@@ -67,27 +67,20 @@
       @for (row of pagedRows(); track $index) {
         <article class="app-card">
           <header class="app-card__head">
-            <div class="app-card__heading">
-              @if (primaryColumn(); as pcol) {
-                @if (pcol.badge && pcol.badgeVariant) {
-                  <span [class]="'badge badge--' + pcol.badgeVariant(row)">{{ cellText(pcol, row) }}</span>
-                } @else {
-                  <h4 class="app-card__title">{{ cellText(pcol, row) }}</h4>
+            @if (primaryColumn(); as pcol) {
+              @if (pcol.badge && pcol.badgeVariant) {
+                <span [class]="'badge badge--' + pcol.badgeVariant(row)">{{ cellText(pcol, row) }}</span>
+              } @else {
+                <h4 class="app-card__title">{{ cellText(pcol, row) }}</h4>
+              }
+            }
+            @if (badgeColumns().length) {
+              <div class="app-card__badges">
+                @for (col of badgeColumns(); track col.key) {
+                  <span [class]="'badge badge--' + (col.badgeVariant ? col.badgeVariant(row) : 'neutral')">
+                    {{ cellText(col, row) }}
+                  </span>
                 }
-              }
-              @if (badgeColumns().length) {
-                <div class="app-card__badges">
-                  @for (col of badgeColumns(); track col.key) {
-                    <span [class]="'badge badge--' + (col.badgeVariant ? col.badgeVariant(row) : 'neutral')">
-                      {{ cellText(col, row) }}
-                    </span>
-                  }
-                </div>
-              }
-            </div>
-            @if (hasActions()) {
-              <div class="app-card__actions">
-                <ng-container [ngTemplateOutlet]="rowActionsTemplate() ?? null" [ngTemplateOutletContext]="{ $implicit: row }" />
               </div>
             }
           </header>
@@ -101,6 +94,14 @@
                 </div>
               }
             </dl>
+          }
+
+          <!-- Actions get their own row: some pages have six of them, and they
+               would squash the heading if they shared its line. -->
+          @if (hasActions()) {
+            <footer class="app-card__actions">
+              <ng-container [ngTemplateOutlet]="rowActionsTemplate() ?? null" [ngTemplateOutletContext]="{ $implicit: row }" />
+            </footer>
           }
         </article>
       }

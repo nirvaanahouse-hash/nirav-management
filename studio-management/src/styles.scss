@@ -190,8 +190,10 @@ button {
   /* ---- form controls: thumb-sized, and never zoom on focus ----
      !important because every page styles its own inputs with a class, which
      outranks this element selector — and a sub-16px font makes mobile Safari
-     zoom the whole page the moment a field takes focus. */
-  input,
+     zoom the whole page the moment a field takes focus.
+     Checkboxes and radios are excluded: a 44px min-height on a 16px box makes
+     the control float below its own label. */
+  input:not([type="checkbox"]):not([type="radio"]),
   select,
   textarea {
     font-size: 16px !important;
@@ -200,6 +202,15 @@ button {
 
   textarea {
     min-height: 96px;
+  }
+
+  /* Slightly larger boxes instead, so they stay easy to hit. */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    min-height: 0;
+    flex-shrink: 0;
   }
 
   /* Any remaining multi-column form grid collapses to one column. */

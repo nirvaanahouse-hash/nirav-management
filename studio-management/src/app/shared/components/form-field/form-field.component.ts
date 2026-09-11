@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { SelectComponent } from '../select/select.component';
+import { DatepickerComponent } from '../datepicker/datepicker.component';
+import { CheckboxComponent } from '../checkbox/checkbox.component';
 
 /**
  * Reusable labeled form field. Wraps a Reactive Forms control, shows
@@ -9,7 +12,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 @Component({
   selector: 'app-form-field',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SelectComponent, DatepickerComponent, CheckboxComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl:'./form-field.component.html',
   styleUrl: './form-field.component.scss',
@@ -17,11 +20,18 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 export class FormFieldComponent {
   label = input.required<string>();
   control = input.required<FormControl>();
-  type = input<'text' | 'email' | 'number' | 'password' | 'textarea' | 'select' | 'date' | 'time'>('text');
+  type = input<
+    'text' | 'email' | 'number' | 'password' | 'textarea' | 'select' | 'date' | 'time' | 'checkbox'
+  >('text');
   placeholder = input<string>('');
   hint = input<string>('');
   required = input(false);
-  options = input<{ value: string; label: string }[]>([]);
+  options = input<{ value: string; label: string; disabled?: boolean; hint?: string }[]>([]);
+  /** Select only — lets the field hold several values (value becomes string[]). */
+  multiple = input(false);
+  /** Date only — both are yyyy-MM-dd. */
+  min = input('');
+  max = input('');
   errorMessages = input<Record<string, string>>({});
   readonly = input(false);
 

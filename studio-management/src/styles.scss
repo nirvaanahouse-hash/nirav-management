@@ -90,6 +90,20 @@ button {
 .badge--danger  { background: var(--danger-soft);  color: var(--danger); }
 .badge--info    { background: var(--info-soft);    color: var(--info); }
 
+/* The themed select / datepicker draw their own field box. Pages still put
+   their old control classes on them (.tickets-page__filter, .ip-input, …),
+   which were written for a native <select> and would paint a second box
+   around the component. Strip that outer box — !important because those page
+   rules are component-scoped and outrank a bare element selector. */
+app-select,
+app-datepicker {
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+}
+
 /* Card surface — mirrors the `surface-card` Sass mixin for use in plain HTML */
 .surface-card {
   background: var(--surface-1);

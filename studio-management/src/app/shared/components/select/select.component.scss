@@ -1,0 +1,284 @@
+:host {
+  position: relative;
+  /* A block already fills its container; an explicit width:100% would make it
+     demand the full line inside a flex toolbar and push the row to wrap. */
+  display: block;
+  min-width: 0;
+}
+
+/* ---- closed trigger: matches .app-field__control exactly ---- */
+.sel__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: var(--tap-target, 44px);
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  text-align: left;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
+
+  &:focus-visible,
+  &--open {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  &--invalid {
+    border-color: var(--danger);
+
+    &:focus-visible,
+    &.sel__trigger--open {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px var(--danger-soft);
+    }
+  }
+
+  &--placeholder .sel__value {
+    color: var(--text-muted);
+  }
+
+  &:disabled {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+}
+
+.sel__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sel__caret {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform var(--dur-base) var(--ease-out);
+
+  .sel__trigger--open & {
+    transform: rotate(180deg);
+  }
+}
+
+/* ---- desktop popover ---- */
+.sel__scrim {
+  display: none;
+}
+
+.sel__panel {
+  /* Portalled to <body> by appPopover, which sets top/left/width. */
+  position: fixed;
+  z-index: 960;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  background: var(--surface-raised, var(--surface-1));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-elevated);
+  overflow: hidden;
+  animation: sel-in var(--dur-fast) var(--ease-out);
+}
+
+.sel__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sel__option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+
+  &--active {
+    background: var(--surface-2);
+  }
+
+  &--selected {
+    color: var(--accent-strong, var(--accent));
+    font-weight: 600;
+  }
+
+  &--disabled {
+    color: var(--text-muted);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.sel__option-text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.sel__option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sel__option-hint {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+}
+
+.sel__tick {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+/* Multi-select tick box */
+.sel__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 6px;
+  color: transparent;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+
+  &--on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--text-on-accent);
+  }
+}
+
+.sel__empty {
+  padding: var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.sel__sheet-head {
+  display: none;
+}
+
+.sel__sheet-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+}
+
+.sel__link,
+.sel__done {
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+}
+
+.sel__link {
+  color: var(--text-muted);
+}
+
+.sel__done {
+  color: var(--accent-strong, var(--accent));
+}
+
+@keyframes sel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- phone: the list becomes a bottom sheet ---- */
+@media (max-width: 768px) {
+  .sel__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 950;
+    background: rgba(8, 11, 20, 0.5);
+    animation: sel-fade var(--dur-fast) var(--ease-out);
+  }
+
+  .sel__panel {
+    position: fixed;
+    z-index: 960;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 70dvh;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    border-bottom: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: sel-up var(--dur-base) var(--ease-out);
+  }
+
+  .sel__sheet-head {
+    display: grid;
+    justify-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: var(--fs-sm);
+  }
+
+  .sel__grabber {
+    width: 38px;
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: var(--border-strong);
+  }
+
+  .sel__option {
+    min-height: var(--tap-target, 44px);
+    font-size: var(--fs-base);
+  }
+
+  .sel__link,
+  .sel__done {
+    min-height: var(--tap-target, 44px);
+  }
+}
+
+@keyframes sel-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sel-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

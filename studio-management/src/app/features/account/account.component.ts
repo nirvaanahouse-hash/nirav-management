@@ -10,6 +10,8 @@ import { ConfirmDialogService } from "../../features/dialog/confirm-dialog/confi
 import { ButtonComponent } from "../../shared/components/button/button";
 import { IconButtonComponent } from "../../shared/components/icon-button/icon-button.component";
 import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
+import { SelectComponent } from "../../shared/components/select/select.component";
+import { SelectItem } from "../../shared/components/select/select.model";
 import { ModalComponent } from "../../features/dialog/modal.component";
 
 /** "sent" = studio owes / will pay the user; "received" = user owes / will pay the studio. */
@@ -25,6 +27,7 @@ type Direction = "sent" | "received";
     IconButtonComponent,
     PageHeaderComponent,
     ModalComponent,
+    SelectComponent,
   ],
   templateUrl: "./account.component.html",
   styleUrls: ["./account.component.scss"],
@@ -71,6 +74,11 @@ export class AccountComponent {
   // --- Add / edit modal state -------------------------------------------------
   readonly showForm = signal(false);
   direction: Direction = "sent";
+
+  readonly directionOptions: SelectItem[] = [
+    { value: "sent", label: "Money to receive (studio → me)" },
+    { value: "received", label: "Money to pay (me → studio)" },
+  ];
   amount = 0;
   remark = "";
   readonly saving = signal(false);

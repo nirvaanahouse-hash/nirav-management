@@ -9,6 +9,9 @@ import { TicketRecord } from "../../core/models/task.model";
 import { AmountEntry } from "../../core/models/amountEntry.model";
 import { AuthService } from "../../core/services/auth.service";
 import { TicketMetaService } from "../../core/services/ticket-meta.service";
+import { SelectComponent } from "../../shared/components/select/select.component";
+import { DatepickerComponent } from "../../shared/components/datepicker/datepicker.component";
+import { SelectItem } from "../../shared/components/select/select.model";
 import {
   PRIORITY_VARIANT,
   TICKET_STATUS_VARIANT,
@@ -38,6 +41,8 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
   selector: "app-dashboard",
   standalone: true,
   imports: [
+    SelectComponent,
+    DatepickerComponent,
     CommonModule,
     FormsModule,
     RouterLink,
@@ -452,6 +457,10 @@ export class DashboardComponent {
   priorityVariant(p: string): string {
     return PRIORITY_VARIANT[p as keyof typeof PRIORITY_VARIANT] ?? "neutral";
   }
+
+  readonly metricOptions = computed<SelectItem[]>(() =>
+    this.metrics().map((m) => ({ value: m.key, label: m.label })),
+  );
 
   ticketTypeVariant(t: string): string {
     return this.ticketMeta.typeVariant(t);

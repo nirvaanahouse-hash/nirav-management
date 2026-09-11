@@ -16,13 +16,14 @@ import { ThemeService } from '../../core/services/theme.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { LocationService } from '../../core/services/location.service';
 import { ThemeId } from '../../core/models/theme.model';
+import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 
 type NotifTab = 'all' | 'unread';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, CheckboxComponent],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

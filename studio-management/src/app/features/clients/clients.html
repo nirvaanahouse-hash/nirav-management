@@ -14,24 +14,18 @@
     [ngModel]="searchTerm()"
     (ngModelChange)="searchTerm.set($event)"
   />
-  <select
+  <app-select
     class="client-toolbar__filter"
+    ariaLabel="Filter by status"
+    placeholder="All statuses"
+    sheetTitle="Status"
+    [options]="statusFilterOptions"
     [ngModel]="statusFilter()"
     (ngModelChange)="statusFilter.set($event)"
-  >
-    <option value="all">All statuses</option>
-    @for (opt of statusOptions; track opt.value) {
-    <option [value]="opt.value">{{ opt.label }}</option>
-    }
-  </select>
-  <label class="checkbox-label">
-    <input
-      type="checkbox"
-      [ngModel]="showInactive()"
-      (ngModelChange)="showInactive.set($event)"
-    />
+  />
+  <app-checkbox [ngModel]="showInactive()" (ngModelChange)="showInactive.set($event)">
     Show Inactive
-  </label>
+  </app-checkbox>
 </div>
 
 @if (loading()) {
@@ -117,16 +111,15 @@
       [ngModel]="workTypeFilter()"
       (ngModelChange)="workTypeFilter.set($event)"
     />
-    <select
+    <app-select
       class="work-view-filters__select"
+      ariaLabel="Filter by employee"
+      placeholder="All Employees"
+      sheetTitle="Employee"
+      [options]="employeeFilterOptions()"
       [ngModel]="workEmployeeFilter()"
       (ngModelChange)="workEmployeeFilter.set($event)"
-    >
-      <option value="">All Employees</option>
-      @for (opt of employeeOptions(); track opt.value) {
-      <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
+    />
   </div>
 
   @if (workLoading()) {
@@ -306,18 +299,20 @@
       <div class="billing__section">
         <span class="billing__section-label">Delivery date range</span>
         <div class="billing__range">
-          <input
+          <app-datepicker
             class="billing__control"
-            type="date"
-            aria-label="From date"
+            ariaLabel="From date"
+            placeholder="From"
+            [max]="billingTo()"
             [ngModel]="billingFrom()"
             (ngModelChange)="billingFrom.set($event); onBillingDateChange()"
           />
           <span class="billing__range-arrow">→</span>
-          <input
+          <app-datepicker
             class="billing__control"
-            type="date"
-            aria-label="To date"
+            ariaLabel="To date"
+            placeholder="To"
+            [min]="billingFrom()"
             [ngModel]="billingTo()"
             (ngModelChange)="billingTo.set($event); onBillingDateChange()"
           />

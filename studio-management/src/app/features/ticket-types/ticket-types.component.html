@@ -116,19 +116,15 @@
           working.
         </p>
       } @else {
-        <label class="tt-check">
-          <input type="checkbox" formControlName="isJob" />
-          <span>
-            Hour-wise pricing — the amount is work hours × HR price, like the JOB types.
-            Leave this off for a flat-amount type.
-          </span>
-        </label>
+        <app-checkbox class="tt-check" formControlName="isJob">
+          Hour-wise pricing — the amount is work hours × HR price, like the JOB types.
+          Leave this off for a flat-amount type.
+        </app-checkbox>
       }
 
-      <label class="tt-check">
-        <input type="checkbox" formControlName="isActive" />
-        <span>Offer this type on the ticket form</span>
-      </label>
+      <app-checkbox class="tt-check" formControlName="isActive">
+        Offer this type on the ticket form
+      </app-checkbox>
     </form>
     <ng-container modal-footer>
       <app-button variant="secondary" (clicked)="closeModal()">Cancel</app-button>

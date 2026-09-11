@@ -141,10 +141,9 @@
         placeholder="Additional notes"
       />
       @if (isSA() && isStatusCompleted()) {
-        <label class="ticket-form__checkbox">
-          <input type="checkbox" formControlName="isFinalized" />
-          <span>Finalize ticket (client delivered, payment received)</span>
-        </label>
+        <app-checkbox class="ticket-form__checkbox" formControlName="isFinalized">
+          Finalize ticket (client delivered, payment received)
+        </app-checkbox>
       } @else {
         <div></div>
       }

@@ -19,11 +19,12 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TicketMetaService } from '../../../core/services/ticket-meta.service';
 import { ToastService } from '../../../features/toast/toast.service';
 import { toastIfInvalid } from '../../../core/utils/form-toast';
+import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 
 @Component({
   selector: 'app-ticket-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, CheckboxComponent],
   templateUrl: './ticket-form.component.html',
   styleUrl: './ticket-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

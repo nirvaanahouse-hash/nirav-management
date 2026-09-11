@@ -76,11 +76,11 @@
                     </td>
                     <td class="perm-tree__keycol"></td>
                     <td class="perm-tree__chkcol">
-                      <input
-                        type="checkbox"
+                      <app-checkbox
                         [checked]="groupState(g) === 'all'"
                         [indeterminate]="groupState(g) === 'some'"
-                        (change)="toggleGroup(g)"
+                        [ariaLabel]="'Toggle ' + g.label"
+                        (changed)="toggleGroup(g)"
                       />
                     </td>
                   </tr>
@@ -97,7 +97,11 @@
                         </td>
                         <td class="perm-tree__keycol"><code>{{ p.key }}</code></td>
                         <td class="perm-tree__chkcol">
-                          <input type="checkbox" [checked]="isChecked(p.key)" (change)="toggleKey(p.key)" />
+                          <app-checkbox
+                            [checked]="isChecked(p.key)"
+                            [ariaLabel]="p.label"
+                            (changed)="toggleKey(p.key)"
+                          />
                         </td>
                       </tr>
                     }

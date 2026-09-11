@@ -27,10 +27,14 @@
       [(ngModel)]="searchTerm"
       (input)="debouncedSearch()"
     />
-    <select class="users-page__filter" [(ngModel)]="showInactive" (change)="loadEmployees()">
-      <option [ngValue]="false">Active only</option>
-      <option [ngValue]="true">All</option>
-    </select>
+    <app-select
+      class="users-page__filter"
+      ariaLabel="Filter by status"
+      sheetTitle="Show"
+      [options]="visibilityOptions"
+      [ngModel]="showInactive ? 'all' : 'active'"
+      (ngModelChange)="onVisibilityChange($event)"
+    />
   </div>
 
   @if (loading()) {
@@ -140,10 +144,11 @@
       <div class="amount-entry">
         <label class="amount-entry__field">
           <span class="amount-entry__label">Type</span>
-          <select class="amount-entry__control" [(ngModel)]="amountEntryType">
-            <option value="sent">Sent (to user)</option>
-            <option value="received">Received (from user)</option>
-          </select>
+          <app-select
+            sheetTitle="Entry type"
+            [options]="entryTypeOptions"
+            [(ngModel)]="amountEntryType"
+          />
         </label>
         <label class="amount-entry__field">
           <span class="amount-entry__label">Amount (₹)</span>
@@ -304,10 +309,9 @@
             (ngModelChange)="newPassword.set($event)"
           />
         </label>
-        <label class="users-page__pwd-show">
-          <input type="checkbox" [ngModel]="passwordVisible()" (ngModelChange)="passwordVisible.set($event)" />
+        <app-checkbox [ngModel]="passwordVisible()" (ngModelChange)="passwordVisible.set($event)">
           Show password
-        </label>
+        </app-checkbox>
       </div>
       <ng-container modal-footer>
         <app-button variant="secondary" (clicked)="closePassword()">Cancel</app-button>

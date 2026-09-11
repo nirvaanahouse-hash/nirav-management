@@ -13,6 +13,9 @@ import { AmountService } from "../../core/services/amount.service";
 import { LocationService, UserLocationView } from "../../core/services/location.service";
 import { AmountEntry, AmountEntryDraft } from "../../core/models/amountEntry.model";
 import { ButtonComponent } from "../../shared/components/button/button";
+import { SelectComponent } from "../../shared/components/select/select.component";
+import { SelectItem } from "../../shared/components/select/select.model";
+import { CheckboxComponent } from "../../shared/components/checkbox/checkbox.component";
 import { IconButtonComponent } from "../../shared/components/icon-button/icon-button.component";
 import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { FormFieldComponent } from "../../shared/components/form-field/form-field.component";
@@ -22,6 +25,8 @@ import { ModalComponent } from "../../features/dialog/modal.component";
   selector: "app-users",
   standalone: true,
   imports: [
+    SelectComponent,
+    CheckboxComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -119,6 +124,16 @@ export class UsersComponent {
   readonly loading = signal(true);
   searchTerm = "";
   showInactive = false;
+
+  readonly visibilityOptions: SelectItem[] = [
+    { value: "active", label: "Active only" },
+    { value: "all", label: "All" },
+  ];
+
+  readonly entryTypeOptions: SelectItem[] = [
+    { value: "sent", label: "Sent (to user)" },
+    { value: "received", label: "Received (from user)" },
+  ];
 
   readonly employees = this.employeeService.employees;
   readonly stats = signal({
@@ -514,5 +529,11 @@ export class UsersComponent {
         this.toastService.error("Could not update password", err.message);
       },
     });
+  }
+
+  /** The visibility filter is a string select; the flag behind it stays boolean. */
+  onVisibilityChange(value: string): void {
+    this.showInactive = value === "all";
+    this.loadEmployees();
   }
 }

@@ -102,10 +102,7 @@
     <div class="amount-entry">
       <label class="amount-entry__field">
         <span class="amount-entry__label">Direction</span>
-        <select class="amount-entry__control" [(ngModel)]="direction">
-          <option value="sent">Money to receive (studio → me)</option>
-          <option value="received">Money to pay (me → studio)</option>
-        </select>
+        <app-select sheetTitle="Direction" [options]="directionOptions" [(ngModel)]="direction" />
       </label>
       <label class="amount-entry__field">
         <span class="amount-entry__label">Amount (₹)</span>

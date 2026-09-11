@@ -13,6 +13,7 @@ import { ModalComponent } from '../../features/dialog/modal.component';
 import { ButtonComponent } from '../../shared/components/button/button';
 import { IconButtonComponent } from '../../shared/components/icon-button/icon-button.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
+import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 
 /**
  * SA screen for the ticket type registry — add a type, rename or recolour it,
@@ -28,6 +29,7 @@ import { FormFieldComponent } from '../../shared/components/form-field/form-fiel
     ModalComponent,
     ButtonComponent,
     IconButtonComponent,
+    CheckboxComponent,
     FormFieldComponent,
   ],
   templateUrl: './ticket-types.component.html',

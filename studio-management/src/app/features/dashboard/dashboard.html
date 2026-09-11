@@ -22,8 +22,9 @@
         @if (range() === 'custom') {
           <label class="dash__custom">
             <span>From</span>
-            <input
-              type="date"
+            <app-datepicker
+              ariaLabel="From date"
+              placeholder="From"
               [max]="customTo() || today"
               [ngModel]="customFrom()"
               (ngModelChange)="setCustomFrom($event)"
@@ -31,8 +32,9 @@
           </label>
           <label class="dash__custom">
             <span>To</span>
-            <input
-              type="date"
+            <app-datepicker
+              ariaLabel="To date"
+              placeholder="To"
               [min]="customFrom()"
               [max]="today"
               [ngModel]="customTo()"
@@ -122,16 +124,14 @@
           } @else {
             <div class="dash__hero-eyebrow">
               <span class="dash__eyebrow">{{ activeMetric().label }}</span>
-              <select
+              <app-select
                 class="dash__select dash__select--ghost"
-                aria-label="Metric"
+                ariaLabel="Metric"
+                sheetTitle="Metric"
+                [options]="metricOptions()"
                 [ngModel]="selectedMetricKey()"
                 (ngModelChange)="setMetric($event)"
-              >
-                @for (m of metrics(); track m.key) {
-                  <option [value]="m.key">{{ m.label }}</option>
-                }
-              </select>
+              />
             </div>
             <div class="dash__hero-value">
               <strong class="dash__hero-num">{{ heroKpi().valueLabel }}</strong>

@@ -7,6 +7,9 @@ import { EmployeeComparisonRow } from '../../core/models/comparison.model';
 import { ToastService } from '../../features/toast/toast.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { RadarChartComponent, RadarSeries } from '../../shared/components/radar-chart/radar-chart.component';
+import { SelectComponent } from '../../shared/components/select/select.component';
+import { SelectItem } from '../../shared/components/select/select.model';
+import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
 
 type RangeKey = 'thisMonth' | 'lastMonth' | 'last12' | 'custom';
 type NumKey =
@@ -24,7 +27,7 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 @Component({
   selector: 'app-comparison',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageHeaderComponent, RadarChartComponent],
+  imports: [CommonModule, FormsModule, PageHeaderComponent, RadarChartComponent, SelectComponent, DatepickerComponent],
   templateUrl: './comparison.component.html',
   styleUrls: ['./comparison.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +38,10 @@ export class ComparisonComponent {
 
   readonly loading = signal(true);
   readonly rows = signal<EmployeeComparisonRow[]>([]);
+
+  readonly employeePickOptions = computed<SelectItem[]>(() =>
+    this.rows().map((r) => ({ value: r._id, label: r.name })),
+  );
 
   readonly range = signal<RangeKey>('thisMonth');
   readonly customFrom = signal('');

@@ -36,6 +36,10 @@ import { UserService } from "../../core/services/user.service";
 import { User } from "../../core/models/user.model";
 import { AmountService } from "../../core/services/amount.service";
 import { TicketMetaService } from "../../core/services/ticket-meta.service";
+import { SelectComponent } from "../../shared/components/select/select.component";
+import { SelectItem } from "../../shared/components/select/select.model";
+import { CheckboxComponent } from "../../shared/components/checkbox/checkbox.component";
+import { DatepickerComponent } from "../../shared/components/datepicker/datepicker.component";
 import { AmountEntry, AmountEntryDraft } from "../../core/models/amountEntry.model";
 
 type StatusFilter = "all" | ClientStatus;
@@ -51,6 +55,9 @@ type StatusFilter = "all" | ClientStatus;
     ModalComponent,
     PageHeaderComponent,
     ClientFormComponent,
+    SelectComponent,
+    CheckboxComponent,
+    DatepickerComponent,
     HasPermissionDirective,
   ],
   standalone: true,
@@ -152,6 +159,16 @@ export class ClientsComponent {
   });
 
   isAdmin = this.authService.isSuperAdmin;
+
+  readonly statusFilterOptions: SelectItem[] = [
+    { value: "all", label: "All statuses" },
+    ...CLIENT_STATUS_OPTIONS,
+  ];
+
+  readonly employeeFilterOptions = computed<SelectItem[]>(() => [
+    { value: "", label: "All Employees" },
+    ...this.employeeOptions(),
+  ]);
 
   columns: TableColumn<Client>[] = [
     {

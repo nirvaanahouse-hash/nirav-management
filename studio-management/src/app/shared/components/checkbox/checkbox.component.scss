@@ -1,0 +1,85 @@
+:host {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.cbx {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-height: var(--tap-target, 44px);
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+/* The real input stays for semantics, keyboard and form wiring — just invisible. */
+.cbx__native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cbx__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  /* line up with the first line of the label */
+  margin-top: 1px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: transparent;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.cbx:hover .cbx__box {
+  border-color: var(--accent);
+}
+
+.cbx__native:checked + .cbx__box {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+}
+
+.cbx__native:focus-visible + .cbx__box {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.cbx__label {
+  min-width: 0;
+  line-height: 1.45;
+}
+
+/* An empty label (checkbox-only cell) shouldn't reserve space. */
+.cbx__label:empty {
+  display: none;
+}
+
+/* Half-state: filled like "on", but with a dash. */
+.cbx__box--mixed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+}

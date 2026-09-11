@@ -58,7 +58,13 @@ export interface TicketRecord {
     mobileNumber: string;
     sortName?: string;
     company?: string;
+    image?: string;
   } | null;
+  /** Names resolved from the linked ids on every read (see getTickets). */
+  clientName?: string;
+  assignedEmployeeName?: string;
+  /** Client photo path, so ticket rows show the same avatar as the client list. */
+  clientPhoto?: string;
   calculatedAmount?: number;
   calculatedMainAmount?: number;
   employeeEarnings?: number;

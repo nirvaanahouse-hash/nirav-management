@@ -23,6 +23,7 @@ import {
 import { AuthService } from "../../core/services/auth.service";
 import { PermissionService } from "../../core/services/permission.service";
 import { TicketMetaService } from "../../core/services/ticket-meta.service";
+import { ClientService } from "../../core/services/client.service";
 import { TableColumn } from "../../shared/components/table/table.model";
 
 @Component({
@@ -48,6 +49,7 @@ export class TicketsComponent {
   private permissions = inject(PermissionService);
   private confirmDialog = inject(ConfirmDialogService);
   private ticketMeta = inject(TicketMetaService);
+  private clientService = inject(ClientService);
   private router = inject(Router);
 
   searchTerm = signal("");
@@ -100,6 +102,12 @@ export class TicketsComponent {
         format: (row) => row.ticketTypeLabel || this.formatTicketType(row.ticketType),
       },
       { key: "coupleName", label: "Couple", sortable: true },
+      {
+        key: "clientName",
+        label: "Client",
+        sortable: true,
+        avatar: (row) => this.clientService.imageUrl(row.clientPhoto),
+      },
       { key: "createdByName", label: "Created By", sortable: true },
       {
         key: "priorety",

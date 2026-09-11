@@ -1,5 +1,6 @@
-import { Component, computed, inject, signal } from "@angular/core";
+import { Component, ViewChild, computed, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { Observable, of } from "rxjs";
 import { TableComponent } from "../../shared/components/table/table";
 import {
   ClientService,
@@ -65,6 +66,9 @@ export class ClientsComponent {
   private userService = inject(UserService);
   private amountService = inject(AmountService);
   private ticketMeta = inject(TicketMetaService);
+
+  /** Lives inside the dialog, so it is only present while the dialog is open. */
+  @ViewChild(ClientFormComponent) private clientForm?: ClientFormComponent;
 
    showPaymentEntry = signal<Client | null>(null);
   paymentAmount = 0;
@@ -150,7 +154,12 @@ export class ClientsComponent {
   isAdmin = this.authService.isSuperAdmin;
 
   columns: TableColumn<Client>[] = [
-    { key: "name", label: "Name", sortable: true },
+    {
+      key: "name",
+      label: "Name",
+      sortable: true,
+      avatar: (c) => this.clientService.imageUrl(c.image),
+    },
     { key: "sortName", label: "Sort Name", sortable: true },
     { key: "company", label: "Company", sortable: true },
     { key: "mobileNumber", label: "Mobile", sortable: true },
@@ -233,21 +242,46 @@ export class ClientsComponent {
   onFormSubmit(draft: ClientDraft): void {
     this.saving.set(true);
     const editing = this.editingClient();
+    const form = this.clientForm;
     const request = editing
       ? this.clientService.update(editing._id, draft)
       : this.clientService.create(draft);
 
     request.subscribe({
       next: (response) => {
+        const saved = response.data;
+        // The photo is a separate multipart call — a new client only gets an
+        // id here, so it can only be uploaded once the record exists.
+        this.savePhoto(saved._id, form).subscribe({
+          next: () => {
+            this.saving.set(false);
+            this.toast.success(editing ? "Client updated" : "Client created", saved.name || "");
+            this.closeDialog();
+            this.fetchClients();
+          },
+          error: () => {
+            this.saving.set(false);
+            this.toast.error(
+              "Client saved, photo failed",
+              "The details were saved. Try the photo again from Edit.",
+            );
+            this.closeDialog();
+            this.fetchClients();
+          },
+        });
+      },
+      error: () => {
         this.saving.set(false);
-          this.toast.success(editing ? "Client updated" : "Client created", editing?.name || "");
-          this.closeDialog();
-          this.fetchClients();
-        },
-        error: () => {
-          this.saving.set(false);
-        },
+      },
     });
+  }
+
+  /** Applies whatever the form's photo picker is holding. No-op if untouched. */
+  private savePhoto(clientId: string, form?: ClientFormComponent): Observable<unknown> {
+    const file = form?.pendingPhoto();
+    if (file) return this.clientService.uploadImage(clientId, file);
+    if (form?.photoCleared()) return this.clientService.deleteImage(clientId);
+    return of(null);
   }
 
   async confirmDelete(client: Client): Promise<void> {

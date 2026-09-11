@@ -6,3 +6,50 @@
     @media (max-width: 560px) {
       .client-form__row { grid-template-columns: 1fr; }
     }
+.client-photo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.client-photo__preview {
+  width: 72px;
+  height: 72px;
+  font-size: var(--fs-md);
+}
+
+.client-photo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.client-photo__pick {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--tap-target);
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.client-photo__hint {
+  flex-basis: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}

@@ -42,6 +42,14 @@ const clientSchema = new mongoose.Schema(
       default: "active",
     },
 
+    // Client photo. Like the user profile photo, the file lives on disk under
+    // BE/uploads/client/ and only its relative path is stored here.
+    image: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     isActive: {
       type: Boolean,
       default: true,

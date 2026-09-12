@@ -27,6 +27,7 @@ const ipRoutes = require("./routes/ip.routes");
 const permissionRoutes = require("./routes/permission.routes");
 const comparisonRoutes = require("./routes/comparison.routes");
 const ticketTypeRoutes = require("./routes/ticketType.routes");
+const financialRevealRoutes = require("./routes/financialReveal.routes");
 const { seedUserPermissions } = require("./utils/seed-permissions");
 const { seedTicketTypes } = require("./utils/seed-ticket-types");
 
@@ -88,6 +89,7 @@ app.use("/api", ipRoutes);
 app.use("/api", permissionRoutes);
 app.use("/api", comparisonRoutes);
 app.use("/api", ticketTypeRoutes);
+app.use("/api", financialRevealRoutes);
 
 app.use(errorHandler);
 

@@ -67,6 +67,14 @@ const toOptions = (valueMap, labelMap, colorMap) =>
     color: (colorMap && colorMap[value]) || "#8792AC",
   }));
 
+// Resolved from the linked id every read, so renaming a user anywhere
+// reflects immediately instead of showing whatever name was stored at the
+// time the ticket was created/updated.
+const nameOf = (details, fallback) =>
+  details
+    ? `${details.firstName || ""} ${details.lastName || ""}`.trim() || details.userName || fallback || ""
+    : fallback || "";
+
 const getTickets = async (req, res) => {
   try {
     const { user } = req;
@@ -153,10 +161,6 @@ const getTickets = async (req, res) => {
       "employeePaid",
       "balanceDue",
     ];
-    const nameOf = (details, fallback) =>
-      details
-        ? `${details.firstName || ""} ${details.lastName || ""}`.trim() || details.userName || fallback || ""
-        : fallback || "";
 
     const enrichedTickets = tickets.map((t) => {
       const ticketObj = t.toObject();
@@ -715,6 +719,20 @@ const getTicketById = async (req, res) => {
     }
 
     const data = ticket.toObject();
+
+    // Same live name resolution as the list endpoint — otherwise this would
+    // show whatever name was stored at creation time, stale after a rename.
+    const [creatorDetails, employeeDetails, clientDetails] = await Promise.all([
+      User.findById(ticket.createdBy || ticket.userId).select("firstName lastName userName").lean(),
+      ticket.assignedEmployee
+        ? User.findById(ticket.assignedEmployee).select("firstName lastName userName").lean()
+        : null,
+      ticket.client ? Client.findById(ticket.client).select("name").lean() : null,
+    ]);
+    data.createdByName = nameOf(creatorDetails, data.createdByName);
+    data.assignedEmployeeName = nameOf(employeeDetails, "");
+    data.clientName = clientDetails?.name || "";
+
     if (!isSuperAdmin) {
       // Money/main-hour fields belong to the SA only.
       delete data.mainAmount;

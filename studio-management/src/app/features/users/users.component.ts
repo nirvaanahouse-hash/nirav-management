@@ -20,6 +20,7 @@ import { IconButtonComponent } from "../../shared/components/icon-button/icon-bu
 import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { FormFieldComponent } from "../../shared/components/form-field/form-field.component";
 import { ModalComponent } from "../../features/dialog/modal.component";
+import { MaskedValueComponent } from "../../shared/components/masked-value/masked-value.component";
 
 @Component({
   selector: "app-users",
@@ -38,6 +39,7 @@ import { ModalComponent } from "../../features/dialog/modal.component";
     FormFieldComponent,
     ModalComponent,
     HasPermissionDirective,
+    MaskedValueComponent,
   ],
   templateUrl: "./users.component.html",
   styleUrls: ["./users.component.scss"],

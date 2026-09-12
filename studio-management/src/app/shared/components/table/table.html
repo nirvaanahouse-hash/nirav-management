@@ -51,6 +51,8 @@
                       <app-avatar size="sm" [photo]="col.avatar(row)" [name]="cellText(col, row)" />
                       <span>{{ cellText(col, row) }}</span>
                     </span>
+                  } @else if (col.masked) {
+                    <app-masked-value [value]="cellText(col, row)" [label]="col.label" />
                   } @else {
                     {{ cellText(col, row) }}
                   }
@@ -105,6 +107,8 @@
                       <app-avatar size="sm" [photo]="col.avatar(row)" [name]="cellText(col, row)" />
                       <span>{{ cellText(col, row) }}</span>
                     </dd>
+                  } @else if (col.masked) {
+                    <dd><app-masked-value [value]="cellText(col, row)" [label]="col.label" /></dd>
                   } @else {
                     <dd>{{ cellText(col, row) }}</dd>
                   }

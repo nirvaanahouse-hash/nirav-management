@@ -159,6 +159,7 @@ export class TicketsComponent {
           label: "Main Amount",
           sortable: true,
           align: "right" as const,
+          masked: true,
           format: (row) => this.dashMoney(row.mainAmount),
         },
         {
@@ -166,6 +167,7 @@ export class TicketsComponent {
           label: "Employee Earning",
           sortable: true,
           align: "right" as const,
+          masked: true,
           format: (row) =>
             this.isEmpty(row.amount) ? "-" : `₹${this.calculateEarnings(row).toLocaleString()}`,
         },
@@ -174,6 +176,7 @@ export class TicketsComponent {
           label: "Company Profit",
           sortable: true,
           align: "right" as const,
+          masked: true,
           format: (row) =>
             this.isEmpty(row.mainAmount) && row.companyProfit === undefined
               ? "-"
@@ -184,6 +187,7 @@ export class TicketsComponent {
           label: "Balance Due",
           sortable: true,
           align: "right" as const,
+          masked: true,
           format: (row) => this.formatBalanceDue(row),
         },
       );

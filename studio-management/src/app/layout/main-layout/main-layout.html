@@ -14,4 +14,8 @@
   <app-mobile-nav></app-mobile-nav>
 
   <app-confirm-dialog-host></app-confirm-dialog-host>
+
+  @if (financialReveal.dialogOpen()) {
+    <app-reveal-dialog></app-reveal-dialog>
+  }
 </div>

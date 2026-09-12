@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal, TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { AvatarComponent } from '../avatar/avatar.component';
+import { MaskedValueComponent } from '../masked-value/masked-value.component';
 import { TableColumn, SortState } from './table.model';
 
 @Component({
   selector: 'app-table',
   standalone: true,
-  imports: [NgTemplateOutlet, AvatarComponent],
+  imports: [NgTemplateOutlet, AvatarComponent, MaskedValueComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './table.html',
   styleUrl: './table.scss',

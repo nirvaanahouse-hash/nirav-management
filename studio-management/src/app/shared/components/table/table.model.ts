@@ -10,6 +10,8 @@ export interface TableColumn<T> {
   format?: (row: T) => string;
   /** Whether this column renders as a pill badge. */
   badge?: boolean;
+  /** Hides the value behind FinancialRevealService's click-to-reveal lock. */
+  masked?: boolean;
   /**
    * Renders a round photo before the cell text — return a ready-to-use image
    * URL, or an empty value to fall back to the text's initials. Shows in the

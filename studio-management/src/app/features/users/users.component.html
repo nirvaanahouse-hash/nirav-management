@@ -90,7 +90,9 @@
                   {{ (employee.percentage || 0) }}%
                 }
               </td>
-              <td class="users-table__num">{{ money(employee.balanceDue) }}</td>
+              <td class="users-table__num">
+                <app-masked-value [value]="money(employee.balanceDue)" label="Balance Due" />
+              </td>
               <td>
                 <span [class]="employee.isActive ? 'badge badge--success' : 'badge badge--danger'">
                   {{ employee.isActive ? 'Active' : 'Inactive' }}

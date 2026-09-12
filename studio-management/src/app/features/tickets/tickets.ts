@@ -59,6 +59,7 @@ export class TicketsComponent {
   statusFilter = signal("");
   typeFilter = signal("");
   priorityFilter = signal("");
+  userFilter = signal("");
   loading = signal(true);
   saving = signal(false);
   dialogOpen = signal(false);
@@ -86,14 +87,27 @@ export class TicketsComponent {
     { value: "", label: "All types" },
     ...this.ticketTypeOptions().map((t) => ({ value: t.value, label: t.label })),
   ]);
+  /** SA-only column — an employee only ever sees their own tickets anyway. */
+  readonly userFilterOptions = computed<SelectItem[]>(() => [
+    { value: "", label: "All employees" },
+    ...this.ticketMeta.meta().employees.map((e) => ({ value: e.value, label: e.label })),
+  ]);
   readonly priorityOptions = PRIORITY_OPTIONS;
   readonly statusOptions = TICKET_STATUS_OPTIONS;
+
+  /** Selected ticket type's SA-configured "show a count" flag, if any. */
+  readonly activeTypeShowsCount = computed(() => {
+    const key = this.typeFilter();
+    if (!key) return false;
+    return !!this.ticketTypeOptions().find((t) => t.value === key)?.showCount;
+  });
 
   filteredTasks = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const statusF = this.statusFilter();
     const typeF = this.typeFilter();
     const prioF = this.priorityFilter();
+    const userF = this.userFilter();
     return this.tasks().filter((task) => {
       const matchesTerm =
         !term ||
@@ -103,7 +117,8 @@ export class TicketsComponent {
       const matchesStatus = !statusF || task.status === statusF;
       const matchesType = !typeF || task.ticketType === typeF;
       const matchesPriority = !prioF || task.priorety === prioF;
-      return matchesTerm && matchesStatus && matchesType && matchesPriority;
+      const matchesUser = !userF || task.assignedEmployee === userF;
+      return matchesTerm && matchesStatus && matchesType && matchesPriority && matchesUser;
     });
   });
 
@@ -359,8 +374,19 @@ export class TicketsComponent {
     });
   }
 
-  onTaskSubmit(draft: TicketDraft): void {
+  async onTaskSubmit(draft: TicketDraft): Promise<void> {
     const editing = this.editingTicket();
+
+    if (editing) {
+      const confirmed = await this.confirmDialog.ask({
+        title: "Save changes?",
+        message: `Save these changes to ${editing.coupleName || "this ticket"}?`,
+        confirmLabel: "Save",
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
+    }
+
     this.saving.set(true);
 
     if (editing) {

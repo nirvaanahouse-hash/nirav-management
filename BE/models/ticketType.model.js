@@ -49,6 +49,15 @@ const ticketTypeSchema = new mongoose.Schema(
       default: true,
     },
 
+    // SA opt-in: show a "N tickets match" count on the Tickets page when
+    // this type is selected in the type filter. Purely a display choice —
+    // unlike isJob it carries no pricing/key implications, so it stays
+    // editable after creation.
+    showCount: {
+      type: Boolean,
+      default: false,
+    },
+
     sortOrder: {
       type: Number,
       default: 0,

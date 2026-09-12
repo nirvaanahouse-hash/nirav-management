@@ -32,6 +32,7 @@ const toResponse = (type, usage = 0) => ({
   color: ticketTypeColor(type),
   isJob: type.isJob,
   isActive: type.isActive,
+  showCount: !!type.showCount,
   sortOrder: type.sortOrder,
   usageCount: usage,
   createdAt: type.createdAt,
@@ -100,6 +101,7 @@ const createTicketType = async (req, res) => {
       variant: req.body.variant || "neutral",
       isJob,
       isActive: asBool(req.body.isActive, true),
+      showCount: asBool(req.body.showCount, false),
       sortOrder: (last?.sortOrder ?? -1) + 1,
       createdBy: req.user?.id || null,
     });
@@ -128,6 +130,7 @@ const updateTicketType = async (req, res) => {
     if (req.body.label !== undefined) type.label = String(req.body.label).trim();
     if (req.body.variant !== undefined) type.variant = req.body.variant;
     if (req.body.isActive !== undefined) type.isActive = asBool(req.body.isActive, type.isActive);
+    if (req.body.showCount !== undefined) type.showCount = asBool(req.body.showCount, type.showCount);
     if (req.body.sortOrder !== undefined) type.sortOrder = Number(req.body.sortOrder);
 
     await type.save();

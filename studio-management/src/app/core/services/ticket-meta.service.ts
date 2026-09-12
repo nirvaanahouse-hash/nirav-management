@@ -18,6 +18,8 @@ export interface SelectOption {
   variant?: BadgeVariant;
   /** For ticket-type options: hour-wise (JOB) pricing. */
   isJob?: boolean;
+  /** For ticket-type options: SA opted in to a ticket-count display for this type. */
+  showCount?: boolean;
 }
 
 export interface TicketFormMeta {

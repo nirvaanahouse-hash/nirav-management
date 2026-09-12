@@ -47,8 +47,26 @@
         [ngModel]="priorityFilter()"
         (ngModelChange)="priorityFilter.set($event)"
       />
+
+      @if (isSA()) {
+        <app-select
+          class="tickets-page__filter"
+          ariaLabel="Filter by employee"
+          placeholder="All employees"
+          sheetTitle="Employee"
+          [options]="userFilterOptions()"
+          [ngModel]="userFilter()"
+          (ngModelChange)="userFilter.set($event)"
+        />
+      }
     </div>
   </div>
+
+  @if (activeTypeShowsCount()) {
+    <p class="tickets-page__count">
+      {{ filteredTasks().length }} ticket{{ filteredTasks().length === 1 ? '' : 's' }} match the current filters
+    </p>
+  }
 
   @if (loading()) {
     <div class="tickets-page__skeleton">Loading tickets…</div>

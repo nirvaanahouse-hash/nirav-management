@@ -6,6 +6,7 @@ const validateCreateTicketType = validateBody({
   variant: { required: false, label: "Colour", enum: BADGE_VARIANTS },
   isJob: { required: false, label: "Hour-wise pricing", type: "boolean" },
   isActive: { required: false, label: "Active", type: "boolean" },
+  showCount: { required: false, label: "Show count", type: "boolean" },
 });
 
 // `key` and `isJob` are fixed once tickets can reference them, so an update
@@ -14,6 +15,7 @@ const validateUpdateTicketType = validateBody({
   label: { required: false, label: "Type name", minLength: 2, maxLength: 40 },
   variant: { required: false, label: "Colour", enum: BADGE_VARIANTS },
   isActive: { required: false, label: "Active", type: "boolean" },
+  showCount: { required: false, label: "Show count", type: "boolean" },
   sortOrder: { required: false, label: "Order", type: "number", min: 0, max: 999 },
 });
 

@@ -237,7 +237,7 @@ export class UsersComponent {
     this.editingUser.set(null);
   }
 
-  submitEdit(): void {
+  async submitEdit(): Promise<void> {
     const user = this.editingUser();
     if (!user) return;
     if (this.editForm.invalid) {
@@ -245,6 +245,15 @@ export class UsersComponent {
       this.toastService.error("Please complete every field", "All details are required.");
       return;
     }
+
+    const confirmed = await this.confirmDialogService.ask({
+      title: "Save changes?",
+      message: `Save these changes to ${user.firstName} ${user.lastName}?`,
+      confirmLabel: "Save",
+      cancelLabel: "Cancel",
+    });
+    if (!confirmed) return;
+
     this.editSaving.set(true);
     this.employeeService.updateDetails(user._id, this.editForm.getRawValue()).subscribe({
       next: (res) => {

@@ -930,6 +930,7 @@ const getTicketFormMeta = async (req, res) => {
           color: colorOfTicketType(t),
           variant: t.variant,
           isJob: !!t.isJob,
+          showCount: !!t.showCount,
         })),
         priorities: [PRIORITY.high, PRIORITY.medium, PRIORITY.low].map((value) => ({
           value,

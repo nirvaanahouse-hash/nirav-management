@@ -14,6 +14,8 @@ export interface TicketTypeRecord {
   /** Hour-wise (JOB) pricing: HR × HR price instead of a flat amount. */
   isJob: boolean;
   isActive: boolean;
+  /** Show a "N tickets match" count on the Tickets page when this type is selected. */
+  showCount: boolean;
   sortOrder: number;
   /** How many tickets already use this type — a type in use cannot be deleted. */
   usageCount: number;
@@ -26,11 +28,13 @@ export interface TicketTypeDraft {
   variant: BadgeVariant;
   isJob?: boolean;
   isActive?: boolean;
+  showCount?: boolean;
 }
 
 export interface TicketTypePatch {
   label?: string;
   variant?: BadgeVariant;
   isActive?: boolean;
+  showCount?: boolean;
   sortOrder?: number;
 }

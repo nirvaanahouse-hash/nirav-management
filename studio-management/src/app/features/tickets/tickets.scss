@@ -36,11 +36,18 @@
   min-width: 150px;
 }
 
-/* The three filters sit in a row next to the search box. */
+/* The filters sit in a row next to the search box (a 4th — employee — only
+   for SA, since an employee only ever sees their own tickets anyway). */
 .tickets-page__filters {
   display: flex;
   gap: var(--sp-3);
   flex-wrap: wrap;
+}
+
+.tickets-page__count {
+  margin: calc(-1 * var(--sp-2)) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
 }
 
 .tickets-page__table {

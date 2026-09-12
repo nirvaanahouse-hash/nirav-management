@@ -256,9 +256,19 @@ export class ClientsComponent {
     this.editingClient.set(null);
   }
 
-  onFormSubmit(draft: ClientDraft): void {
-    this.saving.set(true);
+  async onFormSubmit(draft: ClientDraft): Promise<void> {
     const editing = this.editingClient();
+    if (editing) {
+      const confirmed = await this.confirmDialog.ask({
+        title: "Save changes?",
+        message: `Save these changes to ${editing.name || "this client"}?`,
+        confirmLabel: "Save",
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
+    }
+
+    this.saving.set(true);
     const form = this.clientForm;
     const request = editing
       ? this.clientService.update(editing._id, draft)

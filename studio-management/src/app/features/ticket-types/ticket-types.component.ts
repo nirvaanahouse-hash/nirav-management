@@ -59,6 +59,7 @@ export class TicketTypesComponent {
     variant: ['neutral' as BadgeVariant, [Validators.required]],
     isJob: [false],
     isActive: [true],
+    showCount: [false],
   });
 
   constructor() {
@@ -78,7 +79,7 @@ export class TicketTypesComponent {
 
   openCreate(): void {
     this.editing.set(null);
-    this.form.reset({ label: '', variant: 'neutral', isJob: false, isActive: true });
+    this.form.reset({ label: '', variant: 'neutral', isJob: false, isActive: true, showCount: false });
     this.form.controls.isJob.enable();
     this.showModal.set(true);
   }
@@ -90,6 +91,7 @@ export class TicketTypesComponent {
       variant: type.variant,
       isJob: type.isJob,
       isActive: type.isActive,
+      showCount: type.showCount,
     });
     // Pricing is baked into the stored key, so it cannot change afterwards.
     this.form.controls.isJob.disable();
@@ -116,12 +118,14 @@ export class TicketTypesComponent {
           label: raw.label.trim(),
           variant: raw.variant,
           isActive: raw.isActive,
+          showCount: raw.showCount,
         })
       : this.service.create({
           label: raw.label.trim(),
           variant: raw.variant,
           isJob: raw.isJob,
           isActive: raw.isActive,
+          showCount: raw.showCount,
         });
 
     request.subscribe({

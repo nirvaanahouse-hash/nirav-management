@@ -66,7 +66,12 @@
 /* ---- the pin (created in TS, so these are global) ---- */
 :host ::ng-deep .map__pin {
   position: relative;
+  /* Block-with-no-width stretches to the marker wrapper's full width, which
+     throws off MapLibre's anchor-centering math (it centers on this
+     element's measured width) and visibly shifts the pin off its true
+     coordinate — shrink-wrap it to its actual (SVG) content instead. */
   display: block;
+  width: max-content;
   color: var(--accent);
   filter: drop-shadow(0 3px 5px rgba(8, 11, 20, 0.45));
   cursor: default;

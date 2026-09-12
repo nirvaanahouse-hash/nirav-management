@@ -20,6 +20,11 @@ const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
  *  Ids come from THEME_OPTIONS in core/models/theme.model.ts. */
 const DARK_THEMES = new Set<string>(['premium-dark', 'glassmorphism']);
 
+/** The bit of GeoJSON shape this component needs — kept local rather than
+ *  pulling in @types/geojson, which isn't wired into this project's tsconfig. */
+type AccuracyPolygon = { type: 'Polygon'; coordinates: [number, number][][] };
+type AccuracyFeature = { type: 'Feature'; properties: Record<string, never>; geometry: AccuracyPolygon };
+
 /**
  * A 3D location map. MapLibre GL is loaded on demand — it is a large library
  * and most sessions never open a map, so it must not sit in the page bundle.
@@ -142,32 +147,39 @@ export class MapComponent implements OnDestroy {
     }
   }
 
+  /**
+   * A later fix (a "Refresh" click, or the ~2-min background ping landing a
+   * new coordinate) moved the marker here but never touched the accuracy
+   * circle's source data — so it stayed drawn around the very first fix
+   * while the pin moved on, leaving the two visibly apart on the map.
+   */
   private moveTo(lng: number, lat: number): void {
     this.map?.easeTo({ center: [lng, lat], duration: 700 });
     this.marker?.setLngLat([lng, lat]);
+    if (this.map?.isStyleLoaded()) this.drawAccuracy(this.map, lng, lat);
   }
 
-  /** GPS accuracy as a circle on the ground, in metres. */
+  /** GPS accuracy as a circle on the ground, in metres — (re)computed at
+   *  the current fix each time, and updated in place if already drawn. */
   private drawAccuracy(map: MapLibreMap, lng: number, lat: number): void {
     const metres = this.accuracy();
-    if (!metres || metres <= 0) return;
+    const geometry: AccuracyPolygon | null =
+      metres && metres > 0 ? { type: 'Polygon', coordinates: [this.accuracyRing(lng, lat, metres)] } : null;
 
-    const points: [number, number][] = [];
-    const latRad = (lat * Math.PI) / 180;
-    const dLat = metres / 111_320;
-    const dLng = metres / (111_320 * Math.max(Math.cos(latRad), 1e-6));
-    for (let i = 0; i <= 64; i++) {
-      const a = (i / 64) * 2 * Math.PI;
-      points.push([lng + dLng * Math.cos(a), lat + dLat * Math.sin(a)]);
+    const source = map.getSource('accuracy') as { setData: (data: AccuracyFeature) => void } | undefined;
+    if (source) {
+      source.setData({
+        type: 'Feature',
+        properties: {},
+        geometry: geometry ?? { type: 'Polygon', coordinates: [[]] },
+      });
+      return;
     }
+    if (!geometry) return;
 
     map.addSource('accuracy', {
       type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: {},
-        geometry: { type: 'Polygon', coordinates: [points] },
-      },
+      data: { type: 'Feature', properties: {}, geometry },
     });
     map.addLayer({
       id: 'accuracy-fill',
@@ -181,6 +193,19 @@ export class MapComponent implements OnDestroy {
       source: 'accuracy',
       paint: { 'line-color': '#2d6be0', 'line-width': 1.5, 'line-opacity': 0.7 },
     });
+  }
+
+  /** A circle of lng/lat points, `metres` out from the centre. */
+  private accuracyRing(lng: number, lat: number, metres: number): [number, number][] {
+    const points: [number, number][] = [];
+    const latRad = (lat * Math.PI) / 180;
+    const dLat = metres / 111_320;
+    const dLng = metres / (111_320 * Math.max(Math.cos(latRad), 1e-6));
+    for (let i = 0; i <= 64; i++) {
+      const a = (i / 64) * 2 * Math.PI;
+      points.push([lng + dLng * Math.cos(a), lat + dLat * Math.sin(a)]);
+    }
+    return points;
   }
 
   /** The pin is plain DOM, so it keeps the app's look and stays un-tinted. */

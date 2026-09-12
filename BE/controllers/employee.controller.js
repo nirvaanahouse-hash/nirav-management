@@ -4,7 +4,98 @@ const Profile = require("../models/profile.model");
 const Ticket = require("../models/ticket.model");
 const AmountEntry = require("../models/amountEntry.model");
 const { calculateTicketFinancials } = require("../utils/ticket-financials");
-const { ERole } = require("../constants");
+const { ERole, DEFAULT_USER_PERMISSIONS } = require("../constants");
+
+// POST /api/employees — SA creating an employee directly (distinct from the
+// public self-registration flow in auth.controller.js, which this mirrors).
+const createEmployee = async (req, res) => {
+  try {
+    const { firstName, lastName, userName, email, password, mobileNumber } = req.body;
+
+    if (await User.findOne({ email })) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already exists",
+        errors: [{ field: "email", message: "Email already exists." }],
+      });
+    }
+    if (await User.findOne({ userName })) {
+      return res.status(400).json({
+        success: false,
+        message: "Username already exists",
+        errors: [{ field: "userName", message: "Username already exists." }],
+      });
+    }
+    if (mobileNumber && (await User.findOne({ mobileNumber }))) {
+      return res.status(400).json({
+        success: false,
+        message: "Mobile number already exists",
+        errors: [{ field: "mobileNumber", message: "Mobile number already exists." }],
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      firstName,
+      lastName,
+      userName,
+      email,
+      password: hashedPassword,
+      plainPassword: password,
+      mobileNumber,
+      role: ERole.U,
+      permissions: [...DEFAULT_USER_PERMISSIONS],
+      isActive: true,
+    });
+
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.plainPassword;
+
+    return res.status(201).json({
+      success: true,
+      message: "Employee created",
+      data: userObj,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// DELETE /api/employees/:id — refuses if the employee has any ticket or
+// amount-entry history, the same "turn it off instead" convention already
+// used for ticket types (see ticketType.controller.js deleteTicketType):
+// this app has no cascading hard-delete anywhere, and an employee with real
+// history is exactly the case that would corrupt reporting if removed.
+const deleteEmployee = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id, role: ERole.U });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Employee not found" });
+    }
+
+    const [ticketCount, entryCount] = await Promise.all([
+      Ticket.countDocuments({ $or: [{ assignedEmployee: req.params.id }, { createdBy: req.params.id }] }),
+      AmountEntry.countDocuments({ recipient: req.params.id, recipientType: "employee" }),
+    ]);
+    if (ticketCount > 0 || entryCount > 0) {
+      return res.status(409).json({
+        success: false,
+        message: `${user.firstName} ${user.lastName} has ${ticketCount} ticket(s) and ${entryCount} amount entr${entryCount === 1 ? "y" : "ies"} on record. Deactivate them instead so that history stays intact.`,
+      });
+    }
+
+    await Promise.all([User.deleteOne({ _id: req.params.id }), Profile.deleteOne({ userId: req.params.id })]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Employee deleted",
+      data: { _id: req.params.id },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // Get employee counts
 const getEmployeeStats = async (req, res) => {
@@ -423,6 +514,8 @@ module.exports = {
   getAllUsers,
   getEmployees,
   getEmployeeById,
+  createEmployee,
+  deleteEmployee,
   updateEmployeeDetails,
   updateEmployeeStatus,
   updateEmployeePassword,

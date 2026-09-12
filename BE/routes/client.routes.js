@@ -31,6 +31,7 @@ router.post('/client/:id/billing/pdf', mongoIdParam, requirePermission('clients.
 
 router.post('/client', requirePermission('clients.create'), validateCreateClient, postClient);
 router.put('/client/:id', mongoIdParam, requirePermission('clients.edit'), validateUpdateClient, updateClient);
+router.patch('/client/:id', mongoIdParam, requirePermission('clients.edit'), validateUpdateClient, updateClient);
 router.delete('/client/:id', mongoIdParam, requirePermission('clients.delete'), deleteClient);
 router.put('/client/:id/reactivate', mongoIdParam, requirePermission('clients.edit'), reactivateClient);
 

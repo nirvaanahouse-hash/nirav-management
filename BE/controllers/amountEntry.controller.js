@@ -128,6 +128,32 @@ const createAmountEntry = async (req, res) => {
   }
 };
 
+// GET /api/amount-entries/:id
+const getAmountEntryById = async (req, res) => {
+  try {
+    const { user } = req;
+    const entry = await AmountEntry.findById(req.params.id).lean();
+    if (!entry || !entry.isActive) {
+      return res.status(404).json({ success: false, message: "Amount entry not found." });
+    }
+
+    // Same visibility rule as update/delete below: SA sees any entry,
+    // everyone else only the ones they recorded.
+    const isSA = user.role === "SA";
+    const isOwnEntry = String(entry.recordedBy) === String(user.id);
+    if (!isSA && !isOwnEntry) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only view amount entries you recorded.",
+      });
+    }
+
+    return res.status(200).json({ success: true, message: "Amount entry fetched", data: entry });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const updateAmountEntry = async (req, res) => {
   try {
     const { user } = req;
@@ -442,6 +468,7 @@ const getEmployeeSummary = async (req, res) => {
 
 module.exports = {
   getAmountEntries,
+  getAmountEntryById,
   createAmountEntry,
   updateAmountEntry,
   deleteAmountEntry,

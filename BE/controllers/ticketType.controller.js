@@ -54,6 +54,24 @@ const listTicketTypes = async (req, res) => {
   }
 };
 
+// GET /api/ticket-type/:id
+const getTicketTypeById = async (req, res) => {
+  try {
+    const type = await TicketType.findById(req.params.id).lean();
+    if (!type) {
+      return res.status(404).json({ success: false, message: "Ticket type not found" });
+    }
+    const usage = await Ticket.countDocuments({ ticketType: type.key });
+    return res.status(200).json({
+      success: true,
+      message: "Ticket type fetched",
+      data: toResponse(type, usage),
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // POST /api/ticket-type
 const createTicketType = async (req, res) => {
   try {
@@ -182,6 +200,7 @@ const deleteTicketType = async (req, res) => {
 
 module.exports = {
   listTicketTypes,
+  getTicketTypeById,
   createTicketType,
   updateTicketType,
   deleteTicketType,

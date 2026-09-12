@@ -46,7 +46,9 @@ const PERMISSION_GROUPS = [
     label: "Users",
     permissions: [
       { key: "users.view", label: "View users" },
+      { key: "users.create", label: "Create new employees" },
       { key: "users.edit", label: "Edit user details & role" },
+      { key: "users.delete", label: "Delete employees (only if they have no ticket/ledger history)" },
       { key: "users.status", label: "Activate / deactivate users" },
       { key: "users.password", label: "Set / reset user passwords" },
       { key: "users.percentage", label: "Set user profit-share %" },

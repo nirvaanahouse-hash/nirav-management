@@ -29,6 +29,10 @@ router.get('/ticket/form-meta', requirePermission('tickets.view'), getTicketForm
 router.post('/ticket', requirePermission('tickets.create'), attachTicketTypes('active'), validateCustom(validateCreateTicket), createTicket);
 router.get('/ticket/:id', mongoIdParam, requirePermission('tickets.view'), getTicketById);
 router.put('/ticket/:id', mongoIdParam, requirePermission('tickets.edit'), attachTicketTypes('all'), validateCustom(validateUpdateTicket), updateTicket);
+// PATCH is the same handler as PUT — this codebase updates a resource with
+// whatever subset of fields is sent either way, so there's no separate
+// "full replace" semantics for PUT to diverge from.
+router.patch('/ticket/:id', mongoIdParam, requirePermission('tickets.edit'), attachTicketTypes('all'), validateCustom(validateUpdateTicket), updateTicket);
 router.delete('/ticket/:id', mongoIdParam, requirePermission('tickets.delete'), deleteTicket);
 router.put('/ticket/:id/assign', mongoIdParam, requirePermission('tickets.assign'), validateAssignEmployee, assignEmployee);
 router.put('/ticket/:id/complete', mongoIdParam, requirePermission('tickets.complete'), completeTicket);

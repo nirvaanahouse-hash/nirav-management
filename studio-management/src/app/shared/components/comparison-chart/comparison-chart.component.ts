@@ -29,9 +29,10 @@ function niceCeil(v: number): number {
 }
 
 /**
- * Mirrored diverging-bar comparison of two metrics over the same time buckets.
- * Series A grows up from a centre axis, series B grows down — each scaled to its
- * own peak so the shapes stay comparable. Pure SVG, theme-token colours.
+ * Mirrored diverging-area comparison of two metrics over the same time
+ * buckets. Series A rises as a filled area above a centre axis, series B
+ * as a filled area below it — each scaled to its own peak so the shapes
+ * stay comparable. Pure SVG, theme-token colours.
  */
 @Component({
   selector: 'app-comparison-chart',
@@ -63,14 +64,14 @@ export class ComparisonChartComponent {
     niceCeil(Math.max(1, ...this.seriesB().points.map((p) => Math.abs(p.value)))),
   );
 
-  readonly bars = computed(() => {
+  /** One point per bucket: shared x position, and a y for each series's
+   *  mirrored area (A above the axis, B below it). */
+  readonly coords = computed(() => {
     const a = this.seriesA().points;
     const b = this.seriesB().points;
     const n = Math.max(a.length, b.length);
     if (!n) return [];
     const { x0, x1, yTop, yBot } = this.plot;
-    const slot = (x1 - x0) / n;
-    const w = Math.max(4, Math.min(30, slot * 0.55));
     const topH = MIDY - yTop;
     const botH = yBot - MIDY;
     const maxA = this.maxA();
@@ -79,30 +80,63 @@ export class ComparisonChartComponent {
     return Array.from({ length: n }, (_, i) => {
       const va = a[i]?.value ?? 0;
       const vb = b[i]?.value ?? 0;
-      const cx = x0 + (i + 0.5) * slot;
-      const ha = (Math.abs(va) / maxA) * topH;
-      const hb = (Math.abs(vb) / maxB) * botH;
+      const x = n <= 1 ? (x0 + x1) / 2 : x0 + (i / (n - 1)) * (x1 - x0);
       return {
         i,
         label: a[i]?.label ?? b[i]?.label ?? '',
         va,
         vb,
-        x: cx - w / 2,
-        w,
-        aY: MIDY - ha,
-        aH: ha,
-        bY: MIDY,
-        bH: hb,
-        cx,
+        x,
+        ay: MIDY - (Math.abs(va) / maxA) * topH,
+        by: MIDY + (Math.abs(vb) / maxB) * botH,
       };
     });
   });
 
+  private smooth(pts: { x: number; y: number }[]): string {
+    if (pts.length < 2) {
+      return pts.length ? `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}` : '';
+    }
+    const t = 0.18;
+    const out = [`M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) * t;
+      const c1y = p1.y + (p2.y - p0.y) * t;
+      const c2x = p2.x - (p3.x - p1.x) * t;
+      const c2y = p2.y - (p3.y - p1.y) * t;
+      out.push(
+        `C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`,
+      );
+    }
+    return out.join(' ');
+  }
+
+  readonly lineA = computed(() => this.smooth(this.coords().map((c) => ({ x: c.x, y: c.ay }))));
+  readonly lineB = computed(() => this.smooth(this.coords().map((c) => ({ x: c.x, y: c.by }))));
+
+  readonly areaA = computed(() => {
+    const c = this.coords();
+    if (!c.length) return '';
+    const top = this.smooth(c.map((p) => ({ x: p.x, y: p.ay }))).slice(1);
+    return `M${c[0].x.toFixed(1)},${MIDY} L${top} L${c[c.length - 1].x.toFixed(1)},${MIDY} Z`;
+  });
+
+  readonly areaB = computed(() => {
+    const c = this.coords();
+    if (!c.length) return '';
+    const bottom = this.smooth(c.map((p) => ({ x: p.x, y: p.by }))).slice(1);
+    return `M${c[0].x.toFixed(1)},${MIDY} L${bottom} L${c[c.length - 1].x.toFixed(1)},${MIDY} Z`;
+  });
+
   readonly xLabels = computed(() => {
-    const bars = this.bars();
-    const n = bars.length;
+    const c = this.coords();
+    const n = c.length;
     const stride = Math.max(1, Math.ceil(n / 8));
-    return bars.filter((_, i) => i === 0 || i === n - 1 || i % stride === 0);
+    return c.filter((_, i) => i === 0 || i === n - 1 || i % stride === 0);
   });
 
   readonly totalA = computed(() =>
@@ -114,7 +148,7 @@ export class ComparisonChartComponent {
 
   readonly hovered = computed(() => {
     const i = this.hoverIndex();
-    return i == null ? null : this.bars()[i] ?? null;
+    return i == null ? null : this.coords()[i] ?? null;
   });
 
   fmt(v: number, kind: 'count' | 'currency'): string {
@@ -140,13 +174,13 @@ export class ComparisonChartComponent {
 
   onMove(evt: MouseEvent): void {
     const svg = this.svgRef()?.nativeElement;
-    const n = this.bars().length;
+    const n = this.coords().length;
     if (!svg || !n) return;
     const rect = svg.getBoundingClientRect();
     const px = ((evt.clientX - rect.left) / rect.width) * W;
     const { x0, x1 } = this.plot;
     const ratio = Math.min(1, Math.max(0, (px - x0) / (x1 - x0)));
-    this.hoverIndex.set(Math.min(n - 1, Math.max(0, Math.floor(ratio * n))));
+    this.hoverIndex.set(Math.round(ratio * (n - 1)));
   }
 
   clearHover(): void {

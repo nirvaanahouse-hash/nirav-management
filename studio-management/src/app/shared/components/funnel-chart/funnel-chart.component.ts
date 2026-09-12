@@ -3,14 +3,17 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 export interface FunnelStage {
   label: string;
   value: number;
-  /** 'a' | 'b' | 'c' | 'd' → the gradient ramp used for the bar. */
+  /** 'a' | 'b' | 'c' | 'd' → the gradient ramp used for the segment. */
   variant?: string;
 }
 
+const SHAPE_H = 24;
+
 /**
- * Horizontal conversion funnel. Each stage is a gradient-filled track whose
- * width is relative to the largest stage; the % is relative to the first stage.
- * Pure DOM, theme-token colours, dark-scope friendly.
+ * Horizontal conversion funnel. Each stage is a tapered trapezoid segment —
+ * its top width matches this stage's share of the largest stage, its bottom
+ * width tapers to the next stage's share, so the shape itself shows the
+ * drop-off (not a proportional-width bar). Pure DOM, theme-token colours.
  */
 @Component({
   selector: 'app-funnel-chart',
@@ -30,12 +33,24 @@ export class FunnelChartComponent {
     const s = this.stages();
     const max = Math.max(1, ...s.map((x) => x.value));
     const base = this.baseValue() ?? s[0]?.value ?? 0;
-    return s.map((stage, i) => ({
-      label: stage.label,
-      value: stage.value,
-      variant: stage.variant ?? this.variants[i % this.variants.length],
-      width: Math.max(2, (stage.value / max) * 100),
-      pct: base > 0 ? Math.round((stage.value / base) * 100) : 0,
-    }));
+    const widths = s.map((x) => Math.max(8, (x.value / max) * 100));
+
+    return s.map((stage, i) => {
+      const topPct = widths[i];
+      const botPct = widths[i + 1] ?? widths[i];
+      const topX0 = (50 - topPct / 2).toFixed(1);
+      const topX1 = (50 + topPct / 2).toFixed(1);
+      const botX0 = (50 - botPct / 2).toFixed(1);
+      const botX1 = (50 + botPct / 2).toFixed(1);
+      return {
+        label: stage.label,
+        value: stage.value,
+        variant: stage.variant ?? this.variants[i % this.variants.length],
+        points: `${topX0},0 ${topX1},0 ${botX1},${SHAPE_H} ${botX0},${SHAPE_H}`,
+        pct: base > 0 ? Math.round((stage.value / base) * 100) : 0,
+      };
+    });
   });
+
+  readonly viewBox = `0 0 100 ${SHAPE_H}`;
 }

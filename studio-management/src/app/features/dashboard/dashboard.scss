@@ -37,8 +37,10 @@
 
   h2 {
     margin: 0;
-    font-size: var(--fs-xl);
-    letter-spacing: -0.01em;
+    font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
   }
 
   p {
@@ -144,6 +146,122 @@
   &__hint {
     font-size: var(--fs-xs);
     color: var(--text-secondary);
+  }
+}
+
+/* ---- Health card + KPI grid, side by side ---- */
+.dash__top {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) 1fr;
+  gap: var(--sp-4);
+  align-items: stretch;
+
+  @media (max-width: 1080px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.health__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.health__title {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.health__pill {
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+
+  &--success { background: var(--success-soft); color: var(--success); }
+  &--warning { background: var(--warning-soft); color: var(--warning); }
+  &--danger { background: var(--danger-soft); color: var(--danger); }
+}
+
+.health__body {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex: 1;
+}
+
+.health__gauge {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.health__score {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  span {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+}
+
+.health__stats {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+
+  div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-child { border-bottom: none; padding-bottom: 0; }
+  }
+
+  dt {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -260,6 +378,12 @@
     color: var(--accent);
 
     svg { width: 18px; height: 18px; display: block; }
+
+    &--accent  { background: var(--accent-soft);  color: var(--accent); }
+    &--success { background: var(--success-soft); color: var(--success); }
+    &--warning { background: var(--warning-soft); color: var(--warning); }
+    &--danger  { background: var(--danger-soft);  color: var(--danger); }
+    &--info    { background: var(--info-soft);    color: var(--info); }
   }
 
   &__label {
@@ -497,38 +621,16 @@
 
 .dash__td-act { text-align: right; }
 
-/* ============================================================
-   Dribbble-style dark analytics panels
-   Tokens are redefined on the subtree so every nested chart
-   component (donut, area-chart, funnel, sparkline, comparison)
-   renders dark automatically.
-   ============================================================ */
-.dash__panel--dark,
-.dash__kpis .kpi {
-  --surface-1: #14151d;
-  --surface-2: #1c1e28;
-  --surface-3: #23252f;
-  --surface-raised: #1f2130;
-  --border-subtle: #282a38;
-  --border-strong: #3b3e52;
-  --text-primary: #f2f3f8;
-  --text-secondary: #aeb4c6;
-  --text-muted: #7a8095;
-  --accent: #6c72f2;
-  --accent-strong: #9aa0ff;
-  --accent-soft: rgba(108, 114, 242, 0.18);
-  --info: #38bdf8;
-  --warning: #fbbf24;
-  --danger: #f87171;
-  --success: #34d399;
-
+/* Every dash panel/card just uses the site's own Light/Dark theme tokens
+   now — no forced palette here, so the whole page (including every nested
+   chart) stays visually consistent with the rest of the app in both themes. */
+.dash__panel--dark {
   background: var(--surface-1);
   color: var(--text-primary);
   border-color: var(--border-subtle);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -12px rgba(0, 0, 0, 0.55);
 }
 
-/* ---- KPI card restyle ---- */
+/* ---- KPI card layout ---- */
 .dash__kpis .kpi {
   padding: var(--sp-4) var(--sp-4) 0;
   gap: var(--sp-1);

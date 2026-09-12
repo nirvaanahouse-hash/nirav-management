@@ -69,45 +69,79 @@
 
     <!-- KPI cards -->
     <p class="dash__kpi-hint">Click a card to chart it — click the <b>vs</b> chip on a second card to compare the two.</p>
-    <div class="dash__kpis">
-      @for (k of kpis(); track k.key) {
-        <button
-          type="button"
-          class="kpi"
-          [class.kpi--on]="selectedMetricKey() === k.key"
-          [class.kpi--a]="isComparing() && selectedMetricKey() === k.key"
-          [class.kpi--b]="compareKey() === k.key"
-          (click)="setMetric(k.key)"
-        >
-          @if (isComparing() && selectedMetricKey() === k.key) { <span class="kpi__tag kpi__tag--a">A</span> }
-          @if (compareKey() === k.key) { <span class="kpi__tag kpi__tag--b">B</span> }
-          @if (selectedMetricKey() !== k.key && compareKey() !== k.key) {
-            <span class="kpi__vs" (click)="setCompare(k.key, $event)" title="Compare with the selected card">vs</span>
-          }
-          <div class="kpi__top">
-            <span class="kpi__ic">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                @switch (k.iconKey) {
-                  @case ('rupee') { <path d="M7 5h10M7 9h10M7 13h4M13 22 7 13h3a5 5 0 0 0 0-8" /> }
-                  @case ('trend') { <path d="M22 7 13.5 15.5l-5-5L2 17" /><path d="M16 7h6v6" /> }
-                  @case ('wallet') { <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4z" /> }
-                  @case ('send') { <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /> }
-                  @case ('check') { <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" /> }
-                  @case ('clock') { <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /> }
-                  @default { <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z" /><path d="M13 5v14" /> }
-                }
-              </svg>
-            </span>
-            <span class="kpi__label">{{ k.label }}</span>
-            <span [class]="'kpi__pill kpi__pill--' + k.trend">
-              @if (k.trend === 'up') { ↑ } @else if (k.trend === 'down') { ↓ } @else { · }
-              {{ k.delta > 0 ? '+' : '' }}{{ k.delta }}%
-            </span>
+    <div class="dash__top">
+      <div class="health">
+        <div class="health__head">
+          <span class="health__title">Health</span>
+          <span [class]="'health__pill health__pill--' + healthTone()">
+            {{ healthTone() === 'success' ? 'Healthy' : healthTone() === 'warning' ? 'Watch' : 'At risk' }}
+          </span>
+        </div>
+        <div class="health__body">
+          <div class="health__gauge">
+            <app-gauge [value]="completionRate()" [tone]="healthTone()" />
+            <div class="health__score">
+              <strong>{{ completionRate() }}</strong>
+              <span>of 100</span>
+            </div>
           </div>
-          <span class="kpi__val">{{ k.valueLabel }}</span>
-          <span class="kpi__spark"><app-sparkline [values]="k.series" [trend]="k.trend" /></span>
-        </button>
-      }
+          <dl class="health__stats">
+            <div>
+              <dt>Tickets</dt>
+              <dd>{{ funnelStages()[0].value }}</dd>
+            </div>
+            <div>
+              <dt>Completed</dt>
+              <dd>{{ funnelStages()[2].value }}</dd>
+            </div>
+            <div>
+              <dt>Finalised</dt>
+              <dd>{{ funnelStages()[3].value }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="dash__kpis">
+        @for (k of kpis(); track k.key) {
+          <button
+            type="button"
+            class="kpi"
+            [class.kpi--on]="selectedMetricKey() === k.key"
+            [class.kpi--a]="isComparing() && selectedMetricKey() === k.key"
+            [class.kpi--b]="compareKey() === k.key"
+            (click)="setMetric(k.key)"
+          >
+            @if (isComparing() && selectedMetricKey() === k.key) { <span class="kpi__tag kpi__tag--a">A</span> }
+            @if (compareKey() === k.key) { <span class="kpi__tag kpi__tag--b">B</span> }
+            @if (selectedMetricKey() !== k.key && compareKey() !== k.key) {
+              <span class="kpi__vs" (click)="setCompare(k.key, $event)" title="Compare with the selected card">vs</span>
+            }
+            <div class="kpi__top">
+              <span [class]="'kpi__ic kpi__ic--' + iconTone(k.iconKey)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  @switch (k.iconKey) {
+                    @case ('rupee') { <path d="M7 5h10M7 9h10M7 13h4M13 22 7 13h3a5 5 0 0 0 0-8" /> }
+                    @case ('trend') { <path d="M22 7 13.5 15.5l-5-5L2 17" /><path d="M16 7h6v6" /> }
+                    @case ('wallet') { <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4z" /> }
+                    @case ('send') { <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /> }
+                    @case ('check') { <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" /> }
+                    @case ('clock') { <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /> }
+                    @default { <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z" /><path d="M13 5v14" /> }
+                  }
+                </svg>
+              </span>
+              <span class="kpi__label">{{ k.label }}</span>
+              <span [class]="'kpi__pill kpi__pill--' + k.trend">
+                @if (k.trend === 'up') { ↑ } @else if (k.trend === 'down') { ↓ } @else { · }
+                {{ k.delta > 0 ? '+' : '' }}{{ k.delta }}%
+              </span>
+            </div>
+            <span class="kpi__val">{{ k.valueLabel }}</span>
+            <span class="kpi__spark"><app-sparkline [values]="k.series" [trend]="k.trend" /></span>
+          </button>
+        }
+      </div>
     </div>
 
     <!-- Hero: big number + smooth chart + money mini-cards -->

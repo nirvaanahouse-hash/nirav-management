@@ -1,0 +1,17 @@
+:host {
+  display: inline-flex;
+}
+
+.gauge__track {
+  stroke: var(--border-subtle);
+  stroke-linecap: round;
+}
+
+.gauge__value {
+  transition: stroke-dasharray 0.6s cubic-bezier(0.22, 0.7, 0.15, 1);
+
+  &--accent { stroke: var(--accent); }
+  &--success { stroke: var(--success); }
+  &--warning { stroke: var(--warning); }
+  &--danger { stroke: var(--danger); }
+}

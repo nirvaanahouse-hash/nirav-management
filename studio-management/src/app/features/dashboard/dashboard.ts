@@ -24,6 +24,7 @@ import { ComparisonChartComponent } from "../../shared/components/comparison-cha
 import { FunnelChartComponent } from "../../shared/components/funnel-chart/funnel-chart.component";
 import { SparklineComponent } from "../../shared/components/sparkline/sparkline.component";
 import { DonutComponent } from "../../shared/components/donut/donut.component";
+import { GaugeComponent } from "../../shared/components/gauge/gauge.component";
 
 type RangeKey = "thisMonth" | "lastMonth" | "last12" | "custom";
 
@@ -52,6 +53,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
     FunnelChartComponent,
     SparklineComponent,
     DonutComponent,
+    GaugeComponent,
   ],
   templateUrl: "./dashboard.html",
   styleUrl: "./dashboard.scss",
@@ -457,6 +459,29 @@ export class DashboardComponent {
   priorityVariant(p: string): string {
     return PRIORITY_VARIANT[p as keyof typeof PRIORITY_VARIANT] ?? "neutral";
   }
+
+  /** Presentational only — which color badge a KPI card's icon sits in. */
+  private static readonly ICON_TONES: Record<string, "accent" | "success" | "warning" | "danger" | "info"> = {
+    ticket: "accent",
+    rupee: "success",
+    trend: "info",
+    wallet: "accent",
+    send: "danger",
+    check: "success",
+    clock: "warning",
+  };
+
+  iconTone(iconKey: string): "accent" | "success" | "warning" | "danger" | "info" {
+    return DashboardComponent.ICON_TONES[iconKey] ?? "accent";
+  }
+
+  /** Presentational only — color the Health gauge by how good the score is. */
+  readonly healthTone = computed<"success" | "warning" | "danger">(() => {
+    const score = this.completionRate();
+    if (score >= 70) return "success";
+    if (score >= 40) return "warning";
+    return "danger";
+  });
 
   readonly metricOptions = computed<SelectItem[]>(() =>
     this.metrics().map((m) => ({ value: m.key, label: m.label })),

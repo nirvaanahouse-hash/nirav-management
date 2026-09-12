@@ -52,50 +52,46 @@ export class IpService {
   }
 
   whoami(): Observable<Ok<{ ip: string; userAgent: string }>> {
-    return this.http.get<Ok<{ ip: string; userAgent: string }>>(`${this.base}/whoami`, {
-      withCredentials: true,
-    });
+    return this.http.get<Ok<{ ip: string; userAgent: string }>>(`${this.base}/whoami`);
   }
 
   stats(): Observable<Ok<IpStats>> {
-    return this.http.get<Ok<IpStats>>(`${this.base}/stats`, { withCredentials: true });
+    return this.http.get<Ok<IpStats>>(`${this.base}/stats`);
   }
 
   listRules(): Observable<Ok<IpRule[]>> {
-    return this.http.get<Ok<IpRule[]>>(`${this.base}/rules`, { withCredentials: true });
+    return this.http.get<Ok<IpRule[]>>(`${this.base}/rules`);
   }
 
   createRule(draft: IpRuleDraft): Observable<Ok<IpRule>> {
-    return this.http.post<Ok<IpRule>>(`${this.base}/rules`, draft, { withCredentials: true });
+    return this.http.post<Ok<IpRule>>(`${this.base}/rules`, draft);
   }
 
   updateRule(id: string, patch: Partial<IpRuleDraft>): Observable<Ok<IpRule>> {
-    return this.http.put<Ok<IpRule>>(`${this.base}/rules/${id}`, patch, { withCredentials: true });
+    return this.http.put<Ok<IpRule>>(`${this.base}/rules/${id}`, patch);
   }
 
   deleteRule(id: string): Observable<Ok<IpRule>> {
-    return this.http.delete<Ok<IpRule>>(`${this.base}/rules/${id}`, { withCredentials: true });
+    return this.http.delete<Ok<IpRule>>(`${this.base}/rules/${id}`);
   }
 
   getSettings(): Observable<Ok<IpSettings>> {
-    return this.http.get<Ok<IpSettings>>(`${this.base}/settings`, { withCredentials: true });
+    return this.http.get<Ok<IpSettings>>(`${this.base}/settings`);
   }
 
   updateSettings(patch: Partial<IpSettings>): Observable<Ok<IpSettings>> {
-    return this.http.put<Ok<IpSettings>>(`${this.base}/settings`, patch, { withCredentials: true });
+    return this.http.put<Ok<IpSettings>>(`${this.base}/settings`, patch);
   }
 
   listLogins(query: LoginQuery = {}): Observable<PagedResponse<LoginEvent>> {
     return this.http.get<PagedResponse<LoginEvent>>(`${this.base}/logins`, {
       params: this.toParams(query),
-      withCredentials: true,
     });
   }
 
   listRequests(query: RequestQuery = {}): Observable<PagedResponse<RequestLog>> {
     return this.http.get<PagedResponse<RequestLog>>(`${this.base}/requests`, {
       params: this.toParams(query),
-      withCredentials: true,
     });
   }
 }

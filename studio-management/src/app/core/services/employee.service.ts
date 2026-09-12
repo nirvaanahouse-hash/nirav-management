@@ -71,7 +71,6 @@ export class EmployeeService {
     return this.http
       .get<EmployeeResponse>(`${environment.apiUrl}api/employees`, {
         params: httpParams,
-        withCredentials: true,
       })
       .pipe(
         tap((response) => {
@@ -82,9 +81,7 @@ export class EmployeeService {
 
   getStats(): Observable<EmployeeStatsResponse> {
     return this.http
-      .get<EmployeeStatsResponse>(`${environment.apiUrl}api/employees/stats`, {
-        withCredentials: true,
-      })
+      .get<EmployeeStatsResponse>(`${environment.apiUrl}api/employees/stats`)
       .pipe(
         tap((response) => {
           this._stats.set(response.data);
@@ -94,11 +91,7 @@ export class EmployeeService {
 
   deactivate(id: string): Observable<EmployeeActionResponse> {
     return this.http
-      .put<EmployeeActionResponse>(
-        `${environment.apiUrl}api/employees/${id}/status`,
-        { isActive: false },
-        { withCredentials: true }
-      )
+      .put<EmployeeActionResponse>(`${environment.apiUrl}api/employees/${id}/status`, { isActive: false })
       .pipe(
         tap((response) => {
           this._employees.update((list) =>
@@ -111,11 +104,7 @@ export class EmployeeService {
 
   activate(id: string): Observable<EmployeeActionResponse> {
     return this.http
-      .put<EmployeeActionResponse>(
-        `${environment.apiUrl}api/employees/${id}/status`,
-        { isActive: true },
-        { withCredentials: true }
-      )
+      .put<EmployeeActionResponse>(`${environment.apiUrl}api/employees/${id}/status`, { isActive: true })
       .pipe(
         tap((response) => {
           this._employees.update((list) =>
@@ -135,8 +124,7 @@ export class EmployeeService {
   setPassword(id: string, password: string): Observable<{ success: boolean; message: string }> {
     return this.http.put<{ success: boolean; message: string }>(
       `${environment.apiUrl}api/employees/${id}/password`,
-      { password },
-      { withCredentials: true },
+      { password }
     );
   }
 
@@ -147,8 +135,7 @@ export class EmployeeService {
     return this.http
       .put<{ success: boolean; message: string; data: { _id: string; percentage: number } }>(
         `${environment.apiUrl}api/employees/${id}/percentage`,
-        { percentage },
-        { withCredentials: true },
+        { percentage }
       )
       .pipe(
         tap((response) => {
@@ -162,8 +149,7 @@ export class EmployeeService {
   /** Full record incl. profile fields — used to pre-fill the SA edit form. */
   getById(id: string): Observable<{ success: boolean; data: User }> {
     return this.http.get<{ success: boolean; data: User }>(
-      `${environment.apiUrl}api/employees/${id}`,
-      { withCredentials: true },
+      `${environment.apiUrl}api/employees/${id}`
     );
   }
 
@@ -184,9 +170,7 @@ export class EmployeeService {
     },
   ): Observable<EmployeeActionResponse> {
     return this.http
-      .put<EmployeeActionResponse>(`${environment.apiUrl}api/employees/${id}/details`, payload, {
-        withCredentials: true,
-      })
+      .put<EmployeeActionResponse>(`${environment.apiUrl}api/employees/${id}/details`, payload)
       .pipe(
         tap((response) => {
           this._employees.update((list) =>

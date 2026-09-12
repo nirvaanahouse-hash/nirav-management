@@ -24,7 +24,6 @@ export class UserService {
     if (params?.role) httpParams = httpParams.set("role", params.role);
     return this.http.get<UserListResponse>(`${environment.apiUrl}api/users`, {
       params: httpParams,
-      withCredentials: true,
     });
   }
 

@@ -96,9 +96,7 @@ export class AmountService {
 
   list(): Observable<AmountEntryResponse> {
     return this.http
-      .get<AmountEntryResponse>(`${environment.apiUrl}api/amount-entries`, {
-        withCredentials: true,
-      })
+      .get<AmountEntryResponse>(`${environment.apiUrl}api/amount-entries`)
       .pipe(
         tap((response) => {
           this._entries.set(response.data);
@@ -110,7 +108,6 @@ export class AmountService {
   listFor(recipient: string, recipientType: "employee" | "client"): Observable<AmountEntryResponse> {
     return this.http.get<AmountEntryResponse>(`${environment.apiUrl}api/amount-entries`, {
       params: { recipient, recipientType },
-      withCredentials: true,
     });
   }
 
@@ -118,8 +115,7 @@ export class AmountService {
     return this.http
       .post<{ success: boolean; message: string; data: AmountEntry }>(
         `${environment.apiUrl}api/amount-entries`,
-        draft,
-        { withCredentials: true },
+        draft
       )
       .pipe(tap((response) => this.upsert(response.data)));
   }
@@ -128,8 +124,7 @@ export class AmountService {
     return this.http
       .put<{ success: boolean; message: string; data: AmountEntry }>(
         `${environment.apiUrl}api/amount-entries/${id}`,
-        changes,
-        { withCredentials: true },
+        changes
       )
       .pipe(
         tap((response) => {
@@ -143,8 +138,7 @@ export class AmountService {
   delete(id: string): Observable<{ success: boolean; message: string; data: { _id: string } }> {
     return this.http
       .delete<{ success: boolean; message: string; data: { _id: string } }>(
-        `${environment.apiUrl}api/amount-entries/${id}`,
-        { withCredentials: true },
+        `${environment.apiUrl}api/amount-entries/${id}`
       )
       .pipe(
         tap(() => {
@@ -155,15 +149,13 @@ export class AmountService {
 
   getDashboardSummary(): Observable<DashboardSummaryResponse> {
     return this.http.get<DashboardSummaryResponse>(
-      `${environment.apiUrl}api/dashboard/summary`,
-      { withCredentials: true },
+      `${environment.apiUrl}api/dashboard/summary`
     );
   }
 
   getEmployeeSummary(): Observable<EmployeeSummaryResponse> {
     return this.http.get<EmployeeSummaryResponse>(
-      `${environment.apiUrl}api/employee/summary`,
-      { withCredentials: true },
+      `${environment.apiUrl}api/employee/summary`
     );
   }
 }

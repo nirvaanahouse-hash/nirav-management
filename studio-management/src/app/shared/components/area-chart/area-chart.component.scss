@@ -32,25 +32,6 @@
   stroke: none;
 }
 
-.chart__track {
-  fill: var(--border-subtle);
-  opacity: 0.35;
-}
-
-.chart__bar {
-  fill: url(#barFill);
-  opacity: 0.7;
-  transition: opacity var(--dur-fast) var(--ease-out);
-}
-
-.chart__bar--peak {
-  opacity: 1;
-}
-
-.chart__bar--hover {
-  opacity: 1;
-}
-
 .chart__line {
   fill: none;
   stroke: var(--accent);

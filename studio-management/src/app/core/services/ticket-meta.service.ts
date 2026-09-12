@@ -73,9 +73,7 @@ export class TicketMetaService {
 
   loadFormMeta(): Observable<TicketFormMeta> {
     return this.http
-      .get<TicketFormMetaResponse>(`${environment.apiUrl}api/ticket/form-meta`, {
-        withCredentials: true,
-      })
+      .get<TicketFormMetaResponse>(`${environment.apiUrl}api/ticket/form-meta`)
       .pipe(
         map((res) => res.data ?? EMPTY_META),
         tap((meta) => {

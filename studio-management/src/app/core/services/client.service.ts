@@ -96,30 +96,23 @@ export class ClientService {
     return this.http
       .get<ClientListResponse>(`${environment.apiUrl}api/client`, {
         params: httpParams,
-        withCredentials: true,
       })
       .pipe(tap((response) => this._clients.set(response.data)));
   }
 
   getById(id: string): Observable<ClientSingleResponse> {
-    return this.http.get<ClientSingleResponse>(`${environment.apiUrl}api/client/${id}`, {
-      withCredentials: true,
-    });
+    return this.http.get<ClientSingleResponse>(`${environment.apiUrl}api/client/${id}`);
   }
 
   create(draft: ClientDraft): Observable<ClientSingleResponse> {
     return this.http
-      .post<ClientSingleResponse>(`${environment.apiUrl}api/client`, draft, {
-        withCredentials: true,
-      })
+      .post<ClientSingleResponse>(`${environment.apiUrl}api/client`, draft)
       .pipe(tap((response) => this.upsert(response.data)));
   }
 
   update(id: string, draft: ClientDraft): Observable<ClientSingleResponse> {
     return this.http
-      .put<ClientSingleResponse>(`${environment.apiUrl}api/client/${id}`, draft, {
-        withCredentials: true,
-      })
+      .put<ClientSingleResponse>(`${environment.apiUrl}api/client/${id}`, draft)
       .pipe(
         tap((response) => {
           this._clients.update((list) =>
@@ -131,9 +124,7 @@ export class ClientService {
 
   delete(id: string): Observable<{ success: boolean; message: string; data: Client; hasTickets?: boolean }> {
     return this.http
-      .delete<{ success: boolean; message: string; data: Client; hasTickets?: boolean }>(`${environment.apiUrl}api/client/${id}`, {
-        withCredentials: true,
-      })
+      .delete<{ success: boolean; message: string; data: Client; hasTickets?: boolean }>(`${environment.apiUrl}api/client/${id}`)
       .pipe(
         tap(() => {
           this._clients.update((list) => list.filter((c) => c._id !== id));
@@ -143,11 +134,9 @@ export class ClientService {
 
   deactivate(id: string): Observable<{ success: boolean; message: string; data: Client }> {
     return this.http
-      .put<{ success: boolean; message: string; data: Client }>(
-        `${environment.apiUrl}api/client/${id}`,
-        { isActive: false },
-        { withCredentials: true }
-      )
+      .put<{ success: boolean; message: string; data: Client }>(`${environment.apiUrl}api/client/${id}`, {
+        isActive: false,
+      })
       .pipe(
         tap((response) => {
           this._clients.update((list) =>
@@ -159,11 +148,9 @@ export class ClientService {
 
   reactivate(id: string): Observable<{ success: boolean; message: string; data: Client }> {
     return this.http
-      .put<{ success: boolean; message: string; data: Client }>(
-        `${environment.apiUrl}api/client/${id}`,
-        { isActive: true },
-        { withCredentials: true }
-      )
+      .put<{ success: boolean; message: string; data: Client }>(`${environment.apiUrl}api/client/${id}`, {
+        isActive: true,
+      })
       .pipe(
         tap((response) => {
           this._clients.update((list) =>
@@ -178,21 +165,14 @@ export class ClientService {
     const body = new FormData();
     body.append('image', file);
     return this.http
-      .post<{ success: boolean; data: { image: string } }>(
-        `${environment.apiUrl}api/client/${id}/image`,
-        body,
-        { withCredentials: true },
-      )
+      .post<{ success: boolean; data: { image: string } }>(`${environment.apiUrl}api/client/${id}/image`, body)
       .pipe(tap((res) => this.patchImage(id, res.data.image)));
   }
 
   /** Remove a client's photo (clears the field and deletes the file server-side). */
   deleteImage(id: string): Observable<{ success: boolean; data: { image: string } }> {
     return this.http
-      .delete<{ success: boolean; data: { image: string } }>(
-        `${environment.apiUrl}api/client/${id}/image`,
-        { withCredentials: true },
-      )
+      .delete<{ success: boolean; data: { image: string } }>(`${environment.apiUrl}api/client/${id}/image`)
       .pipe(tap(() => this.patchImage(id, '')));
   }
 
@@ -210,8 +190,7 @@ export class ClientService {
 
   getPayments(clientId: string): Observable<{ success: boolean; message: string; data: any[] }> {
     return this.http.get<{ success: boolean; message: string; data: any[] }>(
-      `${environment.apiUrl}api/client/${clientId}/payments`,
-      { withCredentials: true }
+      `${environment.apiUrl}api/client/${clientId}/payments`
     );
   }
 
@@ -227,7 +206,7 @@ export class ClientService {
     if (to) httpParams = httpParams.set('to', to);
     return this.http.get<ClientBillingResponse>(
       `${environment.apiUrl}api/client/${clientId}/billing`,
-      { params: httpParams, withCredentials: true }
+      { params: httpParams }
     );
   }
 
@@ -241,7 +220,7 @@ export class ClientService {
     return this.http.post(
       `${environment.apiUrl}api/client/${clientId}/billing/pdf`,
       { mode, from: from || '', to: to || '' },
-      { responseType: 'blob', withCredentials: true }
+      { responseType: 'blob' }
     );
   }
 }

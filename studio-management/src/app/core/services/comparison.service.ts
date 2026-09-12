@@ -14,7 +14,7 @@ export class ComparisonService {
     if (to) params = params.set('to', to);
     return this.http.get<EmployeeComparisonResponse>(
       `${environment.apiUrl}api/comparison/employees`,
-      { params, withCredentials: true },
+      { params },
     );
   }
 }

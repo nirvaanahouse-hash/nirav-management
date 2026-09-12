@@ -68,8 +68,7 @@ export class FinancialRevealService {
   requestOtp(): Observable<{ success: boolean; message: string }> {
     return this.http.post<{ success: boolean; message: string }>(
       `${environment.apiUrl}api/financial-reveal/request`,
-      {},
-      { withCredentials: true },
+      {}
     );
   }
 
@@ -77,8 +76,7 @@ export class FinancialRevealService {
     return this.http
       .post<RevealResponse>(
         `${environment.apiUrl}api/financial-reveal/verify`,
-        { otp },
-        { withCredentials: true },
+        { otp }
       )
       .pipe(tap((res) => this.setRevealed(res.data.revealUntil)));
   }

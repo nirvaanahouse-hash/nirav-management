@@ -42,9 +42,7 @@ export class AuthService {
 
   login(credentials: AuthCredentials): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}api/auth/login`, credentials, {
-        withCredentials: true,
-      })
+      .post<AuthResponse>(`${environment.apiUrl}api/auth/login`, credentials)
       .pipe(
         tap((response) => {
           const session: AuthSession = { user: response.user };
@@ -61,16 +59,12 @@ export class AuthService {
   }
 
   register(payload: RegisterPayload): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(
-      `${environment.apiUrl}api/auth/register`,
-      payload,
-      { withCredentials: true }
-    );
+    return this.http.post<RegisterResponse>(`${environment.apiUrl}api/auth/register`, payload);
   }
 
   logout(): Observable<void> {
     return this.http
-      .post<void>(`${environment.apiUrl}api/auth/logout`, {}, { withCredentials: true })
+      .post<void>(`${environment.apiUrl}api/auth/logout`, {})
       .pipe(
         tap(() => {
           this._session.set(null);

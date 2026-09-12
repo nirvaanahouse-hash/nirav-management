@@ -50,17 +50,13 @@ export class ProfileService {
 
   getProfile(): Observable<ProfileResponse> {
     return this.http
-      .get<ProfileResponse>(`${environment.apiUrl}api/profile`, {
-        withCredentials: true,
-      })
+      .get<ProfileResponse>(`${environment.apiUrl}api/profile`)
       .pipe(tap((res) => res?.success && this._profile.set(res.data)));
   }
 
   updateProfile(data: Partial<ProfileData>): Observable<ProfileResponse> {
     return this.http
-      .put<ProfileResponse>(`${environment.apiUrl}api/profile`, data, {
-        withCredentials: true,
-      })
+      .put<ProfileResponse>(`${environment.apiUrl}api/profile`, data)
       .pipe(
         tap(() =>
           this._profile.update((prev) => (prev ? { ...prev, ...data } : prev)),
@@ -73,9 +69,7 @@ export class ProfileService {
     const body = new FormData();
     body.append("image", file);
     return this.http
-      .post<ProfileResponse>(`${environment.apiUrl}api/profile/image`, body, {
-        withCredentials: true,
-      })
+      .post<ProfileResponse>(`${environment.apiUrl}api/profile/image`, body)
       .pipe(
         tap(
           (res) =>
@@ -90,9 +84,7 @@ export class ProfileService {
   /** Remove the profile photo (clears the field and deletes the file server-side). */
   deletePhoto(): Observable<ProfileResponse> {
     return this.http
-      .delete<ProfileResponse>(`${environment.apiUrl}api/profile/image`, {
-        withCredentials: true,
-      })
+      .delete<ProfileResponse>(`${environment.apiUrl}api/profile/image`)
       .pipe(
         tap(
           (res) =>

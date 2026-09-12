@@ -27,7 +27,7 @@ interface UserLocationResponse {
 
 const PREF_KEY = "locationSharing";
 const PING_INTERVAL_MS = 2 * 60 * 1000; // every 2 minutes while the tab is open
-const NO_TOAST = { context: new HttpContext().set(SKIP_ERROR_TOAST, true), withCredentials: true };
+const NO_TOAST = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 
 /**
  * Shares the current user's browser location with the backend on a slow timer
@@ -87,10 +87,7 @@ export class LocationService {
 
   /** SA / users.location — read one user's last known location. */
   getUserLocation(userId: string): Observable<UserLocationResponse> {
-    return this.http.get<UserLocationResponse>(
-      `${environment.apiUrl}api/location/${userId}`,
-      { withCredentials: true },
-    );
+    return this.http.get<UserLocationResponse>(`${environment.apiUrl}api/location/${userId}`);
   }
 
   // --- internals -----------------------------------------------------------

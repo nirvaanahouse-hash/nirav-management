@@ -44,9 +44,7 @@ export class PermissionService {
   refreshMe(): void {
     if (!this.auth.isAuthenticated()) return;
     this.http
-      .get<MyPermissionsResponse>(`${environment.apiUrl}api/permissions/me`, {
-        withCredentials: true,
-      })
+      .get<MyPermissionsResponse>(`${environment.apiUrl}api/permissions/me`)
       .subscribe({
         next: (res) => {
           const user = this.auth.currentUser();
@@ -59,24 +57,17 @@ export class PermissionService {
   }
 
   getRegistry(): Observable<PermissionRegistryResponse> {
-    return this.http.get<PermissionRegistryResponse>(
-      `${environment.apiUrl}api/permissions`,
-      { withCredentials: true },
-    );
+    return this.http.get<PermissionRegistryResponse>(`${environment.apiUrl}api/permissions`);
   }
 
   getUserPermissions(userId: string): Observable<UserPermissionsResponse> {
-    return this.http.get<UserPermissionsResponse>(
-      `${environment.apiUrl}api/employees/${userId}/permissions`,
-      { withCredentials: true },
-    );
+    return this.http.get<UserPermissionsResponse>(`${environment.apiUrl}api/employees/${userId}/permissions`);
   }
 
   setUserPermissions(userId: string, permissions: string[]): Observable<SetPermissionsResponse> {
     return this.http.put<SetPermissionsResponse>(
       `${environment.apiUrl}api/employees/${userId}/permissions`,
-      { permissions },
-      { withCredentials: true },
+      { permissions }
     );
   }
 }

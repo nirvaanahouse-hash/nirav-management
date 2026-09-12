@@ -35,19 +35,19 @@ export class TicketTypeService {
 
   list(): Observable<ListResponse> {
     return this.http
-      .get<ListResponse>(this.base, { withCredentials: true })
+      .get<ListResponse>(this.base)
       .pipe(tap((res) => this._types.set(res.data ?? [])));
   }
 
   create(draft: TicketTypeDraft): Observable<SingleResponse> {
     return this.http
-      .post<SingleResponse>(this.base, draft, { withCredentials: true })
+      .post<SingleResponse>(this.base, draft)
       .pipe(tap((res) => this._types.update((list) => [...list, res.data])));
   }
 
   update(id: string, patch: TicketTypePatch): Observable<SingleResponse> {
     return this.http
-      .put<SingleResponse>(`${this.base}/${id}`, patch, { withCredentials: true })
+      .put<SingleResponse>(`${this.base}/${id}`, patch)
       .pipe(
         tap((res) =>
           this._types.update((list) =>
@@ -59,9 +59,7 @@ export class TicketTypeService {
 
   delete(id: string): Observable<{ success: boolean; message: string }> {
     return this.http
-      .delete<{ success: boolean; message: string }>(`${this.base}/${id}`, {
-        withCredentials: true,
-      })
+      .delete<{ success: boolean; message: string }>(`${this.base}/${id}`)
       .pipe(tap(() => this._types.update((list) => list.filter((t) => t._id !== id))));
   }
 }

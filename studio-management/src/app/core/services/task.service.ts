@@ -64,7 +64,6 @@ export class TaskService {
     return this.http
       .get<TicketResponse>(`${environment.apiUrl}api/ticket`, {
         params: httpParams,
-        withCredentials: true,
       })
       .pipe(
         tap((response) => {
@@ -75,9 +74,7 @@ export class TaskService {
 
   getById(id: string): Observable<TicketCreateResponse> {
     return this.http
-      .get<TicketCreateResponse>(`${environment.apiUrl}api/ticket/${id}`, {
-        withCredentials: true,
-      })
+      .get<TicketCreateResponse>(`${environment.apiUrl}api/ticket/${id}`)
       .pipe(
         tap((response) => {
           this._currentTicket.set(response.data);
@@ -87,11 +84,7 @@ export class TaskService {
 
   create(draft: TicketDraft): Observable<TicketCreateResponse> {
     return this.http
-      .post<TicketCreateResponse>(
-        `${environment.apiUrl}api/ticket`,
-        draft,
-        { withCredentials: true }
-      )
+      .post<TicketCreateResponse>(`${environment.apiUrl}api/ticket`, draft)
       .pipe(
         tap((response) => {
           this._tickets.update((list) => [response.data, ...list]);
@@ -101,31 +94,19 @@ export class TaskService {
 
   update(id: string, changes: Partial<TicketRecord>): Observable<TicketCreateResponse> {
     return this.http
-      .put<TicketCreateResponse>(
-        `${environment.apiUrl}api/ticket/${id}`,
-        changes,
-        { withCredentials: true }
-      )
+      .put<TicketCreateResponse>(`${environment.apiUrl}api/ticket/${id}`, changes)
       .pipe(tap((response) => this.upsert(response.data)));
   }
 
   assignEmployee(id: string, employeeId: string): Observable<TicketCreateResponse> {
     return this.http
-      .put<TicketCreateResponse>(
-        `${environment.apiUrl}api/ticket/${id}/assign`,
-        { assignedEmployee: employeeId },
-        { withCredentials: true }
-      )
+      .put<TicketCreateResponse>(`${environment.apiUrl}api/ticket/${id}/assign`, { assignedEmployee: employeeId })
       .pipe(tap((response) => this.upsert(response.data)));
   }
 
   complete(id: string): Observable<TicketCreateResponse> {
     return this.http
-      .put<TicketCreateResponse>(
-        `${environment.apiUrl}api/ticket/${id}/complete`,
-        {},
-        { withCredentials: true }
-      )
+      .put<TicketCreateResponse>(`${environment.apiUrl}api/ticket/${id}/complete`, {})
       .pipe(tap((response) => this.upsert(response.data)));
   }
 
@@ -137,17 +118,14 @@ export class TaskService {
         // The caller already shows a tailored toast for every failure case
         // (permission / not-completed-yet / missing pricing) — skip the
         // global interceptor's toast so it isn't shown twice.
-        { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_TOAST, true) }
+        { context: new HttpContext().set(SKIP_ERROR_TOAST, true) }
       )
       .pipe(tap((response) => this.upsert(response.data)));
   }
 
   delete(id: string): Observable<{ success: boolean; message: string; data: { _id: string } }> {
     return this.http
-      .delete<{ success: boolean; message: string; data: { _id: string } }>(
-        `${environment.apiUrl}api/ticket/${id}`,
-        { withCredentials: true }
-      )
+      .delete<{ success: boolean; message: string; data: { _id: string } }>(`${environment.apiUrl}api/ticket/${id}`)
       .pipe(tap(() => this.remove(id)));
   }
 }

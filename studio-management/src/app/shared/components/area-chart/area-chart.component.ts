@@ -40,8 +40,6 @@ export class AreaChartComponent {
   points = input<ChartPoint[]>([]);
   /** How to format a value for the axis and tooltip. */
   kind = input<"count" | "currency">("count");
-  /** 'area' = gradient area + line; 'bars' = rounded bars on a faint track. */
-  mode = input<"area" | "bars">("area");
   /** 'hero' = smooth spline, no gridlines/axis text, deeper fill. */
   variant = input<"full" | "hero">("full");
 
@@ -115,32 +113,6 @@ export class AreaChartComponent {
     );
   });
 
-  /** Rounded bars sitting on a faint full-height track. */
-  readonly bars = computed(() => {
-    const c = this.coords();
-    const n = c.length;
-    if (!n) return [];
-    const { x0, x1, y0, y1 } = this.plot;
-    const slot = (x1 - x0) / n;
-    const w = Math.max(4, Math.min(30, slot * 0.6));
-    const peakVal = Math.max(...c.map((p) => p.value));
-    return c.map((p, i) => {
-      const cx = n === 1 ? (x0 + x1) / 2 : x0 + (i + 0.5) * slot;
-      return {
-        i,
-        label: p.label,
-        value: p.value,
-        x: cx - w / 2,
-        w,
-        y: p.y,
-        h: Math.max(0, y1 - p.y),
-        trackY: y0,
-        trackH: y1 - y0,
-        peak: p.value === peakVal && peakVal > 0,
-      };
-    });
-  });
-
   /** 4 gridlines / y-axis ticks. */
   readonly yTicks = computed(() => {
     const max = this.max();
@@ -167,11 +139,6 @@ export class AreaChartComponent {
     return i == null ? null : this.coords()[i] ?? null;
   });
 
-  readonly hoveredBar = computed(() => {
-    const i = this.hoverIndex();
-    return i == null ? null : this.bars()[i] ?? null;
-  });
-
   format(v: number): string {
     if (this.kind() === "currency") {
       const abs = Math.abs(v);
@@ -190,11 +157,7 @@ export class AreaChartComponent {
     const px = ((evt.clientX - rect.left) / rect.width) * W;
     const { x0, x1 } = this.plot;
     const ratio = Math.min(1, Math.max(0, (px - x0) / (x1 - x0)));
-    const idx =
-      this.mode() === "bars"
-        ? Math.min(n - 1, Math.max(0, Math.floor(ratio * n)))
-        : Math.round(ratio * (n - 1));
-    this.hoverIndex.set(idx);
+    this.hoverIndex.set(Math.round(ratio * (n - 1)));
   }
 
   clearHover(): void {

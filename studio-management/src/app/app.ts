@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { PermissionService } from './core/services/permission.service';
+import { PushNotificationService } from './core/services/push-notification.service';
 import { ToastContainerComponent } from './features/toast/toast-container.component';
 
 @Component({
@@ -14,9 +15,12 @@ import { ToastContainerComponent } from './features/toast/toast-container.compon
 })
 export class App {
   private readonly permissions = inject(PermissionService);
+  private readonly pushNotifications = inject(PushNotificationService);
 
   constructor(private readonly themeService: ThemeService) {
     // Refresh permissions for an already-restored session (no re-login needed).
     this.permissions.refreshMe();
+    // Silent — only re-syncs an already-granted subscription, never prompts.
+    this.pushNotifications.init();
   }
 }

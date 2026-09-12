@@ -1,4 +1,5 @@
 const Notification = require("../models/notification.model");
+const { sendPushToUser } = require("./push.service");
 
 let io = null;
 
@@ -27,6 +28,15 @@ const createNotification = async ({
     io.to(`user-${recipient}`).emit("notification", notification);
     io.to(`user-${recipient}`).emit("notification-count", { unreadCount: true });
   }
+
+  // Reaches the user even if the tab is backgrounded or closed — the
+  // in-app bell above only works while a session is actually connected.
+  sendPushToUser(recipient, {
+    title,
+    body: message || "",
+    tag: `notification-${notification._id}`,
+    url: ticketId ? `/employee/tickets?ticket=${ticketId}` : "/",
+  }).catch(() => {});
 
   return notification;
 };

@@ -184,6 +184,40 @@
 
       <section class="pf-card">
         <header class="pf-card__head">
+          <h3>Push notifications</h3>
+          <p>Get a notification on this device even when the tab isn't open.</p>
+        </header>
+        <div class="pf-fields">
+          <div class="pf-field pf-span">
+            @if (!pushNotifications.supported) {
+              <small class="pf-switch__note">Not supported in this browser.</small>
+            } @else {
+              <label class="pf-switch">
+                <input
+                  type="checkbox"
+                  [checked]="pushNotifications.subscribed()"
+                  [disabled]="pushNotifications.busy()"
+                  (change)="togglePushNotifications($any($event.target).checked)"
+                />
+                <span class="pf-switch__track"><span class="pf-switch__thumb"></span></span>
+                <span class="pf-switch__text">
+                  Notify me on this device
+                  @if (pushNotifications.subscribed()) {
+                    <small class="pf-switch__note pf-switch__note--ok">On — new tickets and messages will notify you here.</small>
+                  } @else if (pushNotifications.permission() === 'denied') {
+                    <small class="pf-switch__note pf-switch__note--warn">Blocked — allow notifications for this site in your browser settings.</small>
+                  } @else {
+                    <small class="pf-switch__note">Off.</small>
+                  }
+                </span>
+              </label>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="pf-card">
+        <header class="pf-card__head">
           <h3>Security</h3>
           <p>Leave blank to keep your current password.</p>
         </header>

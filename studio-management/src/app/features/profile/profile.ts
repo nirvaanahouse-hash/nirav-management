@@ -19,6 +19,7 @@ import {
 import { AuthService } from "../../core/services/auth.service";
 import { ProfileService, ProfileData } from "../../core/services/profile.service";
 import { LocationService } from "../../core/services/location.service";
+import { PushNotificationService } from "../../core/services/push-notification.service";
 import { ToastService } from "../../features/toast/toast.service";
 
 interface Profile {
@@ -51,10 +52,30 @@ export class ProfileComponent {
   private profileService = inject(ProfileService);
   private toastService = inject(ToastService);
   readonly locationService = inject(LocationService);
+  readonly pushNotifications = inject(PushNotificationService);
 
   toggleLocationSharing(on: boolean): void {
     this.locationService.setSharing(on);
     this.toastService.success(on ? "Location sharing on." : "Location sharing off.");
+  }
+
+  async togglePushNotifications(on: boolean): Promise<void> {
+    if (on) {
+      const ok = await this.pushNotifications.enable();
+      if (ok) {
+        this.toastService.success("Push notifications on.");
+      } else if (this.pushNotifications.permission() === "denied") {
+        this.toastService.error(
+          "Notifications blocked",
+          "Allow notifications for this site in your browser settings, then try again.",
+        );
+      } else {
+        this.toastService.error("Could not enable notifications", "Please try again.");
+      }
+    } else {
+      await this.pushNotifications.disable();
+      this.toastService.success("Push notifications off.");
+    }
   }
 
   readonly profile = signal<Profile>({

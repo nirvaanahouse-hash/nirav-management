@@ -28,6 +28,7 @@ const comparisonRoutes = require("./routes/comparison.routes");
 const ticketTypeRoutes = require("./routes/ticketType.routes");
 const financialRevealRoutes = require("./routes/financialReveal.routes");
 const messageRoutes = require("./routes/message.routes");
+const pushRoutes = require("./routes/push.routes");
 const { seedUserPermissions } = require("./utils/seed-permissions");
 const { seedTicketTypes } = require("./utils/seed-ticket-types");
 
@@ -90,6 +91,7 @@ app.use("/api", comparisonRoutes);
 app.use("/api", ticketTypeRoutes);
 app.use("/api", financialRevealRoutes);
 app.use("/api", messageRoutes);
+app.use("/api", pushRoutes);
 
 app.use(errorHandler);
 

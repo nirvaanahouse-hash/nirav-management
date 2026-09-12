@@ -3,6 +3,7 @@ const Message = require("../models/message.model");
 const User = require("../models/user.model");
 const { ERole } = require("../constants");
 const { emitToUsers } = require("../services/notification.service");
+const { sendPushToUser } = require("../services/push.service");
 
 const userSummarySelect = "firstName lastName userName role image";
 
@@ -149,11 +150,17 @@ const sendMessage = async (req, res) => {
       text: String(text).trim(),
     });
 
-    const payload = {
-      ...message.toObject(),
-      senderName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.userName,
-    };
+    const senderName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.userName;
+    const payload = { ...message.toObject(), senderName };
     emitToUsers("message-new", payload, [recipient, user.id]);
+
+    // Only the recipient — the sender already sees their own message land.
+    sendPushToUser(recipient, {
+      title: senderName,
+      body: message.text,
+      tag: "chat-message",
+      url: "/messages",
+    }).catch(() => {});
 
     return res.status(201).json({ success: true, message: "Message sent", data: message });
   } catch (error) {

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { EmployeeService, EmployeeActionResponse } from "../../core/services/employee.service";
@@ -16,6 +15,7 @@ import { ButtonComponent } from "../../shared/components/button/button";
 import { SelectComponent } from "../../shared/components/select/select.component";
 import { SelectItem } from "../../shared/components/select/select.model";
 import { CheckboxComponent } from "../../shared/components/checkbox/checkbox.component";
+import { MapComponent } from "../../shared/components/map/map.component";
 import { IconButtonComponent } from "../../shared/components/icon-button/icon-button.component";
 import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { FormFieldComponent } from "../../shared/components/form-field/form-field.component";
@@ -27,6 +27,8 @@ import { ModalComponent } from "../../features/dialog/modal.component";
   imports: [
     SelectComponent,
     CheckboxComponent,
+    MapComponent,
+    MapComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -47,7 +49,6 @@ export class UsersComponent {
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly amountService = inject(AmountService);
   private readonly locationService = inject(LocationService);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly permissions = inject(PermissionService);
@@ -64,8 +65,6 @@ export class UsersComponent {
   readonly showLocationFor = signal<User | null>(null);
   readonly locationLoading = signal(false);
   readonly locationData = signal<UserLocationView | null>(null);
-  readonly locationMapUrl = signal<SafeResourceUrl | null>(null);
-
   openLocation(user: User): void {
     this.showLocationFor.set(user);
     this.loadLocation(user._id);
@@ -74,7 +73,6 @@ export class UsersComponent {
   closeLocation(): void {
     this.showLocationFor.set(null);
     this.locationData.set(null);
-    this.locationMapUrl.set(null);
   }
 
   refreshLocation(): void {
@@ -85,19 +83,11 @@ export class UsersComponent {
   private loadLocation(userId: string): void {
     this.locationLoading.set(true);
     this.locationData.set(null);
-    this.locationMapUrl.set(null);
     this.locationService.getUserLocation(userId).subscribe({
       next: (res) => {
         this.locationLoading.set(false);
         const d = res.data;
         this.locationData.set(d);
-        if (d && d.lat != null && d.lng != null) {
-          const dLat = 0.004;
-          const dLng = 0.004;
-          const bbox = `${d.lng - dLng}%2C${d.lat - dLat}%2C${d.lng + dLng}%2C${d.lat + dLat}`;
-          const url = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${d.lat}%2C${d.lng}`;
-          this.locationMapUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
-        }
       },
       error: () => {
         this.locationLoading.set(false);
@@ -192,7 +182,6 @@ export class UsersComponent {
         this.pctSaving.set(false);
         this.toastService.success("Percentage updated", `${user.firstName} → ${pct}%`);
         this.closePct();
-        this.loadEmployees(true);
       },
       error: (err: Error) => {
         this.pctSaving.set(false);
@@ -260,7 +249,6 @@ export class UsersComponent {
         this.editSaving.set(false);
         this.toastService.success("User updated", res.message || `${this.editForm.controls.firstName.value} saved.`);
         this.closeEdit();
-        this.loadEmployees(true);
       },
       error: (err: { error?: { message?: string; errors?: { field: string; message: string }[] } }) => {
         this.editSaving.set(false);

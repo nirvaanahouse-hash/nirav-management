@@ -244,7 +244,8 @@
   &__map {
     position: relative;
     width: 100%;
-    aspect-ratio: 4 / 3;
+    /* A taller frame than the old flat embed — the pitched view needs it. */
+    aspect-ratio: 4 / 3.2;
     border-radius: var(--r-md);
     overflow: hidden;
     border: 1px solid var(--border-subtle);

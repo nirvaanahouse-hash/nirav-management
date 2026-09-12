@@ -15,10 +15,22 @@
             "outputPath": "dist/studio-management-system",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/assets"],
-            "styles": ["src/styles.scss"],
+            "assets": [
+              "src/assets",
+              {
+                "glob": "maplibre-gl-worker.mjs",
+                "input": "node_modules/maplibre-gl/dist",
+                "output": "/"
+              }
+            ],
+            "styles": [
+              "src/styles.scss",
+              "node_modules/maplibre-gl/dist/maplibre-gl.css"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -44,6 +56,11 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": ["maplibre-gl"]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "studio-management-system:build:production"

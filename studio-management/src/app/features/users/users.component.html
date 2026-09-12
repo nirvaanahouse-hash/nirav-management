@@ -396,12 +396,12 @@
         @if (loc.lat !== null && loc.lng !== null) {
           <div class="users-loc">
             <div class="users-loc__map">
-              <iframe
-                [src]="locationMapUrl()"
-                title="User location map"
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-              ></iframe>
+              <app-map
+                [lat]="loc.lat!"
+                [lng]="loc.lng!"
+                [accuracy]="loc.accuracy ?? null"
+                [label]="u.firstName + ' ' + u.lastName"
+              />
             </div>
             <div class="users-loc__meta">
               <span><strong>Updated:</strong> {{ locationAgo(loc.updatedAt) }}</span>

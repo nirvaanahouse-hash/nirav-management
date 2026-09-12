@@ -257,11 +257,15 @@ export class IpComponent {
       : this.ipService.createRule(payload);
 
     req.subscribe({
-      next: () => {
+      next: (res) => {
         this.savingRule.set(false);
         this.toast.success(editing ? 'Rule updated' : 'Rule added');
         this.closeRuleModal();
-        this.loadRules();
+        this.rules.update((list) =>
+          editing
+            ? list.map((r) => (r._id === res.data._id ? res.data : r))
+            : [res.data, ...list],
+        );
         this.refreshStats();
       },
       error: (err: { error?: { message?: string; errors?: { field: string; message: string }[] } }) => {

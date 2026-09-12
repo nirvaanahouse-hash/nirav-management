@@ -4,6 +4,11 @@ import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
+  // TEMP: map harness, removed before commit.
+  {
+    path: 'dev/ui',
+    loadComponent: () => import('./features/dev/dev-ui.component').then((m) => m.DevUiComponent)
+  },
   {
     path: 'auth/login',
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login)

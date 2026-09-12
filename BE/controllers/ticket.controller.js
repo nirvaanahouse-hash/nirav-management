@@ -233,7 +233,10 @@ const createTicket = async (req, res) => {
       userId: user.id,
       createdBy: user.id,
       createdByName,
-      assignedEmployee: null,
+      // An employee's own ticket is self-assigned by default, so an SA
+      // editing it later sees the assignee (and its profit-share %)
+      // already selected instead of having to pick it manually.
+      assignedEmployee: user.role === ERole.U ? user.id : null,
       client: client || null,
       coupleName,
       ticketType,
@@ -373,7 +376,7 @@ const updateTicket = async (req, res) => {
         "userPersentage", "assignedEmployee", "client",
         "remark", "status", "HR", "mainHr",
         "coupleName",
-        "isFinalized", "finalizedBy", "finalizedAt",
+        "isFinalized",
       ];
 
       const updates = {};
@@ -387,8 +390,18 @@ const updateTicket = async (req, res) => {
         }
       });
 
+      const wasFinalized = ticket.isFinalized;
       Object.assign(ticket, updates);
       normalizeHourFields(ticket);
+
+      // finalizedBy/At are audit fields — always derived server-side (never
+      // trusted from the client) so toggling isFinalized here stays
+      // consistent with the dedicated /finalize endpoint either direction.
+      if (updates.isFinalized !== undefined && updates.isFinalized !== wasFinalized) {
+        ticket.finalizedBy = updates.isFinalized ? user.id : null;
+        ticket.finalizedAt = updates.isFinalized ? new Date() : null;
+      }
+
       // A ticket can only be finalized once it is completed.
       if (ticket.isFinalized && ticket.status !== TICKET_STATUS.completed) {
         ticket.isFinalized = false;

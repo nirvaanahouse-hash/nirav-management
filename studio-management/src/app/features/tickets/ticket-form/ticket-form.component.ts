@@ -96,8 +96,22 @@ export class TicketFormComponent implements OnInit {
     this.form.patchValue({ ticketType: options[0].value });
   });
 
+  /**
+   * Suggests "Finalize" once per completed session (fresh open, or a status
+   * change into "completed") but never fights a manual uncheck afterwards —
+   * without this guard, unchecking the box just triggered the effect again
+   * and silently re-checked it, so SA could never un-finalize from the form.
+   */
+  private hasSuggestedFinalize = false;
   private statusEffect = effect(() => {
-    if (this.isSA() && this.isStatusCompleted() && !this.value().isFinalized) {
+    const completed = this.isStatusCompleted();
+    if (!completed) {
+      this.hasSuggestedFinalize = false;
+      return;
+    }
+    if (!this.isSA() || this.hasSuggestedFinalize) return;
+    this.hasSuggestedFinalize = true;
+    if (!this.value().isFinalized) {
       this.form.patchValue({ isFinalized: true }, { emitEvent: false });
     }
   });

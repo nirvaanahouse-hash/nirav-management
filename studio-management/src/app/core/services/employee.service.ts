@@ -117,12 +117,23 @@ export class EmployeeService {
     );
   }
 
-  setPercentage(id: string, percentage: number): Observable<{ success: boolean; message: string }> {
-    return this.http.put<{ success: boolean; message: string }>(
-      `${environment.apiUrl}api/employees/${id}/percentage`,
-      { percentage },
-      { withCredentials: true },
-    );
+  setPercentage(
+    id: string,
+    percentage: number,
+  ): Observable<{ success: boolean; message: string; data: { _id: string; percentage: number } }> {
+    return this.http
+      .put<{ success: boolean; message: string; data: { _id: string; percentage: number } }>(
+        `${environment.apiUrl}api/employees/${id}/percentage`,
+        { percentage },
+        { withCredentials: true },
+      )
+      .pipe(
+        tap((response) => {
+          this._employees.update((list) =>
+            list.map((e) => (e._id === response.data._id ? { ...e, percentage: response.data.percentage } : e)),
+          );
+        }),
+      );
   }
 
   /** Full record incl. profile fields — used to pre-fill the SA edit form. */

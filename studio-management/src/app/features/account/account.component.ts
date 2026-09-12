@@ -40,7 +40,9 @@ export class AccountComponent {
   private readonly confirm = inject(ConfirmDialogService);
 
   readonly loading = signal(true);
-  readonly entries = signal<AmountEntry[]>([]);
+  // AmountService keeps this in sync from each create/update/delete response
+  // directly — no need to re-fetch the whole list after a mutation.
+  readonly entries = this.amountService.entries;
 
   readonly myId = computed(() => this.auth.currentUser()?._id ?? "");
 
@@ -94,12 +96,10 @@ export class AccountComponent {
   reload(): void {
     this.loading.set(true);
     this.amountService.list().subscribe({
-      next: (res) => {
-        this.entries.set(res.data || []);
+      next: () => {
         this.loading.set(false);
       },
       error: () => {
-        this.entries.set([]);
         this.loading.set(false);
         this.toast.error("Could not load entries", "Please try again.");
       },
@@ -145,7 +145,6 @@ export class AccountComponent {
         this.saving.set(false);
         this.toast.success("Entry added", "Your admin can now see it.");
         this.closeForm();
-        this.reload();
       },
       error: (err: { error?: { message?: string } }) => {
         this.saving.set(false);
@@ -181,7 +180,6 @@ export class AccountComponent {
           this.saving.set(false);
           this.toast.success("Entry updated", "");
           this.closeEdit();
-          this.reload();
         },
         error: (err: { error?: { message?: string } }) => {
           this.saving.set(false);
@@ -202,7 +200,6 @@ export class AccountComponent {
     this.amountService.delete(entry._id).subscribe({
       next: () => {
         this.toast.success("Entry deleted", "");
-        this.reload();
       },
       error: (err: { error?: { message?: string } }) => {
         this.toast.error("Could not delete", err?.error?.message || "Please try again.");

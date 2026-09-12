@@ -274,7 +274,6 @@ export class ClientsComponent {
             this.saving.set(false);
             this.toast.success(editing ? "Client updated" : "Client created", saved.name || "");
             this.closeDialog();
-            this.fetchClients();
           },
           error: () => {
             this.saving.set(false);
@@ -283,7 +282,6 @@ export class ClientsComponent {
               "The details were saved. Try the photo again from Edit.",
             );
             this.closeDialog();
-            this.fetchClients();
           },
         });
       },
@@ -315,9 +313,8 @@ export class ClientsComponent {
       this.clientService.deactivate(client._id).subscribe({
         next: () => {
           this.toast.success("Client deactivated", client.name);
-          this.fetchClients();
         },
-        error: () => this.fetchClients(),
+        error: () => this.toast.error("Could not deactivate", "Please try again."),
       });
     } else {
       const confirmed = await this.confirmDialog.ask({
@@ -331,9 +328,8 @@ export class ClientsComponent {
       this.clientService.reactivate(client._id).subscribe({
         next: () => {
           this.toast.success("Client reactivated", client.name);
-          this.fetchClients();
         },
-        error: () => this.fetchClients(),
+        error: () => this.toast.error("Could not reactivate", "Please try again."),
       });
     }
   }

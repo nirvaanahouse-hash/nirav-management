@@ -259,7 +259,7 @@ export class TicketsComponent {
 
   /** Outstanding amount owed to the assigned employee for this ticket. */
   formatBalanceDue(ticket: TicketRecord): string {
-    if (!ticket.assignedEmployee) return "-";
+    if (!ticket.assignedEmployee || this.isEmpty(ticket.amount)) return "-";
     const due =
       ticket.balanceDue !== undefined
         ? ticket.balanceDue
@@ -292,6 +292,11 @@ export class TicketsComponent {
       ticket.status === "completed" &&
       !ticket.isFinalized
     );
+  }
+
+  /** Once finalized, only the un-finalize action should offer a way back. */
+  canUnfinalize(ticket: TicketRecord): boolean {
+    return this.permissions.can("tickets.finalize") && ticket.isFinalized;
   }
 
   canDelete(): boolean {
@@ -355,12 +360,13 @@ export class TicketsComponent {
     this.saving.set(true);
 
     if (editing) {
+      // TaskService.update() already folds the response into the `tickets`
+      // signal — no need to re-fetch the whole list after a save.
       this.taskService.update(editing._id, draft).subscribe({
         next: () => {
           this.saving.set(false);
           this.toast.success("Ticket updated", "Changes saved.");
           this.closeDialog();
-          this.loadTasks();
         },
         error: (err: HttpErrorResponse) => {
           this.saving.set(false);
@@ -376,7 +382,6 @@ export class TicketsComponent {
           this.saving.set(false);
           this.toast.success("Ticket created", "The new ticket has been added.");
           this.closeDialog();
-          this.loadTasks();
         },
         error: () => {
           this.saving.set(false);
@@ -399,7 +404,6 @@ export class TicketsComponent {
     this.taskService.delete(task._id).subscribe({
       next: () => {
         this.toast.success("Ticket deleted", task.coupleName || "");
-        this.loadTasks();
       },
       error: () => {
         this.toast.error("Delete failed", "Please try again.");
@@ -411,7 +415,6 @@ export class TicketsComponent {
     this.taskService.complete(task._id).subscribe({
       next: () => {
         this.toast.success("Ticket completed", `${task.coupleName || ""} marked as complete.`);
-        this.loadTasks();
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 403) {
@@ -441,7 +444,6 @@ export class TicketsComponent {
           task.isFinalized ? "Ticket unfinalized" : "Ticket finalized",
           `${task.coupleName || ""} has been ${task.isFinalized ? "unfinalized" : "finalized"}.`
         );
-        this.loadTasks();
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 403) {

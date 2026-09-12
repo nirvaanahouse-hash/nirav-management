@@ -16,10 +16,6 @@ import { ThemeService } from '../../../core/services/theme.service';
  *  `building-3d` fill-extrusion layer, which is what makes the view 3D. */
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
-/** Themes whose surfaces are dark, so the map is tinted to match.
- *  Ids come from THEME_OPTIONS in core/models/theme.model.ts. */
-const DARK_THEMES = new Set<string>(['premium-dark', 'glassmorphism']);
-
 /** The bit of GeoJSON shape this component needs — kept local rather than
  *  pulling in @types/geojson, which isn't wired into this project's tsconfig. */
 type AccuracyPolygon = { type: 'Polygon'; coordinates: [number, number][][] };
@@ -86,7 +82,7 @@ export class MapComponent implements OnDestroy {
 
     // Follow the app's light / dark themes.
     effect(() => {
-      const dark = DARK_THEMES.has(this.theme.activeTheme());
+      const dark = this.theme.activeTheme() === 'dark';
       this.hostEl().nativeElement.classList.toggle('map__canvas--dark', dark);
     });
   }

@@ -1,9 +1,6 @@
 @use './styles/variables';
-@use './styles/themes/white';
+@use './styles/themes/light';
 @use './styles/themes/dark';
-@use './styles/themes/blue';
-@use './styles/themes/glass';
-@use './styles/themes/gradient';
 
 * {
   box-sizing: border-box;

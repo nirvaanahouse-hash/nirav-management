@@ -5,6 +5,14 @@ import { environment } from "../../../environments/environment";
 
 const STORAGE_KEY = "financialRevealUntil";
 
+/**
+ * Turned off until SMTP is actually configured on the server (see
+ * BE/services/email.service.js) — no point gating figures behind a code that
+ * can't be emailed yet. Flip back to true once that's live; nothing else
+ * needs to change, every masked value and the dialog stay wired up.
+ */
+const FEATURE_ENABLED = false;
+
 interface RevealResponse {
   success: boolean;
   message: string;
@@ -26,6 +34,7 @@ export class FinancialRevealService {
   private hideTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly isRevealed = computed(() => {
+    if (!FEATURE_ENABLED) return true;
     const until = this._revealUntil();
     return !!until && until > Date.now();
   });
@@ -42,6 +51,7 @@ export class FinancialRevealService {
   }
 
   openDialog(): void {
+    if (!FEATURE_ENABLED) return;
     this._dialogOpen.set(true);
   }
 

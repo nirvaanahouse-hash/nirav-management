@@ -42,8 +42,31 @@ export class TicketFormComponent implements OnInit {
   readonly ticketTypeOptions = computed(() => this.meta().ticketTypes);
   readonly priorityOptions = computed(() => this.meta().priorities);
   readonly statusOptions = computed(() => this.meta().statuses);
-  readonly clientOptions = computed(() => this.meta().clients);
-  readonly employeeOptions = computed(() => this.meta().employees);
+
+  /**
+   * getTicketFormMeta only returns ACTIVE clients/employees. If this ticket's
+   * client or assignee was since deactivated, that id is genuinely absent
+   * from the option list — the form control's value is still correct, but
+   * <app-select> can only show a label for a value it has an option for, so
+   * it fell back to the placeholder ("nothing selected") for a value that
+   * really is selected. Layer in a synthetic option using the name already
+   * denormalized onto the ticket so it still renders correctly.
+   */
+  readonly clientOptions = computed(() => {
+    const base = this.meta().clients;
+    const id = this.ticket?.client;
+    if (!id || base.some((c) => c.value === id)) return base;
+    return [...base, { value: id, label: `${this.ticket?.clientName || 'Unknown client'} (inactive)` }];
+  });
+  readonly employeeOptions = computed(() => {
+    const base = this.meta().employees;
+    const id = this.ticket?.assignedEmployee;
+    if (!id || base.some((e) => e.value === id)) return base;
+    return [
+      ...base,
+      { value: id, label: `${this.ticket?.assignedEmployeeName || 'Unknown employee'} (inactive)` },
+    ];
+  });
 
   isSA = this.authService.isSuperAdmin;
   isEmployee = this.authService.isEmployee;

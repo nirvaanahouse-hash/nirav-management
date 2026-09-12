@@ -75,6 +75,78 @@ const nameOf = (details, fallback) =>
     ? `${details.firstName || ""} ${details.lastName || ""}`.trim() || details.userName || fallback || ""
     : fallback || "";
 
+// Fields only the SA is allowed to see — stripped from every other role's
+// response so they can never be read straight off the API.
+const SA_ONLY_TICKET_FIELDS = [
+  "mainAmount",
+  "mainHr",
+  "hrPrice",
+  "mainHrPrice",
+  "calculatedMainAmount",
+  "companyProfit",
+  "employeeEarnings",
+  "employeePaid",
+  "balanceDue",
+];
+
+const userSummarySelect = "firstName lastName userName email role";
+
+/**
+ * The single-ticket equivalent of getTickets' bulk enrichment — used by
+ * every mutation endpoint (update/assign/complete/finalize) so their HTTP
+ * response AND their socket broadcast always carry the same clientName /
+ * assignedEmployeeName / type badge / financial fields the list endpoint
+ * already returns, instead of the bare Mongoose document. Not used by
+ * getTickets itself, which batches these lookups across every row instead
+ * of running them once per ticket.
+ */
+async function enrichTicket(ticket, isSuperAdmin) {
+  const ticketObj = ticket.toObject ? ticket.toObject() : ticket;
+
+  const [creatorDetails, employeeDetails, clientDetails, ticketTypeMap, paidEntries] = await Promise.all([
+    User.findById(ticket.createdBy || ticket.userId).select(userSummarySelect).lean(),
+    ticket.assignedEmployee
+      ? User.findById(ticket.assignedEmployee).select(userSummarySelect).lean()
+      : null,
+    ticket.client ? Client.findById(ticket.client).lean() : null,
+    getTicketTypeMap(),
+    AmountEntry.find({
+      ticketId: ticket._id.toString(),
+      recipientType: "employee",
+      isActive: true,
+    }).lean(),
+  ]);
+
+  const financials = calculateTicketFinancials(ticket);
+  let paid = 0;
+  paidEntries.forEach((e) => {
+    paid += e.type === "sent" ? Number(e.amount || 0) : -Number(e.amount || 0);
+  });
+
+  const enriched = {
+    ...ticketObj,
+    priorityColor: PRIORITY_COLORS[ticket.priorety] || "#8792AC",
+    ...ticketTypeView(ticketTypeMap[ticket.ticketType], ticket.ticketType),
+    creatorDetails,
+    employeeDetails,
+    clientDetails,
+    createdByName: nameOf(creatorDetails, ticketObj.createdByName),
+    assignedEmployeeName: nameOf(employeeDetails, ""),
+    clientName: clientDetails ? clientDetails.name || "" : "",
+    clientPhoto: clientDetails ? clientDetails.image || "" : "",
+    ...financials,
+    hrPrice: Number(ticket.hrPrice || 0),
+    employeePaid: paid,
+    balanceDue: financials.employeeEarnings - paid,
+  };
+
+  if (!isSuperAdmin) {
+    SA_ONLY_TICKET_FIELDS.forEach((f) => delete enriched[f]);
+  }
+
+  return enriched;
+}
+
 const getTickets = async (req, res) => {
   try {
     const { user } = req;
@@ -147,20 +219,6 @@ const getTickets = async (req, res) => {
     clients.forEach((c) => {
       clientMap[c._id.toString()] = c;
     });
-
-    // Fields only the SA is allowed to see — stripped from every other role's
-    // response so they can never be read straight off the API.
-    const SA_ONLY_TICKET_FIELDS = [
-      "mainAmount",
-      "mainHr",
-      "hrPrice",
-      "mainHrPrice",
-      "calculatedMainAmount",
-      "companyProfit",
-      "employeeEarnings",
-      "employeePaid",
-      "balanceDue",
-    ];
 
     const enrichedTickets = tickets.map((t) => {
       const ticketObj = t.toObject();
@@ -383,12 +441,13 @@ const updateTicket = async (req, res) => {
         });
       }
 
-      emitTicketEvent("ticket-updated", ticket.toObject(), ticket._id.toString());
+      const enrichedForEmployee = await enrichTicket(ticket, isSuperAdmin);
+      emitTicketEvent("ticket-updated", enrichedForEmployee, ticket._id.toString());
 
       return res.status(200).json({
         success: true,
         message: "Ticket updated",
-        data: ticket,
+        data: enrichedForEmployee,
       });
     }
 
@@ -454,12 +513,13 @@ const updateTicket = async (req, res) => {
         });
       }
 
-      emitTicketEvent("ticket-updated", ticket.toObject(), ticket._id.toString());
+      const enrichedForSA = await enrichTicket(ticket, isSuperAdmin);
+      emitTicketEvent("ticket-updated", enrichedForSA, ticket._id.toString());
 
       return res.status(200).json({
         success: true,
         message: "Ticket updated",
-        data: ticket,
+        data: enrichedForSA,
       });
     }
 
@@ -527,12 +587,13 @@ const assignEmployee = async (req, res) => {
       }
     }
 
-    emitTicketEvent("ticket-assigned", ticket.toObject(), id);
+    const enrichedAssigned = await enrichTicket(ticket, user.role === ERole.SA);
+    emitTicketEvent("ticket-assigned", enrichedAssigned, id);
 
     return res.status(200).json({
       success: true,
       message: "Employee assigned",
-      data: ticket,
+      data: enrichedAssigned,
     });
   } catch (error) {
     return res.status(500).json({
@@ -594,12 +655,13 @@ const completeTicket = async (req, res) => {
         });
       }
 
-      emitTicketEvent("ticket-completed", ticket.toObject(), id);
+      const enrichedCompleted = await enrichTicket(ticket, false);
+      emitTicketEvent("ticket-completed", enrichedCompleted, id);
 
       return res.status(200).json({
         success: true,
         message: "Ticket completed",
-        data: ticket,
+        data: enrichedCompleted,
       });
     }
 
@@ -669,12 +731,13 @@ const finalizeTicket = async (req, res) => {
       });
     }
 
-    emitTicketEvent("ticket-finalized", ticket.toObject(), id);
+    const enrichedFinalized = await enrichTicket(ticket, user.role === ERole.SA);
+    emitTicketEvent("ticket-finalized", enrichedFinalized, id);
 
     return res.status(200).json({
       success: true,
       message: "Ticket finalized",
-      data: ticket,
+      data: enrichedFinalized,
     });
   } catch (error) {
     return res.status(500).json({

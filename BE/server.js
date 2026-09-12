@@ -37,6 +37,10 @@ io.use((socket, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     socket.userId = decoded.id;
+    // The role claim is already on the login JWT (auth.controller.js) — no
+    // extra DB round trip needed to know whether this socket should join
+    // the SA broadcast room below.
+    socket.userRole = decoded.role;
     next();
   } catch (error) {
     next(new Error("Authentication error"));
@@ -47,6 +51,12 @@ io.on("connection", (socket) => {
   const userId = socket.userId;
 
   socket.join(`user-${userId}`);
+  // Every SA sees every ticket (getTickets' own rule) — this is how
+  // ticket-mutation broadcasts (notification.service.js emitTicketEvent)
+  // reach every SA session without targeting each one individually.
+  if (socket.userRole === "SA") {
+    socket.join("role-SA");
+  }
 
   socket.on("join-ticket", (ticketId) => {
     socket.join(`ticket-${ticketId}`);

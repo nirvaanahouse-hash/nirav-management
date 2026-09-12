@@ -19,6 +19,40 @@ export class TaskService {
   readonly tickets = this._tickets.asReadonly();
   readonly currentTicket = this._currentTicket.asReadonly();
 
+  constructor() {
+    // Every mutation already patches `_tickets` from its own HTTP response
+    // (below) — this is what makes a *different* session's edit show up
+    // here live, via the socket broadcast socket.service.ts re-dispatches
+    // as this DOM event. Always an in-place upsert/remove on the existing
+    // array, never a full list replace, so an open table's current page
+    // (shared/components/table's own `page` signal) is never disturbed.
+    window.addEventListener("ticket-event", ((e: CustomEvent<{ type: string; ticket: TicketRecord | { _id: string } }>) => {
+      const { type, ticket } = e.detail;
+      if (type === "ticket-deleted") {
+        this.remove(ticket._id);
+      } else {
+        this.upsert(ticket as TicketRecord);
+      }
+    }) as EventListener);
+  }
+
+  private upsert(ticket: TicketRecord): void {
+    this._tickets.update((list) => {
+      const exists = list.some((t) => t._id === ticket._id);
+      return exists ? list.map((t) => (t._id === ticket._id ? ticket : t)) : [ticket, ...list];
+    });
+    if (this._currentTicket()?._id === ticket._id) {
+      this._currentTicket.set(ticket);
+    }
+  }
+
+  private remove(id: string): void {
+    this._tickets.update((list) => list.filter((t) => t._id !== id));
+    if (this._currentTicket()?._id === id) {
+      this._currentTicket.set(null);
+    }
+  }
+
   list(params?: Record<string, string>): Observable<TicketResponse> {
     let httpParams = new HttpParams();
     if (params) {
@@ -72,18 +106,7 @@ export class TaskService {
         changes,
         { withCredentials: true }
       )
-      .pipe(
-        tap((response) => {
-          this._tickets.update((list) =>
-            list.map((t) => (t._id === response.data._id ? response.data : t))
-          );
-
-          const current = this._currentTicket();
-          if (current && current._id === response.data._id) {
-            this._currentTicket.set(response.data);
-          }
-        })
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   assignEmployee(id: string, employeeId: string): Observable<TicketCreateResponse> {
@@ -93,13 +116,7 @@ export class TaskService {
         { assignedEmployee: employeeId },
         { withCredentials: true }
       )
-      .pipe(
-        tap((response) => {
-          this._tickets.update((list) =>
-            list.map((t) => (t._id === response.data._id ? response.data : t))
-          );
-        })
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   complete(id: string): Observable<TicketCreateResponse> {
@@ -109,13 +126,7 @@ export class TaskService {
         {},
         { withCredentials: true }
       )
-      .pipe(
-        tap((response) => {
-          this._tickets.update((list) =>
-            list.map((t) => (t._id === response.data._id ? response.data : t))
-          );
-        })
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   finalize(id: string, isFinalized: boolean): Observable<TicketCreateResponse> {
@@ -128,13 +139,7 @@ export class TaskService {
         // global interceptor's toast so it isn't shown twice.
         { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_TOAST, true) }
       )
-      .pipe(
-        tap((response) => {
-          this._tickets.update((list) =>
-            list.map((t) => (t._id === response.data._id ? response.data : t))
-          );
-        })
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   delete(id: string): Observable<{ success: boolean; message: string; data: { _id: string } }> {
@@ -143,10 +148,6 @@ export class TaskService {
         `${environment.apiUrl}api/ticket/${id}`,
         { withCredentials: true }
       )
-      .pipe(
-        tap(() => {
-          this._tickets.update((list) => list.filter((t) => t._id !== id));
-        })
-      );
+      .pipe(tap(() => this.remove(id)));
   }
 }

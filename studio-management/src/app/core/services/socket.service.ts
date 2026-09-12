@@ -25,7 +25,8 @@ export type TicketEvent =
   | "ticket-assigned"
   | "ticket-updated"
   | "ticket-completed"
-  | "ticket-finalized";
+  | "ticket-finalized"
+  | "ticket-deleted";
 
 @Injectable({ providedIn: "root" })
 export class SocketService {
@@ -97,17 +98,17 @@ export class SocketService {
     // bumped the count, so this handler must not bump it again.
     this.socket.on("notification-count", () => {});
 
-    (["ticket-assigned", "ticket-updated", "ticket-completed", "ticket-finalized"] as TicketEvent[]).forEach(
-      (event) => {
-        this.socket?.on(event, (ticket: TicketRecord) => {
-          window.dispatchEvent(
-            new CustomEvent("ticket-event", {
-              detail: { type: event, ticket },
-            })
-          );
-        });
-      }
-    );
+    (
+      ["ticket-assigned", "ticket-updated", "ticket-completed", "ticket-finalized", "ticket-deleted"] as TicketEvent[]
+    ).forEach((event) => {
+      this.socket?.on(event, (ticket: TicketRecord | { _id: string }) => {
+        window.dispatchEvent(
+          new CustomEvent("ticket-event", {
+            detail: { type: event, ticket },
+          })
+        );
+      });
+    });
   }
 
   private fetchNotifications(): void {

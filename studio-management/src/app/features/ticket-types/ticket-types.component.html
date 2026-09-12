@@ -2,7 +2,9 @@
   <app-page-header
     title="Ticket Types"
     subtitle="The list every ticket picks from. Add a type, rename it, or switch one off."
+    accent="amber"
   >
+    <svg icon xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.17L3 3v6.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z"></path><circle cx="7.5" cy="7.5" r="1.5"></circle></svg>
     <span actions>
       <app-button variant="secondary" (clicked)="load()">Refresh</app-button>
       <app-button (clicked)="openCreate()">Add type</app-button>

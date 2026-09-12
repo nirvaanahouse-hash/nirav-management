@@ -37,6 +37,14 @@
       margin: 0;
       color: var(--text-primary);
     }
+
+    /* No title (e.g. the centered confirm-dialog layout) — collapse to just
+       a corner close button, no header bar/border eating into the body. */
+    &--bare {
+      border-bottom: none;
+      justify-content: flex-end;
+      padding-bottom: 0;
+    }
   }
 
   &__close {

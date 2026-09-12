@@ -8,8 +8,10 @@
         [attr.aria-label]="title()"
         (click)="$event.stopPropagation()"
       >
-        <header class="app-modal__header">
-          <h3>{{ title() }}</h3>
+        <header class="app-modal__header" [class.app-modal__header--bare]="!title()">
+          @if (title()) {
+            <h3>{{ title() }}</h3>
+          }
           <button class="app-modal__close" (click)="close.emit()" aria-label="Close dialog">×</button>
         </header>
         <div class="app-modal__body"><ng-content /></div>

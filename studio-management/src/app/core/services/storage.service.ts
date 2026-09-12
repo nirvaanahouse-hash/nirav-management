@@ -1,12 +1,20 @@
 import { Injectable } from "@angular/core";
 
+/**
+ * Backed by sessionStorage, not localStorage — the auth session (the only
+ * current consumer) is meant to end when the tab/browser closes, so the
+ * user logs in again each time rather than staying signed in indefinitely.
+ * This also sidesteps cross-browser cookie quirks entirely (Safari's ITP
+ * and friends): nothing here is a cookie, so there's nothing for a browser's
+ * tracking-prevention policy to block or expire early.
+ */
 @Injectable({
   providedIn: "root",
 })
 export class StorageService {
   set<T>(key: string, value: T): void {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      sessionStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
       console.error("Storage set error:", error);
     }
@@ -14,7 +22,7 @@ export class StorageService {
 
   get<T>(key: string): T | null {
     try {
-      const value = localStorage.getItem(key);
+      const value = sessionStorage.getItem(key);
 
       return value ? (JSON.parse(value) as T) : null;
     } catch (error) {
@@ -25,7 +33,7 @@ export class StorageService {
 
   remove(key: string): void {
     try {
-      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
     } catch (error) {
       console.error("Storage remove error:", error);
     }
@@ -33,7 +41,7 @@ export class StorageService {
 
   clear(): void {
     try {
-      localStorage.clear();
+      sessionStorage.clear();
     } catch (error) {
       console.error("Storage clear error:", error);
     }
@@ -41,7 +49,7 @@ export class StorageService {
 
   has(key: string): boolean {
     try {
-      return localStorage.getItem(key) !== null;
+      return sessionStorage.getItem(key) !== null;
     } catch {
       return false;
     }

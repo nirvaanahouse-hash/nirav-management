@@ -6,20 +6,6 @@ const { ERole, DEFAULT_USER_PERMISSIONS } = require("../constants");
 const { getClientIp } = require("../utils/ip");
 const { effectivePermissions } = require("../utils/permissions");
 
-// Auth cookie flags. When the frontend and API sit on different domains
-// (e.g. *.onrender.com), the browser only sends the cookie on XHR if it is
-// SameSite=None + Secure. Set COOKIE_SAMESITE=none on the deployed API.
-// Local dev keeps the default lax / non-secure cookie.
-const COOKIE_SAMESITE = process.env.COOKIE_SAMESITE || "lax";
-const COOKIE_SECURE = process.env.COOKIE_SECURE
-  ? process.env.COOKIE_SECURE === "true"
-  : COOKIE_SAMESITE === "none";
-const authCookieOptions = {
-  httpOnly: true,
-  secure: COOKIE_SECURE,
-  sameSite: COOKIE_SAMESITE,
-};
-
 // Fire-and-forget audit row for a login attempt — never blocks or fails the request.
 const recordLoginEvent = (req, { user, emailTried, success, reason }) => {
   LoginEvent.create({
@@ -169,15 +155,6 @@ const login = async (req, res) => {
     // SA => full list; everyone else => their stored keys (never undefined).
     userObj.permissions = effectivePermissions(userObj);
 
-    // Cookie kept for same-site/local-dev convenience, but the token in the
-    // body below is now the primary mechanism — Safari's ITP blocks this
-    // cookie once frontend and backend are on different *.onrender.com
-    // "sites", so the client sends it back as an Authorization header instead.
-    res.cookie("token", token, {
-      ...authCookieOptions,
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
     recordLoginEvent(req, { user, success: true, reason: "ok" });
 
     res.status(200).json({
@@ -194,10 +171,11 @@ const login = async (req, res) => {
   }
 };
 
-// Logout User
+// Logout User — Bearer-token auth is stateless (no server-side session/
+// cookie to clear); the frontend just drops the token from sessionStorage.
+// Kept as a real endpoint (rather than removed) for the login-event audit
+// trail and so any future token-blacklist logic has a natural home.
 const logout = async (req, res) => {
-  res.clearCookie("token", authCookieOptions);
-
   res.status(200).json({
     success: true,
     message: "Logout Successfully",

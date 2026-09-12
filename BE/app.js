@@ -4,7 +4,6 @@ dotenv.config();
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require("cookie-parser");
 
 const { UPLOADS_ROOT } = require("./middleware/upload.middleware");
 
@@ -42,8 +41,6 @@ seedTicketTypes();
 // Needed so req.ip reflects the real client behind a LAN proxy / phone.
 app.set("trust proxy", process.env.TRUST_PROXY || "loopback, linklocal, uniquelocal");
 
-app.use(cookieParser());
-
 // Allowed browser origins (localhost dev, LAN testing, deployed frontend).
 // See config/cors.js — FRONTEND_URL may be a comma-separated list.
 const { corsOptions } = require("./config/cors");
@@ -60,7 +57,8 @@ app.get("/", (req, res) => {
 });
 
 // Uploaded profile photos — public, read-only static files (kept out of Mongo).
-// Mounted before authMiddleware so <img> tags load without the auth cookie.
+// Mounted before authMiddleware since a plain <img> tag can't attach an
+// Authorization header — these just aren't an authenticated route at all.
 app.use(
   "/uploads",
   express.static(UPLOADS_ROOT, {

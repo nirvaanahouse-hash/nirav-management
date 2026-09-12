@@ -16,18 +16,9 @@ const io = new Server(server, {
 });
 
 io.use((socket, next) => {
-  const token =
-    socket.handshake.auth?.token ||
-    (() => {
-      const cookieHeader = socket.handshake.headers?.cookie;
-      if (!cookieHeader) return null;
-      const cookies = cookieHeader.split(";").map((c) => c.trim());
-      for (const cookie of cookies) {
-        const [name, value] = cookie.split("=");
-        if (name === "token") return value;
-      }
-      return null;
-    })();
+  // Sent explicitly by the client (socket.service.ts) — no cookie fallback,
+  // matching the REST API's Authorization-header-only auth.
+  const token = socket.handshake.auth?.token;
 
   if (!token) {
     next(new Error("Authentication error"));

@@ -3,13 +3,12 @@ const User = require("../models/user.model");
 
 const authMiddleware = async (req, res, next) => {
   try {
-    // Bearer header is the primary path (works cross-site even under
-    // Safari's ITP, which blocks the cookie once frontend/backend are on
-    // different *.onrender.com "sites"); the cookie stays as a fallback for
-    // same-site/local-dev requests that never set the header.
+    // Authorization header only — no cookie fallback. The frontend keeps
+    // the token in sessionStorage and sends it explicitly on every request
+    // (studio-management's auth.interceptor.ts), which also sidesteps
+    // Safari's ITP and every other cross-site-cookie quirk entirely.
     const authHeader = req.headers.authorization || "";
-    const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
-    const token = bearerToken || req.cookies.token;
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
 
     if (!token) {
       return res.status(401).json({

@@ -36,6 +36,29 @@ export class EmployeeService {
   readonly employees = this._employees.asReadonly();
   readonly stats = this._stats.asReadonly();
 
+  constructor() {
+    // Same in-place upsert/remove pattern as TaskService/ClientService — see
+    // TaskService's constructor for why this never disturbs the Users
+    // table's own pagination page.
+    window.addEventListener('employee-event', ((
+      e: CustomEvent<{ type: string; employee: Partial<User> & { _id: string } }>
+    ) => {
+      const { type, employee } = e.detail;
+      if (type === 'employee-deleted') {
+        this._employees.update((list) => list.filter((u) => u._id !== employee._id));
+      } else {
+        this.upsert(employee as User);
+      }
+    }) as EventListener);
+  }
+
+  private upsert(employee: User): void {
+    this._employees.update((list) => {
+      const exists = list.some((u) => u._id === employee._id);
+      return exists ? list.map((u) => (u._id === employee._id ? employee : u)) : [employee, ...list];
+    });
+  }
+
   list(params?: { search?: string; isActive?: boolean; page?: string; limit?: string }): Observable<EmployeeResponse> {
     let httpParams = new HttpParams();
     if (params) {

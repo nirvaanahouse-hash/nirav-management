@@ -4,6 +4,9 @@ import { AuthService } from "./auth.service";
 import { environment } from "../../../environments/environment";
 import { NotificationService } from "./notification.service";
 import { TicketRecord } from "../models/task.model";
+import { Client } from "../models/client.model";
+import { User } from "../models/user.model";
+import { AmountEntry } from "../models/amountEntry.model";
 
 export interface NotificationData {
   _id: string;
@@ -27,6 +30,10 @@ export type TicketEvent =
   | "ticket-completed"
   | "ticket-finalized"
   | "ticket-deleted";
+
+export type ClientEvent = "client-created" | "client-updated" | "client-image";
+export type EmployeeEvent = "employee-created" | "employee-updated" | "employee-deleted";
+export type AmountEvent = "amount-created" | "amount-updated" | "amount-deleted";
 
 @Injectable({ providedIn: "root" })
 export class SocketService {
@@ -107,6 +114,24 @@ export class SocketService {
             detail: { type: event, ticket },
           })
         );
+      });
+    });
+
+    (["client-created", "client-updated", "client-image"] as ClientEvent[]).forEach((event) => {
+      this.socket?.on(event, (client: Partial<Client> & { _id: string }) => {
+        window.dispatchEvent(new CustomEvent("client-event", { detail: { type: event, client } }));
+      });
+    });
+
+    (["employee-created", "employee-updated", "employee-deleted"] as EmployeeEvent[]).forEach((event) => {
+      this.socket?.on(event, (employee: Partial<User> & { _id: string }) => {
+        window.dispatchEvent(new CustomEvent("employee-event", { detail: { type: event, employee } }));
+      });
+    });
+
+    (["amount-created", "amount-updated", "amount-deleted"] as AmountEvent[]).forEach((event) => {
+      this.socket?.on(event, (entry: Partial<AmountEntry> & { _id: string }) => {
+        window.dispatchEvent(new CustomEvent("amount-event", { detail: { type: event, entry } }));
       });
     });
   }

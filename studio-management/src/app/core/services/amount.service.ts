@@ -68,6 +68,32 @@ export class AmountService {
 
   readonly entries = this._entries.asReadonly();
 
+  constructor() {
+    // Same in-place upsert/remove pattern as TaskService/ClientService/
+    // EmployeeService — see TaskService's constructor for the rationale.
+    // The backend only targets sockets that could already see this entry
+    // (its own recipient, or amounts.summary.sa/role-SA), so merging by id
+    // here never introduces a row outside what this session is allowed to
+    // view.
+    window.addEventListener('amount-event', ((
+      e: CustomEvent<{ type: string; entry: Partial<AmountEntry> & { _id: string } }>
+    ) => {
+      const { type, entry } = e.detail;
+      if (type === 'amount-deleted') {
+        this._entries.update((list) => list.filter((e) => e._id !== entry._id));
+      } else {
+        this.upsert(entry as AmountEntry);
+      }
+    }) as EventListener);
+  }
+
+  private upsert(entry: AmountEntry): void {
+    this._entries.update((list) => {
+      const exists = list.some((e) => e._id === entry._id);
+      return exists ? list.map((e) => (e._id === entry._id ? entry : e)) : [entry, ...list];
+    });
+  }
+
   list(): Observable<AmountEntryResponse> {
     return this.http
       .get<AmountEntryResponse>(`${environment.apiUrl}api/amount-entries`, {

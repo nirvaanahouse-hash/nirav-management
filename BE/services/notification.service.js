@@ -54,8 +54,22 @@ const emitTicketEvent = (event, ticket, room) => {
   io.to([...rooms]).emit(event, ticket);
 };
 
+// Generalised version of emitTicketEvent for clients/employees/amount-entries:
+// every SA session (role-SA), every socket whose user actually holds
+// `permission` (perm-<key>, joined at connect time — server.js), plus any
+// specific user ids that should see this regardless of that permission (e.g.
+// an employee viewing their own ledger row).
+const emitScopedEvent = (event, payload, { permission, userIds = [] } = {}) => {
+  if (!io) return;
+  const rooms = new Set(["role-SA"]);
+  if (permission) rooms.add(`perm-${permission}`);
+  userIds.filter(Boolean).forEach((id) => rooms.add(`user-${id}`));
+  io.to([...rooms]).emit(event, payload);
+};
+
 module.exports = {
   setSocketIO,
   createNotification,
   emitTicketEvent,
+  emitScopedEvent,
 };

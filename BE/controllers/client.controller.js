@@ -6,7 +6,27 @@ const { buildClientInvoicePdf } = require("../utils/invoice-pdf");
 const { TICKET_STATUS } = require("../constants");
 const { hasPermission } = require("../utils/permissions");
 const { removeUploadedFile } = require("../utils/uploads");
+const { emitScopedEvent } = require("../services/notification.service");
 const fs = require("fs");
+
+// Same totalWorkAmount/paidAmount/balanceDue the list endpoint (getClient)
+// computes per row — every mutation below needs it too, since these values
+// are what the Clients table actually renders and both the HTTP response
+// and the live socket push must carry them, not just a bare Client doc.
+async function enrichClient(client) {
+  const clientObj = client.toObject ? client.toObject() : client;
+  const cid = String(clientObj._id);
+  const [tickets, amountEntries] = await Promise.all([
+    Ticket.find({ client: cid }).lean(),
+    AmountEntry.find({ recipient: cid, recipientType: "client", isActive: true }).lean(),
+  ]);
+  const totalWorkAmount = tickets.reduce(
+    (sum, t) => sum + calculateTicketFinancials(t).calculatedMainAmount,
+    0,
+  );
+  const paidAmount = amountEntries.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  return { ...clientObj, totalWorkAmount, paidAmount, balanceDue: totalWorkAmount - paidAmount };
+}
 
 // Get all clients (active by default, SA can see all)
 const getClient = async (req, res) => {
@@ -175,10 +195,15 @@ const postClient = async (req, res) => {
       isActive: true,
     });
 
+    // Brand new — no tickets/payments can exist for it yet, so the totals
+    // are trivially zero (no need for enrichClient's queries).
+    const enriched = { ...newClient.toObject(), totalWorkAmount: 0, paidAmount: 0, balanceDue: 0 };
+    emitScopedEvent("client-created", enriched, { permission: "clients.view" });
+
     return res.status(201).json({
       success: true,
       message: "Client created successfully",
-      data: newClient,
+      data: enriched,
     });
   } catch (error) {
     return res.status(500).json({
@@ -216,10 +241,13 @@ const updateClient = async (req, res) => {
       });
     }
 
+    const enriched = await enrichClient(updated);
+    emitScopedEvent("client-updated", enriched, { permission: "clients.view" });
+
     return res.status(200).json({
       success: true,
       message: "Client updated successfully",
-      data: updated,
+      data: enriched,
     });
   } catch (error) {
     return res.status(500).json({
@@ -257,13 +285,16 @@ const deleteClient = async (req, res) => {
       });
     }
 
+    const enriched = await enrichClient(deleted);
+    emitScopedEvent("client-updated", enriched, { permission: "clients.view" });
+
     return res.status(200).json({
       success: true,
       message:
         ticketsUsingClient > 0
           ? "Client deactivated. Existing tickets still reference this client."
           : "Client deactivated successfully",
-      data: deleted,
+      data: enriched,
       hasTickets: ticketsUsingClient > 0,
     });
   } catch (error) {
@@ -323,10 +354,13 @@ const reactivateClient = async (req, res) => {
       });
     }
 
+    const enriched = await enrichClient(reactivated);
+    emitScopedEvent("client-updated", enriched, { permission: "clients.view" });
+
     return res.status(200).json({
       success: true,
       message: "Client reactivated successfully",
-      data: reactivated,
+      data: enriched,
     });
   } catch (error) {
     return res.status(500).json({
@@ -544,6 +578,15 @@ const uploadClientImage = async (req, res) => {
       removeUploadedFile(previous);
     }
 
+    // Image-only patch — a distinct event from client-updated/created so the
+    // frontend listener can merge just this field instead of replacing the
+    // whole row (this payload has no totalWorkAmount/paidAmount/balanceDue).
+    emitScopedEvent(
+      "client-image",
+      { _id: String(client._id), image: client.image },
+      { permission: "clients.view" },
+    );
+
     return res.status(200).json({
       success: true,
       message: "Client photo updated",
@@ -572,6 +615,8 @@ const deleteClientImage = async (req, res) => {
 
     if (previous) removeUploadedFile(previous);
 
+    emitScopedEvent("client-image", { _id: String(client._id), image: "" }, { permission: "clients.view" });
+
     return res.status(200).json({
       success: true,
       message: "Client photo removed",
@@ -595,4 +640,5 @@ module.exports = {
   downloadClientBillingPdf,
   uploadClientImage,
   deleteClientImage,
+  enrichClient,
 };

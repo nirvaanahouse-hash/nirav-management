@@ -2,6 +2,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const app = require("./app");
+const User = require("./models/user.model");
 const { setSocketIO } = require("./services/notification.service");
 
 const PORT = process.env.PORT || 3000;
@@ -38,7 +39,7 @@ io.use((socket, next) => {
   }
 });
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   const userId = socket.userId;
 
   socket.join(`user-${userId}`);
@@ -47,6 +48,19 @@ io.on("connection", (socket) => {
   // reach every SA session without targeting each one individually.
   if (socket.userRole === "SA") {
     socket.join("role-SA");
+  } else {
+    // Clients/employees/amount-entries are gated behind granular permissions
+    // (clients.view, users.view, amounts.summary.sa, ...) rather than role —
+    // join a room per permission this user actually holds so a live push
+    // (emitScopedEvent) never reaches a socket whose own REST calls would
+    // 403 on that same data.
+    try {
+      const user = await User.findById(userId).select("permissions").lean();
+      (user?.permissions || []).forEach((p) => socket.join(`perm-${p}`));
+    } catch (error) {
+      // No permission rooms joined — this socket simply won't receive
+      // permission-scoped broadcasts, same as if it had none.
+    }
   }
 
   socket.on("join-ticket", (ticketId) => {

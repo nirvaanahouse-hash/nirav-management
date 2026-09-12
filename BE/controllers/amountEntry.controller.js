@@ -2,9 +2,30 @@ const AmountEntry = require("../models/amountEntry.model");
 const User = require("../models/user.model");
 const Client = require("../models/client.model");
 const Ticket = require("../models/ticket.model");
-const { createNotification } = require("../services/notification.service");
+const { createNotification, emitScopedEvent } = require("../services/notification.service");
 const { calculateTicketFinancials } = require("../utils/ticket-financials");
 const { hasPermission } = require("../utils/permissions");
+const { enrichClient } = require("./client.controller");
+const { enrichEmployee } = require("./employee.controller");
+
+// A money-recipient's derived totals (client balanceDue/paidAmount, employee
+// totalPaid/balanceDue) live on a *different* record than the AmountEntry
+// itself — push a live update for that record too, or its own list stays
+// stale until a manual reload (the gap the Phase 1-5 work already flagged
+// for this exact spot).
+async function notifyRecipientChanged(recipient, recipientType) {
+  try {
+    if (recipientType === "client") {
+      const client = await Client.findById(recipient).lean();
+      if (client) emitScopedEvent("client-updated", await enrichClient(client), { permission: "clients.view" });
+    } else if (recipientType === "employee") {
+      const employee = await User.findById(recipient).lean();
+      if (employee) emitScopedEvent("employee-updated", await enrichEmployee(employee), { permission: "users.view" });
+    }
+  } catch (error) {
+    // Best-effort — the amount entry itself already saved successfully.
+  }
+}
 
 // List amount entries (SA sees all, employee sees only their own)
 const getAmountEntries = async (req, res) => {
@@ -115,6 +136,12 @@ const createAmountEntry = async (req, res) => {
       });
     }
 
+    emitScopedEvent("amount-created", entry, {
+      permission: "amounts.summary.sa",
+      userIds: recipientType === "employee" ? [recipient] : [],
+    });
+    notifyRecipientChanged(recipient, recipientType);
+
     return res.status(201).json({
       success: true,
       message: "Amount entry created successfully",
@@ -182,6 +209,12 @@ const updateAmountEntry = async (req, res) => {
     if (description !== undefined) entry.description = description;
     await entry.save();
 
+    emitScopedEvent("amount-updated", entry, {
+      permission: "amounts.summary.sa",
+      userIds: entry.recipientType === "employee" ? [entry.recipient] : [],
+    });
+    notifyRecipientChanged(entry.recipient, entry.recipientType);
+
     return res.status(200).json({
       success: true,
       message: "Amount entry updated successfully",
@@ -220,6 +253,13 @@ const deleteAmountEntry = async (req, res) => {
 
     entry.isActive = false;
     await entry.save();
+
+    emitScopedEvent(
+      "amount-deleted",
+      { _id: id },
+      { permission: "amounts.summary.sa", userIds: entry.recipientType === "employee" ? [entry.recipient] : [] },
+    );
+    notifyRecipientChanged(entry.recipient, entry.recipientType);
 
     return res.status(200).json({
       success: true,

@@ -5,6 +5,42 @@ const Ticket = require("../models/ticket.model");
 const AmountEntry = require("../models/amountEntry.model");
 const { calculateTicketFinancials } = require("../utils/ticket-financials");
 const { ERole, DEFAULT_USER_PERMISSIONS } = require("../constants");
+const { emitScopedEvent } = require("../services/notification.service");
+
+// Same percentage/totalEarned/totalPaid/balanceDue every row in the list
+// endpoint (getEmployees) carries — a mutation response/socket push without
+// these leaves the Users table showing stale (or blank) figures until a
+// manual reload, the same gap Phase 1 fixed for tickets.
+async function enrichEmployee(user) {
+  const userObj = user.toObject ? user.toObject() : user;
+  delete userObj.password;
+  delete userObj.plainPassword;
+  const uid = String(userObj._id);
+
+  const [profile, tickets, entries] = await Promise.all([
+    Profile.findOne({ userId: uid }).select("percentage").lean(),
+    Ticket.find({ assignedEmployee: uid, status: "completed", isFinalized: true })
+      .select("amount mainAmount userPersentage HR mainHr hrPrice ticketType")
+      .lean(),
+    AmountEntry.find({ recipient: uid, recipientType: "employee", isActive: true })
+      .select("amount type")
+      .lean(),
+  ]);
+
+  const earned = tickets.reduce((sum, t) => sum + calculateTicketFinancials(t).employeeEarnings, 0);
+  const paid = entries.reduce(
+    (sum, e) => sum + (e.type === "sent" ? Number(e.amount || 0) : -Number(e.amount || 0)),
+    0,
+  );
+
+  return {
+    ...userObj,
+    percentage: profile?.percentage || 0,
+    totalEarned: Math.round(earned),
+    totalPaid: Math.round(paid),
+    balanceDue: Math.round(earned - paid),
+  };
+}
 
 // POST /api/employees — SA creating an employee directly (distinct from the
 // public self-registration flow in auth.controller.js, which this mirrors).
@@ -48,14 +84,18 @@ const createEmployee = async (req, res) => {
       isActive: true,
     });
 
+    // Brand new — no tickets/ledger history can exist yet, so the earnings
+    // figures are trivially zero (no need for enrichEmployee's queries).
     const userObj = user.toObject();
     delete userObj.password;
     delete userObj.plainPassword;
+    const enriched = { ...userObj, percentage: 0, totalEarned: 0, totalPaid: 0, balanceDue: 0 };
+    emitScopedEvent("employee-created", enriched, { permission: "users.view" });
 
     return res.status(201).json({
       success: true,
       message: "Employee created",
-      data: userObj,
+      data: enriched,
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -86,6 +126,8 @@ const deleteEmployee = async (req, res) => {
     }
 
     await Promise.all([User.deleteOne({ _id: req.params.id }), Profile.deleteOne({ userId: req.params.id })]);
+
+    emitScopedEvent("employee-deleted", { _id: req.params.id }, { permission: "users.view" });
 
     return res.status(200).json({
       success: true,
@@ -386,14 +428,20 @@ const updateEmployeeDetails = async (req, res) => {
       { new: true, upsert: true },
     );
 
-    const obj = user.toObject();
-    delete obj.password;
-    delete obj.plainPassword;
+    const enriched = await enrichEmployee(user);
+    const responseData = {
+      ...enriched,
+      homeAddress: String(homeAddress).trim(),
+      gender,
+      dob,
+      percentage: pct,
+    };
+    emitScopedEvent("employee-updated", responseData, { permission: "users.view" });
 
     return res.status(200).json({
       success: true,
       message: "User details updated",
-      data: { ...obj, homeAddress: String(homeAddress).trim(), gender, dob, percentage: pct },
+      data: responseData,
     });
   } catch (error) {
     if (error && error.code === 11000) {
@@ -426,10 +474,13 @@ const updateEmployeeStatus = async (req, res) => {
       });
     }
 
+    const enriched = await enrichEmployee(employee);
+    emitScopedEvent("employee-updated", enriched, { permission: "users.view" });
+
     return res.status(200).json({
       success: true,
       message: `Employee ${isActive ? "activated" : "deactivated"} successfully`,
-      data: employee,
+      data: enriched,
     });
   } catch (error) {
     return res.status(500).json({
@@ -496,6 +547,12 @@ const updateEmployeePercentage = async (req, res) => {
       { new: true, upsert: true }
     );
 
+    // A percentage change shifts every future earnings calc for this
+    // employee, so other open sessions need the full recomputed row, not
+    // just the bare percentage the caller's own request already has.
+    const enriched = await enrichEmployee(user);
+    emitScopedEvent("employee-updated", enriched, { permission: "users.view" });
+
     return res.status(200).json({
       success: true,
       message: "Percentage updated",
@@ -520,4 +577,5 @@ module.exports = {
   updateEmployeeStatus,
   updateEmployeePassword,
   updateEmployeePercentage,
+  enrichEmployee,
 };

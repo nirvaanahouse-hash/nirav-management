@@ -61,6 +61,29 @@ export class ClientService {
   private readonly _clients = signal<Client[]>([]);
   readonly clients = this._clients.asReadonly();
 
+  constructor() {
+    // Mirrors TaskService's socket listener (see its constructor for why this
+    // is always an in-place upsert, never a full-list `.set()` — it keeps the
+    // shared TableComponent's own pagination page untouched).
+    window.addEventListener('client-event', ((
+      e: CustomEvent<{ type: string; client: Partial<Client> & { _id: string } }>
+    ) => {
+      const { type, client } = e.detail;
+      if (type === 'client-image') {
+        this.patchImage(client._id, client.image ?? '');
+      } else {
+        this.upsert(client as Client);
+      }
+    }) as EventListener);
+  }
+
+  private upsert(client: Client): void {
+    this._clients.update((list) => {
+      const exists = list.some((c) => c._id === client._id);
+      return exists ? list.map((c) => (c._id === client._id ? client : c)) : [client, ...list];
+    });
+  }
+
   list(params?: { search?: string; status?: string; page?: string; limit?: string }): Observable<ClientListResponse> {
     let httpParams = new HttpParams();
     if (params) {

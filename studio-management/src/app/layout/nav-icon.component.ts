@@ -67,6 +67,11 @@ import { NavIcon } from './nav-items';
           <circle cx="6.8" cy="6.8" r="1.2" fill="currentColor" />
         </svg>
       }
+      @case ('chat') {
+        <svg viewBox="0 0 20 20" [attr.width]="size()" [attr.height]="size()" fill="none">
+          <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h9A2.5 2.5 0 0 1 17 5.5v5A2.5 2.5 0 0 1 14.5 13H9l-4 3.2V13H5.5A2.5 2.5 0 0 1 3 10.5v-5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        </svg>
+      }
     }
   `,
   styles: [':host { display: inline-flex; }'],

@@ -67,9 +67,20 @@ const emitScopedEvent = (event, payload, { permission, userIds = [] } = {}) => {
   io.to([...rooms]).emit(event, payload);
 };
 
+// Strictly private delivery — unlike emitScopedEvent, this never adds
+// role-SA, so a 1:1 chat message never fans out to every SA session, only
+// the two people actually in the conversation.
+const emitToUsers = (event, payload, userIds = []) => {
+  if (!io) return;
+  const rooms = new Set(userIds.filter(Boolean).map((id) => `user-${id}`));
+  if (!rooms.size) return;
+  io.to([...rooms]).emit(event, payload);
+};
+
 module.exports = {
   setSocketIO,
   createNotification,
   emitTicketEvent,
   emitScopedEvent,
+  emitToUsers,
 };

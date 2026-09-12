@@ -1,0 +1,101 @@
+<div class="msg-page">
+  <app-page-header
+    title="Messages"
+    [subtitle]="isSA() ? 'Chat directly with your team.' : 'Chat directly with the studio.'"
+    accent="blue"
+  >
+    <svg icon xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+  </app-page-header>
+
+  <div class="msg-shell" [class.msg-shell--thread-open]="activeContactId()">
+    <aside class="msg-list">
+      @if (loading()) {
+        <div class="msg-list__state">Loading conversations…</div>
+      } @else if (contacts().length === 0) {
+        <div class="msg-list__state">
+          {{ isSA() ? 'No active employees to message yet.' : 'No Super Admin account to message yet.' }}
+        </div>
+      } @else {
+        @for (c of contacts(); track c._id) {
+          <button
+            type="button"
+            class="msg-contact"
+            [class.msg-contact--active]="activeContactId() === c._id"
+            (click)="openThread(c)"
+          >
+            <app-avatar [photo]="c.image" [name]="c.name" />
+            <span class="msg-contact__body">
+              <span class="msg-contact__top">
+                <span class="msg-contact__name">{{ c.name }}</span>
+                @if (c.lastMessageAt) {
+                  <span class="msg-contact__time">{{ relativeTime(c.lastMessageAt) }}</span>
+                }
+              </span>
+              <span class="msg-contact__preview">
+                @if (c.lastMessageFromMe) {
+                  <span class="msg-contact__you">You: </span>
+                }
+                {{ c.lastMessage || 'No messages yet' }}
+              </span>
+            </span>
+            @if (c.unreadCount > 0) {
+              <span class="msg-contact__badge">{{ c.unreadCount }}</span>
+            }
+          </button>
+        }
+      }
+    </aside>
+
+    <section class="msg-thread">
+      @if (!activeContact()) {
+        <div class="msg-thread__empty">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <p>Select a conversation to start chatting.</p>
+        </div>
+      } @else {
+        <header class="msg-thread__head">
+          <button type="button" class="msg-thread__back" (click)="backToList()" aria-label="Back to conversations">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+          </button>
+          <app-avatar [photo]="activeContact()!.image" [name]="activeContact()!.name" size="sm" />
+          <span class="msg-thread__name">{{ activeContact()!.name }}</span>
+        </header>
+
+        <div class="msg-thread__body">
+          @if (threadLoading()) {
+            <div class="msg-thread__state">Loading messages…</div>
+          } @else if (thread().length === 0) {
+            <div class="msg-thread__state">No messages yet — say hello.</div>
+          } @else {
+            @for (m of thread(); track m._id) {
+              <div class="msg-bubble-row" [class.msg-bubble-row--mine]="m.sender === myId()">
+                <span class="msg-bubble">
+                  {{ m.text }}
+                  <span class="msg-bubble__time">
+                    {{ messageTime(m.createdAt) }}
+                    @if (m.sender === myId()) {
+                      · {{ m.isRead ? 'Read' : 'Sent' }}
+                    }
+                  </span>
+                </span>
+              </div>
+            }
+          }
+          <div #scrollAnchor></div>
+        </div>
+
+        <div class="msg-composer">
+          <textarea
+            class="msg-composer__input"
+            placeholder="Type a message…"
+            rows="1"
+            [ngModel]="draft()"
+            (ngModelChange)="draft.set($event)"
+            (keydown)="onComposerKeydown($event)"
+          ></textarea>
+          <app-button [loading]="sending()" [disabled]="!draft().trim()" (clicked)="send()">Send</app-button>
+        </div>
+      }
+    </section>
+  </div>
+</div>

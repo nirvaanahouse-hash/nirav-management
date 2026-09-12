@@ -108,6 +108,13 @@ export const routes: Routes = [
         data: { permission: 'profile.view', pageTitle: 'Profile' },
         loadComponent: () =>
           import('./features/profile/profile').then((m) => m.ProfileComponent)
+      },
+      {
+        path: 'messages',
+        canActivate: [permissionGuard],
+        data: { pageTitle: 'Messages' },
+        loadComponent: () =>
+          import('./features/messages/messages.component').then((m) => m.MessagesComponent)
       }
     ]
   },

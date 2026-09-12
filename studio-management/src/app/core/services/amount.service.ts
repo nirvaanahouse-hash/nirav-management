@@ -121,11 +121,7 @@ export class AmountService {
         draft,
         { withCredentials: true },
       )
-      .pipe(
-        tap((response) => {
-          this._entries.update((list) => [response.data, ...list]);
-        }),
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   update(id: string, changes: { amount?: number; description?: string }): Observable<{ success: boolean; message: string; data: AmountEntry }> {

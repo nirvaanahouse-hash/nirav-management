@@ -7,6 +7,7 @@ import { TicketRecord } from "../models/task.model";
 import { Client } from "../models/client.model";
 import { User } from "../models/user.model";
 import { AmountEntry } from "../models/amountEntry.model";
+import { ChatMessage } from "../models/chat.model";
 
 export interface NotificationData {
   _id: string;
@@ -133,6 +134,13 @@ export class SocketService {
       this.socket?.on(event, (entry: Partial<AmountEntry> & { _id: string }) => {
         window.dispatchEvent(new CustomEvent("amount-event", { detail: { type: event, entry } }));
       });
+    });
+
+    this.socket.on("message-new", (message: ChatMessage) => {
+      window.dispatchEvent(new CustomEvent("message-event", { detail: { type: "message-new", message } }));
+    });
+    this.socket.on("message-read", (data: { withUserId: string }) => {
+      window.dispatchEvent(new CustomEvent("message-event", { detail: { type: "message-read", withUserId: data.withUserId } }));
     });
   }
 

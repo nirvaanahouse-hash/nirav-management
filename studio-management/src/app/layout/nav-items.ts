@@ -9,7 +9,8 @@ export type NavIcon =
   | 'shield'
   | 'key'
   | 'versus'
-  | 'tags';
+  | 'tags'
+  | 'chat';
 
 export interface NavItem {
   label: string;
@@ -124,6 +125,12 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['SA'],
     icon: 'shield',
     permission: 'security.view'
+  },
+  {
+    label: 'Messages',
+    path: '/messages',
+    roles: ['SA', 'A', 'U'],
+    icon: 'chat'
   },
   {
     label: 'Profile',

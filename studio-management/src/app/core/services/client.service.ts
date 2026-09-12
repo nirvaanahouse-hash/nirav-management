@@ -112,11 +112,7 @@ export class ClientService {
       .post<ClientSingleResponse>(`${environment.apiUrl}api/client`, draft, {
         withCredentials: true,
       })
-      .pipe(
-        tap((response) => {
-          this._clients.update((list) => [response.data, ...list]);
-        })
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   update(id: string, draft: ClientDraft): Observable<ClientSingleResponse> {

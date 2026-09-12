@@ -3,7 +3,13 @@ const User = require("../models/user.model");
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    // Bearer header is the primary path (works cross-site even under
+    // Safari's ITP, which blocks the cookie once frontend/backend are on
+    // different *.onrender.com "sites"); the cookie stays as a fallback for
+    // same-site/local-dev requests that never set the header.
+    const authHeader = req.headers.authorization || "";
+    const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+    const token = bearerToken || req.cookies.token;
 
     if (!token) {
       return res.status(401).json({

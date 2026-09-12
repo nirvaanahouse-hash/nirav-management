@@ -49,6 +49,9 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   user: User;
+  /** Sent back as `Authorization: Bearer <token>` on every request — the
+   *  cookie the backend also sets is a same-site/local-dev fallback only. */
+  token: string;
 }
 
 export interface RegisterResponse {

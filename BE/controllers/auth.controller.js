@@ -169,6 +169,10 @@ const login = async (req, res) => {
     // SA => full list; everyone else => their stored keys (never undefined).
     userObj.permissions = effectivePermissions(userObj);
 
+    // Cookie kept for same-site/local-dev convenience, but the token in the
+    // body below is now the primary mechanism — Safari's ITP blocks this
+    // cookie once frontend and backend are on different *.onrender.com
+    // "sites", so the client sends it back as an Authorization header instead.
     res.cookie("token", token, {
       ...authCookieOptions,
       maxAge: 24 * 60 * 60 * 1000,
@@ -180,6 +184,7 @@ const login = async (req, res) => {
       success: true,
       message: "Login Successfully",
       user: userObj,
+      token,
     });
   } catch (error) {
     res.status(500).json({

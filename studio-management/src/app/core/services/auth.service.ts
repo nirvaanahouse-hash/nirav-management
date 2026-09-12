@@ -13,6 +13,8 @@ import {
 import { StorageService } from "./storage.service";
 import { environment } from "../../../environments/environment";
 
+const TOKEN_KEY = "authToken";
+
 @Injectable({ providedIn: "root" })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -48,8 +50,14 @@ export class AuthService {
           const session: AuthSession = { user: response.user };
           this._session.set(session);
           this.storage.set("authData", response.user);
+          this.storage.set(TOKEN_KEY, response.token);
         })
       );
+  }
+
+  /** Read by the HTTP interceptor to attach `Authorization: Bearer <token>`. */
+  getToken(): string | null {
+    return this.storage.get<string>(TOKEN_KEY);
   }
 
   register(payload: RegisterPayload): Observable<RegisterResponse> {
@@ -67,6 +75,7 @@ export class AuthService {
         tap(() => {
           this._session.set(null);
           this.storage.remove("authData");
+          this.storage.remove(TOKEN_KEY);
         })
       );
   }
@@ -74,6 +83,7 @@ export class AuthService {
   forceLogout(): void {
     this._session.set(null);
     this.storage.remove("authData");
+    this.storage.remove(TOKEN_KEY);
   }
 
   updateUser(user: User): void {

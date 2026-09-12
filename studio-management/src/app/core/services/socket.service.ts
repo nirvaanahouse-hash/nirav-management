@@ -63,8 +63,12 @@ export class SocketService {
     if (this.socket?.connected) return;
     if (this.socket) this.socket.disconnect();
 
+    // Passed explicitly rather than relying on the handshake's cookie —
+    // Safari's ITP blocks that cookie once frontend/backend are cross-site.
+    // The backend already checks socket.handshake.auth.token first.
     this.socket = io(environment.apiUrl, {
       withCredentials: true,
+      auth: { token: this.authService.getToken() },
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,

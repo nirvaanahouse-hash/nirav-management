@@ -16,8 +16,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const toast = inject(ToastService);
 
+  // withCredentials stays on for the cookie fallback (same-site/local-dev);
+  // the Authorization header is the primary mechanism — it's what actually
+  // survives Safari's ITP once frontend/backend are cross-site.
+  const token = authService.getToken();
   const authorizedReq = req.clone({
     withCredentials: true,
+    setHeaders: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
   return next(authorizedReq).pipe(

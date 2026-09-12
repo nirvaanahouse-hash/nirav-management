@@ -96,6 +96,38 @@
   animation: sel-in var(--dur-fast) var(--ease-out);
 }
 
+.sel__search {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.sel__search-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.sel__search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
 .sel__list {
   list-style: none;
   margin: 0;
@@ -265,6 +297,15 @@
   .sel__option {
     min-height: var(--tap-target, 44px);
     font-size: var(--fs-base);
+  }
+
+  .sel__search {
+    padding: var(--sp-3) var(--sp-4);
+  }
+
+  .sel__search-input {
+    font-size: var(--fs-base);
+    min-height: 28px;
   }
 
   .sel__link,

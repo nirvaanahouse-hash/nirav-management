@@ -4,11 +4,13 @@ import {
   ElementRef,
   HostListener,
   computed,
+  effect,
   forwardRef,
   inject,
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PopoverDirective } from '../../directives/popover.directive';
@@ -50,6 +52,9 @@ export class SelectComponent implements ControlValueAccessor {
   ariaLabel = input('');
   /** Shown above the list on a phone, where the sheet has no field label. */
   sheetTitle = input('');
+  /** A text box in the panel that filters options by label — on by default,
+   *  set to false for very short lists where it would just add noise. */
+  searchable = input(true);
 
   readonly opened = output<void>();
 
@@ -57,14 +62,26 @@ export class SelectComponent implements ControlValueAccessor {
   readonly disabled = signal(false);
   /** Keyboard cursor — which row Enter would choose. */
   readonly activeIndex = signal(-1);
+  /** Current search box text — cleared every time the panel opens. */
+  readonly query = signal('');
+
+  private readonly triggerRef = viewChild<ElementRef<HTMLButtonElement>>('trigger');
+  private readonly searchInputRef = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
   private readonly selected = signal<string[]>([]);
 
   private onChange: (value: SelectValue) => void = () => {};
   private onTouched: () => void = () => {};
 
-  /** Options that can actually be chosen, in display order. */
-  readonly rows = computed(() => this.options());
+  /** Options that can actually be chosen, in display order — narrowed by the
+   *  search box's text when `searchable` is on. */
+  readonly rows = computed(() => {
+    const opts = this.options();
+    if (!this.searchable()) return opts;
+    const q = this.query().trim().toLowerCase();
+    if (!q) return opts;
+    return opts.filter((o) => o.label.toLowerCase().includes(q));
+  });
 
   readonly selectedValues = this.selected.asReadonly();
 
@@ -84,6 +101,17 @@ export class SelectComponent implements ControlValueAccessor {
   });
 
   readonly hasValue = computed(() => this.selectedLabels().length > 0);
+
+  constructor() {
+    // Runs again on its own once the panel renders and searchInputRef()
+    // stops being undefined — viewChild is itself a signal this effect
+    // depends on, so there is no extra scheduling to do by hand.
+    effect(() => {
+      if (this.isOpen() && this.searchable()) {
+        this.searchInputRef()?.nativeElement.focus();
+      }
+    });
+  }
 
   // --- ControlValueAccessor ------------------------------------------------
 
@@ -118,6 +146,7 @@ export class SelectComponent implements ControlValueAccessor {
 
   open(): void {
     if (this.disabled()) return;
+    this.query.set('');
     this.isOpen.set(true);
     // Start the cursor on the first selected row, else the first row.
     const rows = this.rows();
@@ -131,6 +160,9 @@ export class SelectComponent implements ControlValueAccessor {
     this.isOpen.set(false);
     this.activeIndex.set(-1);
     this.onTouched();
+    // Focus moves into the search box while open — give it back to the
+    // trigger so keyboard users aren't left on a now-unmounted element.
+    this.triggerRef()?.nativeElement.focus();
   }
 
   // --- Choosing ------------------------------------------------------------
@@ -162,6 +194,26 @@ export class SelectComponent implements ControlValueAccessor {
     this.onChange(this.multiple() ? [] : '');
   }
 
+  // --- Search ----------------------------------------------------------------
+
+  onSearchInput(value: string): void {
+    this.query.set(value);
+    // The filtered set just changed shape — keep the cursor valid instead of
+    // pointing at a row index that may no longer exist (or a filtered-out one).
+    const rows = this.rows();
+    const current = this.activeIndex();
+    if (current < 0 || current >= rows.length || rows[current]?.disabled) {
+      this.activeIndex.set(rows.findIndex((o) => !o.disabled));
+    }
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    // Everything except plain text entry is a navigation/selection key here —
+    // typed characters fall through to the (input) handler to keep filtering,
+    // never trigger the trigger button's letter-jump typeahead.
+    this.handleOpenKey(event);
+  }
+
   // --- Keyboard ------------------------------------------------------------
 
   onTriggerKeydown(event: KeyboardEvent): void {
@@ -175,6 +227,16 @@ export class SelectComponent implements ControlValueAccessor {
       return;
     }
 
+    // With `searchable`, focus normally jumps to the search box as soon as
+    // the panel opens (see the constructor's effect) — this only still
+    // matters when searchable is off, or for the one frame before that
+    // focus move happens.
+    this.handleOpenKey(event, { typeahead: true });
+  }
+
+  /** Shared open-panel key handling for both the trigger and the search box. */
+  private handleOpenKey(event: KeyboardEvent, opts: { typeahead?: boolean } = {}): void {
+    const key = event.key;
     switch (key) {
       case 'Escape':
         event.preventDefault();
@@ -196,8 +258,7 @@ export class SelectComponent implements ControlValueAccessor {
         event.preventDefault();
         this.activeIndex.set(this.lastEnabledIndex());
         break;
-      case 'Enter':
-      case ' ': {
+      case 'Enter': {
         event.preventDefault();
         const option = this.rows()[this.activeIndex()];
         if (option) this.pick(option);
@@ -207,7 +268,7 @@ export class SelectComponent implements ControlValueAccessor {
         this.close();
         break;
       default:
-        if (key.length === 1) this.typeahead(key);
+        if (opts.typeahead && key.length === 1) this.typeahead(key);
     }
   }
 

@@ -93,6 +93,13 @@ const ticketSchema = new mongoose.Schema(
       default: 0,
     },
 
+    // Separate hour-wise price for the Main Amount side (SA enters this) —
+    // independent from hrPrice, which only prices the User Amount.
+    mainHrPrice: {
+      type: Number,
+      default: 0,
+    },
+
     status: {
       type: String,
       enum: Object.values(TICKET_STATUS),

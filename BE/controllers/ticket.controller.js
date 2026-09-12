@@ -25,12 +25,27 @@ const {
 
 const isJobTicketType = (t) => typeof t === "string" && t.endsWith("Job");
 
+// A ticket can only be finalized once both prices are actually set —
+// otherwise the employee-earnings / company-profit figures it locks in are
+// meaningless zeros.
+const missingPricingMessage = (ticket) => {
+  const noAmount = !ticket.amount || Number(ticket.amount) <= 0;
+  const noMainAmount = !ticket.mainAmount || Number(ticket.mainAmount) <= 0;
+  if (noAmount && noMainAmount) {
+    return "Add the User Amount and Main Amount before finalizing this ticket.";
+  }
+  if (noAmount) return "Add the User Amount before finalizing this ticket.";
+  if (noMainAmount) return "Add the Main Amount before finalizing this ticket.";
+  return null;
+};
+
 // Hour fields (HR / Main HR / HR price) only apply to job-type tickets.
 const normalizeHourFields = (ticket) => {
   if (!isJobTicketType(ticket.ticketType)) {
     ticket.HR = null;
     ticket.mainHr = null;
     ticket.hrPrice = 0;
+    ticket.mainHrPrice = 0;
   }
 };
 
@@ -131,6 +146,7 @@ const getTickets = async (req, res) => {
       "mainAmount",
       "mainHr",
       "hrPrice",
+      "mainHrPrice",
       "calculatedMainAmount",
       "companyProfit",
       "employeeEarnings",
@@ -210,6 +226,7 @@ const createTicket = async (req, res) => {
       remark,
       status,
       hrPrice,
+      mainHrPrice,
     } = req.body;
 
     if (client) {
@@ -246,6 +263,7 @@ const createTicket = async (req, res) => {
       amount: user.role === ERole.SA ? amount : "",
       mainAmount: user.role === ERole.SA ? mainAmount : "",
       hrPrice: user.role === ERole.SA && isJobType ? hrPrice || 0 : 0,
+      mainHrPrice: user.role === ERole.SA && isJobType ? mainHrPrice || 0 : 0,
       deleveryDate,
       userPersentage: user.role === ERole.SA ? userPersentage : "",
       status: status || TICKET_STATUS.pending,
@@ -372,7 +390,7 @@ const updateTicket = async (req, res) => {
 
     if (isSuperAdmin) {
       const allowedFields = [
-        "ticketType", "priorety", "amount", "mainAmount", "hrPrice", "deleveryDate",
+        "ticketType", "priorety", "amount", "mainAmount", "hrPrice", "mainHrPrice", "deleveryDate",
         "userPersentage", "assignedEmployee", "client",
         "remark", "status", "HR", "mainHr",
         "coupleName",
@@ -408,6 +426,17 @@ const updateTicket = async (req, res) => {
         ticket.finalizedBy = null;
         ticket.finalizedAt = null;
       }
+
+      // Same rule as the dedicated /finalize endpoint — checked after the
+      // update above so setting the price(s) and finalizing in one save
+      // (the edit form's usual flow) still works.
+      if (updates.isFinalized) {
+        const pricingError = missingPricingMessage(ticket);
+        if (pricingError) {
+          return res.status(400).json({ success: false, message: pricingError });
+        }
+      }
+
       await ticket.save();
 
       if (changedFields.length > 0 && ticket.assignedEmployee) {
@@ -612,6 +641,13 @@ const finalizeTicket = async (req, res) => {
       });
     }
 
+    if (isFinalized) {
+      const pricingError = missingPricingMessage(ticket);
+      if (pricingError) {
+        return res.status(400).json({ success: false, message: pricingError });
+      }
+    }
+
     ticket.isFinalized = isFinalized;
     ticket.finalizedBy = isFinalized ? user.id : null;
     ticket.finalizedAt = isFinalized ? new Date() : null;
@@ -684,6 +720,7 @@ const getTicketById = async (req, res) => {
       delete data.mainAmount;
       delete data.mainHr;
       delete data.hrPrice;
+      delete data.mainHrPrice;
     }
 
     return res.status(200).json({

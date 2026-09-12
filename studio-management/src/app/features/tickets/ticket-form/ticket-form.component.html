@@ -127,8 +127,16 @@
             [control]="form.controls.hrPrice"
             placeholder="e.g. 1200"
             [required]="true"
+            hint="Prices User Amount: HR × HR Price"
           />
-          <div></div>
+          <app-form-field
+            label="Main HR Price"
+            type="number"
+            [control]="form.controls.mainHrPrice"
+            placeholder="e.g. 1500"
+            [required]="true"
+            hint="Prices Main Amount: Main HR × Main HR Price"
+          />
         </div>
       }
     }
@@ -169,7 +177,7 @@
           [control]="form.controls.mainAmount"
           placeholder="e.g. 20000"
           [required]="true"
-          [hint]="showHourFields() ? 'Auto: Main HR × HR Price — edit to override' : ''"
+          [hint]="showHourFields() ? 'Auto: Main HR × Main HR Price — edit to override' : ''"
         />
       </div>
 

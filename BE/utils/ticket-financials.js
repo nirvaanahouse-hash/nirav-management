@@ -1,5 +1,6 @@
 function calculateTicketFinancials(t) {
   const hrPrice = Number(t.hrPrice || 0);
+  const mainHrPrice = Number(t.mainHrPrice || 0);
   const HR = Number(t.HR || 0);
   const mainHr = Number(t.mainHr || 0);
   const amount = Number(t.amount || 0);
@@ -10,12 +11,12 @@ function calculateTicketFinancials(t) {
 
   let calculatedAmount = amount;
   let calculatedMainAmount = mainAmount;
-  if (isJobType && hrPrice > 0) {
-    if (amount === 0 || !t.amount) {
+  if (isJobType) {
+    if ((amount === 0 || !t.amount) && hrPrice > 0) {
       calculatedAmount = hrPrice * HR;
     }
-    if (mainAmount === 0 || !t.mainAmount) {
-      calculatedMainAmount = hrPrice * mainHr;
+    if ((mainAmount === 0 || !t.mainAmount) && mainHrPrice > 0) {
+      calculatedMainAmount = mainHrPrice * mainHr;
     }
   }
 

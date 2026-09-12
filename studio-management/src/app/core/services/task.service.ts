@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
 import { Observable, tap } from "rxjs";
 import {
   TicketCreateResponse,
@@ -8,6 +8,7 @@ import {
   TicketResponse,
 } from "../models/task.model";
 import { environment } from "../../../environments/environment";
+import { SKIP_ERROR_TOAST } from "../http/error-toast.context";
 
 @Injectable({ providedIn: "root" })
 export class TaskService {
@@ -122,7 +123,10 @@ export class TaskService {
       .put<TicketCreateResponse>(
         `${environment.apiUrl}api/ticket/${id}/finalize`,
         { isFinalized },
-        { withCredentials: true }
+        // The caller already shows a tailored toast for every failure case
+        // (permission / not-completed-yet / missing pricing) — skip the
+        // global interceptor's toast so it isn't shown twice.
+        { withCredentials: true, context: new HttpContext().set(SKIP_ERROR_TOAST, true) }
       )
       .pipe(
         tap((response) => {

@@ -55,6 +55,7 @@ export class TicketFormComponent implements OnInit {
     HR: [''],
     mainHr: [''],
     hrPrice: [0],
+    mainHrPrice: [0],
     deleveryDate: ['', [Validators.required]],
     amount: ['', this.isSA() ? [Validators.required, Validators.min(0)] : []],
     mainAmount: ['', this.isSA() ? [Validators.required, Validators.min(0)] : []],
@@ -147,13 +148,14 @@ export class TicketFormComponent implements OnInit {
    * Hour-field validators. Job type only, and only once work has started —
    * a still-pending job ticket can be saved without hours; they become
    * required as soon as it moves off "pending" (i.e. before it can complete).
-   * Employees only enter Work Hours — Main Hours / HR Price are SA-only.
+   * Employees only enter Work Hours — Main Hours / HR Price / Main HR Price
+   * are SA-only.
    */
   private hourValidatorEffect = effect(() => {
     const job = this.isJobType();
     const sa = this.isSA();
     const started = !this.isPending();
-    const setReq = (name: 'HR' | 'mainHr' | 'hrPrice', required: boolean) => {
+    const setReq = (name: 'HR' | 'mainHr' | 'hrPrice' | 'mainHrPrice', required: boolean) => {
       const c = this.form.controls[name];
       c.setValidators(required ? [Validators.required, Validators.min(0)] : []);
       c.updateValueAndValidity({ emitEvent: false });
@@ -161,25 +163,29 @@ export class TicketFormComponent implements OnInit {
     setReq('HR', job && started);
     setReq('mainHr', job && sa && started);
     setReq('hrPrice', job && sa);
+    setReq('mainHrPrice', job && sa);
   });
 
   /**
-   * Auto-fill User / Main Amount from hours × HR price — but only when one of
-   * HR / Main HR / HR Price actually changes, so an admin's manual override on
-   * an existing ticket is preserved when the edit dialog opens.
+   * Auto-fill User / Main Amount from hours × price — User Amount from
+   * HR × HR Price, Main Amount from Main HR × its own Main HR Price (the two
+   * are priced independently) — but only when one of the inputs actually
+   * changes, so an admin's manual override on an existing ticket is
+   * preserved when the edit dialog opens.
    */
   private lastHourKey = "";
   private calculateAmountEffect = effect(() => {
     if (!this.isSA() || !this.isJobType()) return;
     const v = this.value();
-    const key = `${v.HR}|${v.mainHr}|${v.hrPrice}`;
+    const key = `${v.HR}|${v.mainHr}|${v.hrPrice}|${v.mainHrPrice}`;
     if (key === this.lastHourKey) return;
     this.lastHourKey = key;
     const hr = Number(v.HR) || 0;
     const hrPrice = Number(v.hrPrice) || 0;
     const mainHr = Number(v.mainHr) || 0;
+    const mainHrPrice = Number(v.mainHrPrice) || 0;
     this.form.patchValue(
-      { amount: String(hr * hrPrice), mainAmount: String(mainHr * hrPrice) },
+      { amount: String(hr * hrPrice), mainAmount: String(mainHr * mainHrPrice) },
       { emitEvent: false },
     );
   });
@@ -208,6 +214,7 @@ export class TicketFormComponent implements OnInit {
       HR: ticket.HR,
       mainHr: ticket.mainHr,
       hrPrice: ticket.hrPrice || 0,
+      mainHrPrice: ticket.mainHrPrice || 0,
       deleveryDate: ticket.deleveryDate,
       amount: ticket.amount,
       mainAmount: ticket.mainAmount,
@@ -219,7 +226,7 @@ export class TicketFormComponent implements OnInit {
       isFinalized: ticket.isFinalized ?? false,
     });
     // Seed the guard so opening an edited ticket doesn't clobber a manual amount.
-    this.lastHourKey = `${ticket.HR}|${ticket.mainHr}|${ticket.hrPrice || 0}`;
+    this.lastHourKey = `${ticket.HR}|${ticket.mainHr}|${ticket.hrPrice || 0}|${ticket.mainHrPrice || 0}`;
   }
 
   requestSubmit(): void {
@@ -233,6 +240,7 @@ export class TicketFormComponent implements OnInit {
         HR: 'Work hours',
         mainHr: 'Main hours',
         hrPrice: 'HR price',
+        mainHrPrice: 'Main HR price',
         deleveryDate: 'Delivery date',
         amount: 'User amount',
         mainAmount: 'Main amount',
@@ -250,6 +258,7 @@ export class TicketFormComponent implements OnInit {
       ? {
           ...raw,
           hrPrice: Number(raw.hrPrice) || 0,
+          mainHrPrice: Number(raw.mainHrPrice) || 0,
           // Amounts are whatever is in the fields — auto-filled or hand-edited by the admin.
           amount: raw.amount,
           mainAmount: raw.mainAmount,

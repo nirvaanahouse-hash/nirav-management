@@ -33,6 +33,7 @@ function validateCreateTicket(req) {
     schema.amount = { required: true, label: "User amount", type: "number", min: 0 };
     schema.mainAmount = { required: true, label: "Main amount", type: "number", min: 0 };
     schema.hrPrice = { required: isJobType, label: "HR price", type: "number", min: 0 };
+    schema.mainHrPrice = { required: isJobType, label: "Main HR price", type: "number", min: 0 };
     schema.mainHr = { required: isJobType, label: "Main hours", type: "number", min: 0 };
   }
 
@@ -49,6 +50,7 @@ function validateUpdateTicket(req) {
     HR: { required: false, label: "Work hours", type: "number", min: 0 },
     mainHr: { required: false, label: "Main hours", type: "number", min: 0 },
     hrPrice: { required: false, label: "HR price", type: "number", min: 0 },
+    mainHrPrice: { required: false, label: "Main HR price", type: "number", min: 0 },
     userPersentage: {
       required: false,
       label: "User percentage",

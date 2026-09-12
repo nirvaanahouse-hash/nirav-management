@@ -21,6 +21,7 @@ export interface TicketRecord {
   deleveryDate: string;
   userPersentage: string;
   hrPrice: number;
+  mainHrPrice: number;
   status: TicketStatus;
   remark: string;
   isFinalized: boolean;
@@ -81,6 +82,7 @@ export interface TicketDraft {
   HR?: string;
   mainHr?: string;
   hrPrice?: number;
+  mainHrPrice?: number;
   priorety?: Priority;
   amount?: string;
   mainAmount?: string;

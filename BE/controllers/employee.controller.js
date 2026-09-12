@@ -408,7 +408,7 @@ const updateEmployeePercentage = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Percentage updated",
-      data: { percentage: pct },
+      data: { _id: req.params.id, percentage: pct },
     });
   } catch (error) {
     return res.status(500).json({

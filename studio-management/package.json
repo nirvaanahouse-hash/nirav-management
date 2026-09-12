@@ -8,15 +8,12 @@
     "build": "ng build --configuration production",
     "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
-
     "test": "ng test",
     "test:watch": "ng test --watch",
     "test:coverage": "ng test --coverage",
-
     "desktop:dev": "tauri dev",
     "desktop:mac": "tauri build --target universal-apple-darwin",
     "desktop:windows": "tauri build --target x86_64-pc-windows-msvc",
-
     "mobile:sync": "npm run build && cap sync",
     "ios:add": "cap add ios",
     "ios:open": "npm run mobile:sync && cap open ios",
@@ -37,6 +34,7 @@
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
+    "maplibre-gl": "^6.9.0",
     "rxjs": "^7.8.0",
     "socket.io-client": "^4.8.3",
     "tslib": "^2.6.0",

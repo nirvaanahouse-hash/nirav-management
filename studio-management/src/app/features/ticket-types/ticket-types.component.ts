@@ -196,9 +196,12 @@ export class TicketTypesComponent {
     });
   }
 
-  /** Refresh the row counts here and every ticket-type dropdown elsewhere. */
+  /**
+   * TicketTypeService already folds each mutation's response into `types` —
+   * only the SA-registry-derived form-meta cache (a separate service/signal)
+   * still needs an explicit refresh.
+   */
   private afterChange(): void {
-    this.load();
     this.ticketMeta.refresh();
   }
 

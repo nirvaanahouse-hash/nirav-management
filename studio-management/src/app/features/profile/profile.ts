@@ -61,16 +61,38 @@ export class ProfileComponent {
 
   async togglePushNotifications(on: boolean): Promise<void> {
     if (on) {
-      const ok = await this.pushNotifications.enable();
-      if (ok) {
+      const result = await this.pushNotifications.enable();
+      if (result.ok) {
         this.toastService.success("Push notifications on.");
-      } else if (this.pushNotifications.permission() === "denied") {
-        this.toastService.error(
-          "Notifications blocked",
-          "Allow notifications for this site in your browser settings, then try again.",
-        );
-      } else {
-        this.toastService.error("Could not enable notifications", "Please try again.");
+        return;
+      }
+      switch (result.reason) {
+        case "permission-denied":
+          this.toastService.error(
+            "Notifications blocked",
+            "Allow notifications for this site in your browser settings, then try again.",
+          );
+          break;
+        case "unsupported":
+          this.toastService.error(
+            "Not supported",
+            "This browser (or an insecure, non-HTTPS connection) doesn't support push notifications.",
+          );
+          break;
+        case "not-configured":
+          this.toastService.error(
+            "Not set up yet",
+            "The server isn't configured for push notifications yet — ask your admin to finish that setup.",
+          );
+          break;
+        case "subscribe-failed":
+          this.toastService.error(
+            "Could not subscribe",
+            "Your browser rejected the subscription. Try again, or check your connection.",
+          );
+          break;
+        default:
+          this.toastService.error("Could not enable notifications", "Please check your connection and try again.");
       }
     } else {
       await this.pushNotifications.disable();

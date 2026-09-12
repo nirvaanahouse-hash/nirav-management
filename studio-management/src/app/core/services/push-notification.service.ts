@@ -8,6 +8,23 @@ interface PublicKeyResponse {
   data: { publicKey: string; enabled: boolean };
 }
 
+export type PushEnableFailure =
+  /** This browser/context doesn't support the Push API at all (or the page isn't served over HTTPS/localhost). */
+  | "unsupported"
+  /** The user (or their browser/OS) declined the permission prompt. */
+  | "permission-denied"
+  /** The backend has no VAPID keys set — nothing it could push to. */
+  | "not-configured"
+  /** The browser's own push service rejected the subscription request. */
+  | "subscribe-failed"
+  /** Reaching our backend (public-key or subscribe endpoint) failed. */
+  | "network";
+
+export interface PushEnableResult {
+  ok: boolean;
+  reason?: PushEnableFailure;
+}
+
 /** VAPID keys arrive base64url-encoded; PushManager.subscribe wants a raw
  *  Uint8Array. Standard conversion — see the Web Push spec / MDN. */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -56,35 +73,53 @@ export class PushNotificationService {
     }
   }
 
-  async enable(): Promise<boolean> {
-    if (!this.supported || this.busy()) return false;
+  async enable(): Promise<PushEnableResult> {
+    if (!this.supported) return { ok: false, reason: "unsupported" };
+    if (this.busy()) return { ok: false, reason: "network" };
     this.busy.set(true);
     try {
       const permission = await Notification.requestPermission();
       this.permission.set(permission);
-      if (permission !== "granted") return false;
+      if (permission !== "granted") return { ok: false, reason: "permission-denied" };
 
       const reg = this.registration ?? (this.registration = await navigator.serviceWorker.register("/sw-push.js"));
 
-      const keyRes = await firstValueFrom(this.http.get<PublicKeyResponse>(`${this.base}/public-key`));
-      if (!keyRes.data.enabled || !keyRes.data.publicKey) return false;
+      let keyRes: PublicKeyResponse;
+      try {
+        keyRes = await firstValueFrom(this.http.get<PublicKeyResponse>(`${this.base}/public-key`));
+      } catch (error) {
+        console.error("[push] could not reach /api/push/public-key", error);
+        return { ok: false, reason: "network" };
+      }
+      if (!keyRes.data.enabled || !keyRes.data.publicKey) {
+        console.error("[push] backend has no VAPID keys configured — set VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY there.");
+        return { ok: false, reason: "not-configured" };
+      }
 
       let sub = await reg.pushManager.getSubscription();
       if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(keyRes.data.publicKey) as BufferSource,
-        });
+        try {
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(keyRes.data.publicKey) as BufferSource,
+          });
+        } catch (error) {
+          console.error("[push] pushManager.subscribe() failed", error);
+          return { ok: false, reason: "subscribe-failed" };
+        }
       }
 
       const json = sub.toJSON();
-      await firstValueFrom(
-        this.http.post(`${this.base}/subscribe`, { endpoint: json.endpoint, keys: json.keys }),
-      );
+      try {
+        await firstValueFrom(
+          this.http.post(`${this.base}/subscribe`, { endpoint: json.endpoint, keys: json.keys }),
+        );
+      } catch (error) {
+        console.error("[push] could not reach /api/push/subscribe", error);
+        return { ok: false, reason: "network" };
+      }
       this.subscribed.set(true);
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
     } finally {
       this.busy.set(false);
     }

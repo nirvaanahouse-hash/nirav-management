@@ -46,8 +46,10 @@ interface Profile {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {
-  /** Largest profile photo we accept (5 MB). */
-  private static readonly MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+  /** Largest profile photo we accept (10 MB). */
+  private static readonly MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+  /** Smallest profile photo we accept (10 KB). */
+  private static readonly MIN_IMAGE_BYTES = 10 * 1024;
 
   private fb = new FormBuilder();
   private profileService = inject(ProfileService);
@@ -272,7 +274,12 @@ export class ProfileComponent {
     }
 
     if (file.size > ProfileComponent.MAX_IMAGE_BYTES) {
-      this.toastService.error("Image too large", "Please choose an image up to 5 MB.");
+      this.toastService.error("Image too large", "Please choose an image up to 10 MB.");
+      return;
+    }
+
+    if (file.size < ProfileComponent.MIN_IMAGE_BYTES) {
+      this.toastService.error("Image too small", "Please choose an image of at least 10 KB.");
       return;
     }
 

@@ -133,7 +133,6 @@ const updateProfile = async (req, res) => {
           ...(gender !== undefined ? { gender } : {}),
           ...(homeAddress !== undefined ? { homeAddress } : {}),
           ...(dob !== undefined ? { dob } : {}),
-          ...(percentage !== undefined ? { percentage } : {}),
         },
       },
       { new: true, upsert: true }

@@ -11,7 +11,8 @@ const CLIENT_DIR = path.join(UPLOADS_ROOT, "client");
 fs.mkdirSync(PROFILE_DIR, { recursive: true });
 fs.mkdirSync(CLIENT_DIR, { recursive: true });
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MIN_IMAGE_BYTES = 10 * 1024; // 10 KB
 
 // Keep the image in whatever format it was uploaded in — just map to a safe extension.
 const EXT_BY_MIME = {
@@ -62,14 +63,27 @@ function createImageUpload(dir, nameFor) {
   // Wrap multer so its errors come back in the app's standard JSON error shape.
   return function handleImageUpload(req, res, next) {
     runUpload(req, res, (err) => {
-      if (!err) return next();
-      const message =
-        err.code === "LIMIT_FILE_SIZE"
-          ? "Image too large. Please choose an image up to 5 MB."
-          : err.message || "Upload failed.";
-      return res
-        .status(400)
-        .json({ success: false, message, errors: [{ field: "image", message }] });
+      if (err) {
+        const message =
+          err.code === "LIMIT_FILE_SIZE"
+            ? "Image too large. Please choose an image up to 10 MB."
+            : err.message || "Upload failed.";
+        return res
+          .status(400)
+          .json({ success: false, message, errors: [{ field: "image", message }] });
+      }
+
+      // multer has no built-in minimum — reject too-small files (junk/corrupt
+      // uploads) here, after the file is already on disk.
+      if (req.file && req.file.size < MIN_IMAGE_BYTES) {
+        fs.unlink(req.file.path, () => {});
+        const message = "Image too small. Please choose an image of at least 10 KB.";
+        return res
+          .status(400)
+          .json({ success: false, message, errors: [{ field: "image", message }] });
+      }
+
+      return next();
     });
   };
 }
@@ -84,4 +98,5 @@ module.exports = {
   PROFILE_DIR,
   CLIENT_DIR,
   MAX_IMAGE_BYTES,
+  MIN_IMAGE_BYTES,
 };

@@ -26,7 +26,7 @@
             <span class="pf-hero__since">Member since {{ memberSince() }}</span>
           }
           <span class="pf-hero__since">
-            @if (isUploadingPhoto()) { Uploading photo… } @else { Photo: image up to 5 MB }
+            @if (isUploadingPhoto()) { Uploading photo… } @else { Photo: 10 KB – 10 MB }
           </span>
           @if (profile().image && !isUploadingPhoto()) {
             <button type="button" class="pf-hero__remove" (click)="removeImage()">Remove photo</button>

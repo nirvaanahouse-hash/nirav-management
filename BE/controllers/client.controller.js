@@ -226,7 +226,16 @@ const updateClient = async (req, res) => {
       });
     }
 
-    const { paidAmount, balanceDue, ...updateData } = req.body;
+    // Whitelist rather than blacklist — req.body is user-supplied, so this must
+    // only ever apply fields the validator actually allows for an update, not
+    // every OTHER field on the schema. A blacklist previously let anyone with
+    // clients.edit alone smuggle in schema fields like isActive that are meant
+    // to require clients.delete instead.
+    const allowedFields = ["name", "sortName", "company", "email", "phone", "mobileNumber", "status"];
+    const updateData = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) updateData[field] = req.body[field];
+    });
 
     const updated = await Client.findByIdAndUpdate(
       id,
@@ -421,12 +430,16 @@ const buildBillingPayload = async (client, tickets, mode) => {
   const statementTotal = rows.reduce((sum, r) => sum + r.mainAmount, 0);
 
   // Work the client has ALREADY been invoiced for on earlier statements —
-  // completed + finalised + isPdf === true.
+  // completed + finalised + isPdf === true. Excludes this run's own tickets
+  // so a "current" run (which claims isPdf=true before we get here, see
+  // downloadClientBillingPdf) never double-counts its own new rows as both
+  // "prior invoiced" and "new work" in the same statement.
   const invoicedTickets = await Ticket.find({
     client: String(client._id),
     status: TICKET_STATUS.completed,
     isFinalized: true,
     isPdf: true,
+    _id: { $nin: tickets.map((t) => t._id) },
   }).lean();
   const priorInvoiced = invoicedTickets.reduce(
     (sum, t) => sum + Math.round(calculateTicketFinancials(t).calculatedMainAmount),
@@ -517,12 +530,36 @@ const downloadClientBillingPdf = async (req, res) => {
       return res.status(404).json({ success: false, message: "Client not found" });
     }
 
-    const tickets = await collectBillingTickets(id, mode, from, to);
+    let tickets = await collectBillingTickets(id, mode, from, to);
     if (tickets.length === 0) {
       return res.status(400).json({
         success: false,
         message: "No completed & finalised tickets match this billing scope.",
       });
+    }
+
+    // "Current" bills unbilled work — claim each ticket atomically (rather
+    // than building the PDF first and marking isPdf afterward) so two
+    // near-simultaneous downloads can never both bill the same ticket. A
+    // ticket another request claims in the meantime (findOneAndUpdate
+    // returns null here) is dropped from THIS statement instead of being
+    // invoiced twice.
+    if (mode === "current") {
+      const claimed = [];
+      for (const t of tickets) {
+        const won = await Ticket.findOneAndUpdate(
+          { _id: t._id, isPdf: { $ne: true } },
+          { $set: { isPdf: true } },
+        ).lean();
+        if (won) claimed.push(won);
+      }
+      tickets = claimed;
+      if (tickets.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "This work was just billed in another request — nothing new to invoice.",
+        });
+      }
     }
 
     const { rows, summary } = await buildBillingPayload(client, tickets, mode);
@@ -534,14 +571,6 @@ const downloadClientBillingPdf = async (req, res) => {
       from,
       to,
     });
-
-    // A "Current" run marks the invoiced work so the next run skips it.
-    if (mode === "current") {
-      await Ticket.updateMany(
-        { _id: { $in: tickets.map((t) => t._id) } },
-        { $set: { isPdf: true } },
-      );
-    }
 
     const safeName = String(client.name || "client").replace(/[^a-z0-9]+/gi, "-");
     const stamp = new Date().toISOString().slice(0, 10);

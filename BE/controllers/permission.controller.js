@@ -6,6 +6,7 @@ const {
   DEFAULT_USER_PERMISSIONS,
 } = require("../constants");
 const { effectivePermissions } = require("../utils/permissions");
+const { resyncPermissionRooms, emitToUsers } = require("../services/notification.service");
 
 const ALL_SET = new Set(ALL_PERMISSIONS);
 
@@ -77,6 +78,16 @@ const setUserPermissions = async (req, res) => {
 
     user.permissions = cleaned;
     await user.save();
+
+    // Force this user's already-open socket connection(s) to leave stale
+    // perm-* rooms and rejoin the fresh set immediately, rather than leaving
+    // them subscribed to live pushes for a permission that was just revoked.
+    resyncPermissionRooms(String(user._id), cleaned).catch(() => {});
+    // Tell their open tab(s) to re-pull effective permissions — otherwise
+    // the frontend's cached permission list (permission.service.ts) only
+    // ever refreshes at app bootstrap, so a revoked permission stays visible
+    // in the UI (nav items, guarded routes) until they log out or refresh.
+    emitToUsers("permissions-updated", { permissions: cleaned }, [user._id]);
 
     return res.status(200).json({
       success: true,

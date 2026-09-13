@@ -132,6 +132,17 @@ const createTicketType = async (req, res) => {
       data: toResponse(type.toObject(), 0),
     });
   } catch (error) {
+    // The findOne-then-create uniqueness check above isn't atomic — two
+    // concurrent submissions of the same name both pass it, and the loser
+    // hits the schema's unique index here instead. Translate that into the
+    // same friendly 409 the pre-check already returns for the common case.
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "This ticket type already exists.",
+        errors: [{ field: "label", message: "This ticket type already exists." }],
+      });
+    }
     return res.status(500).json({ success: false, message: error.message });
   }
 };

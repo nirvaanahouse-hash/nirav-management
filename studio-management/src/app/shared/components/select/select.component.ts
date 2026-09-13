@@ -85,9 +85,27 @@ export class SelectComponent implements ControlValueAccessor {
 
   readonly selectedValues = this.selected.asReadonly();
 
+  /**
+   * `options()` only ever lists what's currently selectable — if a selected
+   * value's record was since deactivated/deleted, it genuinely isn't in
+   * there anymore even though the control's value is still that id. Without
+   * this, selectedLabels/triggerText fall back to the placeholder for a
+   * value that really is selected (a caller with a real display name for
+   * the missing value, like the ticket form's client/employee dropdowns,
+   * can still layer its own richer synthetic option into what it passes as
+   * `options()` — this is just the generic floor every other select gets).
+   */
+  private readonly effectiveOptions = computed(() => {
+    const opts = this.options();
+    const known = new Set(opts.map((o) => o.value));
+    const missing = this.selected().filter((v) => !known.has(v));
+    if (!missing.length) return opts;
+    return [...opts, ...missing.map((v) => ({ value: v, label: `${v} (unavailable)` }))];
+  });
+
   readonly selectedLabels = computed(() => {
     const chosen = new Set(this.selected());
-    return this.options()
+    return this.effectiveOptions()
       .filter((o) => chosen.has(o.value))
       .map((o) => o.label);
   });

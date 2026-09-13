@@ -65,6 +65,12 @@ export class MapComponent implements OnDestroy {
 
   private map: MapLibreMap | null = null;
   private marker: Marker | null = null;
+  // `this.map` stays null for the whole `await import('maplibre-gl')` gap in
+  // build() — without this flag, a lat/lng change landing during that gap
+  // (plausible right after page load, when a cached fix is quickly replaced
+  // by a fresh one) re-runs this effect, sees `map` still null, and starts a
+  // SECOND build() on the same host element.
+  private building = false;
 
   constructor() {
     // Build once the host exists, then keep it pointed at the latest fix.
@@ -75,7 +81,8 @@ export class MapComponent implements OnDestroy {
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
       if (this.map) {
         this.moveTo(lng, lat);
-      } else {
+      } else if (!this.building) {
+        this.building = true;
         void this.build(el, lng, lat);
       }
     });
@@ -132,14 +139,22 @@ export class MapComponent implements OnDestroy {
 
       map.on('load', () => {
         this.loading.set(false);
-        this.drawAccuracy(map, lng, lat);
+        // Re-read the signals rather than closing over the lng/lat this
+        // build() call started with — a fix that landed while the map was
+        // still loading would otherwise leave the marker (and map center)
+        // frozen at the stale position it started with.
+        const curLng = this.lng();
+        const curLat = this.lat();
+        if (curLng !== lng || curLat !== lat) map.jumpTo({ center: [curLng, curLat] });
+        this.drawAccuracy(map, curLng, curLat);
         this.marker = new maplibre.Marker({ element: this.pin(), anchor: 'bottom' })
-          .setLngLat([lng, lat])
+          .setLngLat([curLng, curLat])
           .addTo(map);
       });
     } catch {
       this.loading.set(false);
       this.failed.set(true);
+      this.building = false;
     }
   }
 

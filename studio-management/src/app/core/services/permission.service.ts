@@ -17,6 +17,14 @@ export class PermissionService {
 
   readonly isSuperAdmin = this.auth.isSuperAdmin;
 
+  constructor() {
+    // Without this, refreshMe() only ever ran once at app bootstrap — an SA
+    // revoking a permission from a currently logged-in user left that
+    // user's UI (nav items, guarded routes) trusting the stale cached list
+    // until they logged out or hard-refreshed.
+    window.addEventListener("permissions-event", () => this.refreshMe());
+  }
+
   /** The current user's granted keys as a Set (recomputed only when the session changes). */
   readonly keys = computed(
     () => new Set(this.auth.currentUser()?.permissions ?? []),

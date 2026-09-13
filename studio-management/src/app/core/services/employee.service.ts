@@ -50,6 +50,13 @@ export class EmployeeService {
         this.upsert(employee as User);
       }
     }) as EventListener);
+
+    // Without this, a same-tab user switch keeps the previous user's
+    // employee list/stats cached until this page happens to reload them.
+    window.addEventListener('auth-logout', () => {
+      this._employees.set([]);
+      this._stats.set(null);
+    });
   }
 
   private upsert(employee: User): void {

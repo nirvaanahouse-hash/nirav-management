@@ -37,6 +37,13 @@ export class ProfileService {
   /** Current user's profile photo as a ready-to-use <img> URL, shared with the navbar avatar. */
   readonly photo = computed(() => this.resolveImageUrl(this._profile()?.image));
 
+  constructor() {
+    // Safety net alongside the explicit navbar/mobile-nav calls to clear() —
+    // this also covers AuthService.forceLogout() (e.g. a 401 interceptor
+    // kick), which those manual call sites don't run through.
+    window.addEventListener("auth-logout", () => this.clear());
+  }
+
   /**
    * Resolve a stored `image` value to something an <img> can load.
    * Photos are now files served by the API (`uploads/profile/…`); legacy base64

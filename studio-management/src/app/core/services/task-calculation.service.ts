@@ -18,8 +18,12 @@ export class TaskCalculationService {
       };
     }
 
-    const amount = Number(ticket.amount || 0);
-    const mainAmount = Number(ticket.mainAmount || 0);
+    // Prefer calculatedAmount (HR × hrPrice for job-type tickets) over the raw
+    // `amount` field — for a job ticket whose stored amount predates its
+    // hour/price inputs being set, the two can diverge, and calculatedAmount
+    // is what the backend actually bases employeeEarnings on.
+    const amount = Number(ticket.calculatedAmount ?? ticket.amount ?? 0);
+    const mainAmount = Number(ticket.calculatedMainAmount ?? ticket.mainAmount ?? 0);
     const userPercentage = Number(ticket.userPersentage || 0);
 
     const employeeEarnings = amount * (userPercentage / 100);

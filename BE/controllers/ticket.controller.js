@@ -360,10 +360,21 @@ const createTicket = async (req, res) => {
 
     const newTicket = await Ticket.create(ticketData);
 
+    // Unlike update/assign/complete/finalize, this never broadcast over the
+    // socket at all — an employee creating a ticket never showed up live on
+    // an open SA session, and an SA creating+assigning a ticket never showed
+    // up live for the assigned employee, until either side reloaded.
+    // enrichTicket also fixes the HTTP response itself: it was returning the
+    // bare Mongoose doc (no clientName/assignedEmployeeName/type badge/
+    // financials), so even the creator's own just-created row looked blank
+    // until a refresh.
+    const enrichedNewTicket = await enrichTicket(newTicket, user.role === ERole.SA);
+    emitTicketEvent("ticket-created", enrichedNewTicket, newTicket._id.toString());
+
     return res.status(201).json({
       success: true,
       message: "Ticket created successfully",
-      data: newTicket,
+      data: enrichedNewTicket,
     });
   } catch (error) {
     return res.status(500).json({

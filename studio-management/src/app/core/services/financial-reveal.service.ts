@@ -48,6 +48,11 @@ export class FinancialRevealService {
 
   constructor() {
     this.scheduleAutoHide();
+    // The reveal window is stored in plain localStorage (device-wide, not
+    // per-user) — without this, a different SA logging into the same
+    // browser within the window would inherit the previous SA's still-valid
+    // reveal state with no fresh OTP check.
+    window.addEventListener("auth-logout", () => this.hideNow());
   }
 
   openDialog(): void {

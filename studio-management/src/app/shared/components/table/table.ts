@@ -24,7 +24,11 @@ export class TableComponent<T> {
   sortChange = output<SortState<T>>();
 
   private readonly _page = signal(1);
-  page = this._page.asReadonly();
+  // Clamps to the last valid page whenever the filtered/sorted row count
+  // shrinks (e.g. a narrower search leaves fewer results) — without this,
+  // a page requested before the shrink stayed selected and rendered empty
+  // ("No records found.") even though real matches existed on an earlier page.
+  page = computed(() => Math.min(this._page(), this.totalPages()));
 
   private readonly _sort = signal<SortState<T>>({ key: null, direction: null });
   sort = this._sort.asReadonly();
@@ -33,16 +37,22 @@ export class TableComponent<T> {
     const { key, direction } = this._sort();
     const list = this.rows();
     if (!key || !direction) return list;
+    const dir = direction === 'asc' ? 1 : -1;
     return [...list].sort((a, b) => {
       const av = a[key];
       const bv = b[key];
-      if (av == null || bv == null) return 0;
+      const aEmpty = av === null || av === undefined;
+      const bEmpty = bv === null || bv === undefined;
+      // Blanks always sort last, regardless of sort direction, instead of
+      // comparing as "equal" and relying on sort-stability to decide where
+      // they land (which looked like sorting had silently failed for them).
+      if (aEmpty && bEmpty) return 0;
+      if (aEmpty) return 1;
+      if (bEmpty) return -1;
       if (typeof av === 'number' && typeof bv === 'number') {
-        return direction === 'asc' ? av - bv : bv - av;
+        return dir * (av - bv);
       }
-      return direction === 'asc'
-        ? String(av).localeCompare(String(bv))
-        : String(bv).localeCompare(String(av));
+      return dir * String(av).localeCompare(String(bv));
     });
   });
 

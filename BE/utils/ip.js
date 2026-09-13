@@ -72,20 +72,65 @@ function ipv4ToInt(ip) {
 }
 
 /**
- * IPv4 CIDR containment via integer math. Returns false for anything that
- * isn't a plain IPv4 address inside an IPv4 CIDR block.
+ * Expand a valid IPv6 address (already passed isValidIpv6) to a 128-bit
+ * BigInt, handling the "::" zero-run shorthand. Returns null if it doesn't
+ * actually parse to exactly 8 groups once expanded.
+ */
+function ipv6ToBigInt(ip) {
+  const v = normalizeIp(ip);
+  const halves = v.split("::");
+  if (halves.length > 2) return null; // "::" can only appear once
+
+  const parseGroups = (s) => (s === "" ? [] : s.split(":"));
+  const head = parseGroups(halves[0]);
+  const tail = halves.length === 2 ? parseGroups(halves[1]) : [];
+
+  let groups;
+  if (halves.length === 2) {
+    const fill = 8 - head.length - tail.length;
+    if (fill < 0) return null;
+    groups = [...head, ...Array(fill).fill("0"), ...tail];
+  } else {
+    groups = head;
+  }
+  if (groups.length !== 8) return null;
+
+  let out = 0n;
+  for (const g of groups) {
+    if (!/^[0-9a-fA-F]{1,4}$/.test(g)) return null;
+    out = (out << 16n) | BigInt(parseInt(g, 16));
+  }
+  return out;
+}
+
+/**
+ * IPv4 or IPv6 CIDR containment. Returns false for anything that isn't a
+ * same-family address/range pair.
  */
 function ipInCidr(ip, cidr) {
   const addr = normalizeIp(ip);
   const [range, bitsRaw] = String(cidr).split("/");
   const bits = Number(bitsRaw);
-  if (!isValidIpv4(addr) || !isValidIpv4(range) || !Number.isInteger(bits)) {
-    return false;
+  if (!Number.isInteger(bits)) return false;
+
+  if (isValidIpv4(addr) && isValidIpv4(range)) {
+    if (bits <= 0) return true;
+    if (bits > 32) return false;
+    const mask = bits === 32 ? 0xffffffff : (0xffffffff << (32 - bits)) >>> 0;
+    return (ipv4ToInt(addr) & mask) === (ipv4ToInt(range) & mask);
   }
-  if (bits <= 0) return true;
-  if (bits > 32) return false;
-  const mask = bits === 32 ? 0xffffffff : (0xffffffff << (32 - bits)) >>> 0;
-  return (ipv4ToInt(addr) & mask) === (ipv4ToInt(range) & mask);
+
+  if (isValidIpv6(addr) && isValidIpv6(range)) {
+    if (bits < 0 || bits > 128) return false;
+    const addrNum = ipv6ToBigInt(addr);
+    const rangeNum = ipv6ToBigInt(range);
+    if (addrNum === null || rangeNum === null) return false;
+    if (bits === 0) return true;
+    const mask = ((1n << 128n) - 1n) ^ ((1n << BigInt(128 - bits)) - 1n);
+    return (addrNum & mask) === (rangeNum & mask);
+  }
+
+  return false;
 }
 
 /**

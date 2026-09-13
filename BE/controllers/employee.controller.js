@@ -419,7 +419,23 @@ const updateEmployeeDetails = async (req, res) => {
     user.userName = String(userName).trim().toLowerCase();
     user.email = String(email).trim().toLowerCase();
     user.mobileNumber = String(mobileNumber).trim();
-    if (role && [ERole.U, ERole.A, ERole.SA].includes(role)) user.role = role;
+    // Promoting someone's role is deliberately NOT supported from this
+    // generic "edit employee details" endpoint: (a) this route only needs
+    // users.edit, which a mid-level admin can be granted without being SA,
+    // so allowing a role change here — combined with users.permissions —
+    // was a two-step path to self-promote to full Super Admin; (b) every
+    // employee-list/lookup query elsewhere (getEmployees, getEmployeeById,
+    // updateEmployeeStatus, updateEmployeePassword) hard-filters role: U, so
+    // a user actually promoted here would immediately vanish from the Users
+    // screen and become unmanageable. Reject explicitly rather than silently
+    // ignoring it, so the caller gets a clear error instead of a silent no-op.
+    if (role && role !== ERole.U) {
+      return res.status(400).json({
+        success: false,
+        message: "Changing a user's role isn't supported here.",
+        errors: [{ field: "role", message: "Role changes aren't supported from this screen." }],
+      });
+    }
     await user.save(); // runs schema validators (minlength, etc.)
 
     await Profile.findOneAndUpdate(

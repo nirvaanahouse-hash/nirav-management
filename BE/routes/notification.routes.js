@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { requirePermission } = require("../middleware/permission.middleware");
+const { mongoIdParam } = require("../middleware/validate.middleware");
 const {
   getNotifications,
   setRead,
@@ -14,8 +15,8 @@ router.use("/notifications", requirePermission("notifications.view"));
 
 router.get("/notifications", getNotifications);
 router.put("/notifications/read-all", markAllRead);
-router.put("/notifications/read/:id", setRead);
-router.put("/notifications/:id/restore", restoreNotification);
-router.delete("/notifications/:id", deleteNotification);
+router.put("/notifications/read/:id", mongoIdParam, setRead);
+router.put("/notifications/:id/restore", mongoIdParam, restoreNotification);
+router.delete("/notifications/:id", mongoIdParam, deleteNotification);
 
 module.exports = router;

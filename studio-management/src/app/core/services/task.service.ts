@@ -34,6 +34,13 @@ export class TaskService {
         this.upsert(ticket as TicketRecord);
       }
     }) as EventListener);
+
+    // Without this, a same-tab user switch keeps the previous user's ticket
+    // list/current-ticket cached until this page happens to reload them.
+    window.addEventListener("auth-logout", () => {
+      this._tickets.set([]);
+      this._currentTicket.set(null);
+    });
   }
 
   private upsert(ticket: TicketRecord): void {
@@ -85,11 +92,7 @@ export class TaskService {
   create(draft: TicketDraft): Observable<TicketCreateResponse> {
     return this.http
       .post<TicketCreateResponse>(`${environment.apiUrl}api/ticket`, draft)
-      .pipe(
-        tap((response) => {
-          this._tickets.update((list) => [response.data, ...list]);
-        })
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   update(id: string, changes: Partial<TicketRecord>): Observable<TicketCreateResponse> {

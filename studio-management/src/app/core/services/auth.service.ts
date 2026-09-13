@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, tap } from "rxjs";
+import { Observable, catchError, of, tap } from "rxjs";
 import {
   AuthCredentials,
   AuthResponse,
@@ -70,7 +70,19 @@ export class AuthService {
           this._session.set(null);
           this.storage.remove("authData");
           this.storage.remove(TOKEN_KEY);
-        })
+          window.dispatchEvent(new CustomEvent("auth-logout"));
+        }),
+        // The server call is best-effort (logout is stateless — see BE
+        // auth.controller.js); if it fails for any reason (network blip,
+        // 500), still clear the client-side session so the user isn't left
+        // looking logged out (toast shown) but still holding a valid token.
+        catchError(() => {
+          this._session.set(null);
+          this.storage.remove("authData");
+          this.storage.remove(TOKEN_KEY);
+          window.dispatchEvent(new CustomEvent("auth-logout"));
+          return of(void 0);
+        }),
       );
   }
 
@@ -78,6 +90,12 @@ export class AuthService {
     this._session.set(null);
     this.storage.remove("authData");
     this.storage.remove(TOKEN_KEY);
+    // Every cached-list service (chat/client/employee/amount/ticket-meta/
+    // financial-reveal/task/profile) listens for this so a same-tab user
+    // switch — or the interceptor's 401 forceLogout — can never leak the
+    // previous user's data into the next session. See each service's own
+    // "auth-logout" listener.
+    window.dispatchEvent(new CustomEvent("auth-logout"));
   }
 
   updateUser(user: User): void {

@@ -43,7 +43,10 @@ const postProfile = async (req, res) => {
     const userId = req.user.id;
     // `image` is intentionally not accepted here — the photo is managed via the
     // dedicated /profile/image upload endpoints and stored on disk, not in Mongo.
-    const { gender, homeAddress, dob, percentage } = req.body;
+    // `percentage` is intentionally not accepted here either — it's the profit-share
+    // rate used in every earnings calculation, and is only settable by an SA via
+    // the dedicated PUT /employees/:id/percentage (users.percentage) endpoint.
+    const { gender, homeAddress, dob } = req.body;
 
     const profile = await Profile.findOneAndUpdate(
       { userId },
@@ -52,7 +55,6 @@ const postProfile = async (req, res) => {
           ...(gender !== undefined ? { gender } : {}),
           ...(homeAddress !== undefined ? { homeAddress } : {}),
           ...(dob !== undefined ? { dob } : {}),
-          ...(percentage !== undefined ? { percentage } : {}),
         },
       },
       { new: true, upsert: true }
@@ -86,7 +88,6 @@ const updateProfile = async (req, res) => {
       gender,
       homeAddress,
       dob,
-      percentage,
     } = req.body;
 
     // Role is backend-controlled — ignore client-provided role unless requester is SA
@@ -146,6 +147,18 @@ const updateProfile = async (req, res) => {
       data: userObj,
     });
   } catch (error) {
+    // Unlike register(), there's no pre-check for email/userName/mobile
+    // collisions here — this relies on the schema's unique index and would
+    // otherwise leak the raw "E11000 duplicate key ... index: email_1 ..."
+    // Mongo error text straight to the client as an unhelpful 500.
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "field";
+      return res.status(409).json({
+        success: false,
+        message: `That ${field} is already in use by another account.`,
+        errors: [{ field, message: "Already in use by another account." }],
+      });
+    }
     return res.status(500).json({
       success: false,
       message: error.message,

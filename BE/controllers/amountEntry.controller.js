@@ -286,32 +286,23 @@ const getAmountSummary = async (req, res) => {
       });
     }
 
-    // Preserved from the original SA-only handler (always false for the SA).
-    const isEmployee = user?.role === "U";
-
-    let employeeFilter = { isActive: true };
-    let clientFilter = { isActive: true };
-
-    if (isEmployee) {
-      employeeFilter._id = user.id;
-    }
+    // This is the studio-wide aggregate — anyone holding amounts.summary.sa
+    // (SA, or a role explicitly granted it) sees the full picture across every
+    // employee/client. A previous partial "scope to just me" branch here only
+    // narrowed employeeFilter/ticketFilter and left clientFilter, the amount-entry
+    // query, and sentAmountMap unscoped, producing a mixed/inconsistent summary
+    // (one employee's row next to studio-wide totals) — removed rather than fixed
+    // in place, since a permission literally named "summary.sa" should always mean
+    // the full aggregate, not a per-employee view.
+    const employeeFilter = { isActive: true };
+    const clientFilter = { isActive: true };
 
     const employees = await User.find({ ...employeeFilter, role: "U" })
       .select("-password")
       .lean();
     const clients = await Client.find(clientFilter).lean();
 
-    // Get all tickets with employee assignments
-    let ticketFilter = {};
-    if (isEmployee) {
-      ticketFilter = {
-        $or: [
-          { assignedEmployee: user.id, status: { $in: ["inProgress", "completed", "hold"] } },
-        ],
-      };
-    }
-
-    const tickets = await Ticket.find(ticketFilter).lean();
+    const tickets = await Ticket.find({}).lean();
 
     const employeeEarningsMap = {};
     employees.forEach((emp) => {

@@ -110,10 +110,13 @@ const login = async (req, res) => {
 
     if (!user) {
       recordLoginEvent(req, { emailTried: email, success: false, reason: "User not found" });
-      return res.status(404).json({
+      // Same status/message as a wrong password below — a distinct "user not
+      // found" response lets an attacker enumerate valid usernames/emails by
+      // scripting login attempts and watching which ones 404 vs 401.
+      return res.status(401).json({
         success: false,
-        message: "User not found",
-        errors: [{ field: "email", message: "User not found." }],
+        message: "Invalid email/username or password.",
+        errors: [{ field: "password", message: "Invalid email/username or password." }],
       });
     }
 
@@ -132,8 +135,8 @@ const login = async (req, res) => {
       recordLoginEvent(req, { user, success: false, reason: "Invalid password" });
       return res.status(401).json({
         success: false,
-        message: "Invalid password",
-        errors: [{ field: "password", message: "Invalid password." }],
+        message: "Invalid email/username or password.",
+        errors: [{ field: "password", message: "Invalid email/username or password." }],
       });
     }
 

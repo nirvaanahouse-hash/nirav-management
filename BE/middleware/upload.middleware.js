@@ -22,12 +22,18 @@ const EXT_BY_MIME = {
   "image/gif": ".gif",
   "image/avif": ".avif",
   "image/bmp": ".bmp",
-  "image/svg+xml": ".svg",
   "image/heic": ".heic",
   "image/heif": ".heif",
 };
 
 function fileFilter(req, file, cb) {
+  // SVG is excluded even though it's "image/*" — it's XML and can embed
+  // <script>, and /uploads is served publicly (before authMiddleware) with no
+  // Content-Security-Policy, so an uploaded SVG opened directly in a browser
+  // tab would execute as stored XSS on this origin.
+  if (file.mimetype === "image/svg+xml") {
+    return cb(new Error("SVG images aren't allowed."));
+  }
   if (file.mimetype && file.mimetype.startsWith("image/")) return cb(null, true);
   cb(new Error("Only image files are allowed."));
 }

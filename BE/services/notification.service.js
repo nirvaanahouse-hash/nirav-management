@@ -77,6 +77,24 @@ const emitScopedEvent = (event, payload, { permission, userIds = [] } = {}) => {
   io.to([...rooms]).emit(event, payload);
 };
 
+// A socket joins one `perm-<key>` room per permission the user held AT
+// CONNECT TIME (server.js) and nothing re-evaluates that afterward — so if
+// an SA revokes a permission from a currently-connected user, their open tab
+// kept receiving that permission's live pushes (emitScopedEvent) until they
+// reconnected, even though a fresh REST call would now 403 on the same data.
+// Called right after a permission change to force that user's live socket(s)
+// to leave every stale perm-* room and rejoin exactly the fresh set.
+const resyncPermissionRooms = async (userId, permissions = []) => {
+  if (!io) return;
+  const sockets = await io.in(`user-${userId}`).fetchSockets();
+  sockets.forEach((s) => {
+    [...s.rooms].forEach((r) => {
+      if (r.startsWith("perm-")) s.leave(r);
+    });
+    permissions.forEach((p) => s.join(`perm-${p}`));
+  });
+};
+
 // Strictly private delivery — unlike emitScopedEvent, this never adds
 // role-SA, so a 1:1 chat message never fans out to every SA session, only
 // the two people actually in the conversation.
@@ -93,4 +111,5 @@ module.exports = {
   emitTicketEvent,
   emitScopedEvent,
   emitToUsers,
+  resyncPermissionRooms,
 };

@@ -136,6 +136,14 @@ export class SocketService {
       });
     });
 
+    // SA revoked/changed this user's permissions — the frontend's permission
+    // cache (permission.service.ts) otherwise only refreshes at app
+    // bootstrap, so a revoked permission would stay visible in the UI until
+    // logout/refresh even though the backend already enforces it.
+    this.socket.on("permissions-updated", () => {
+      window.dispatchEvent(new CustomEvent("permissions-event"));
+    });
+
     this.socket.on("message-new", (message: ChatMessage) => {
       window.dispatchEvent(new CustomEvent("message-event", { detail: { type: "message-new", message } }));
     });

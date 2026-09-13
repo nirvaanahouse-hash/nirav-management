@@ -55,6 +55,14 @@ export class ChatService {
         this.onRead(withUserId);
       }
     }) as EventListener);
+
+    // Without this, a same-tab user switch keeps the previous user's chat
+    // contacts/thread cached until this page happens to reload them.
+    window.addEventListener("auth-logout", () => {
+      this._contacts.set([]);
+      this._thread.set([]);
+      this._activeContactId.set(null);
+    });
   }
 
   private get myId(): string | null {
@@ -104,7 +112,21 @@ export class ChatService {
     this._thread.set([]);
     return this.http.get<ThreadResponse>(`${this.base}/${contactId}`).pipe(
       tap((res) => {
-        this._thread.set(res.data);
+        // Merge rather than overwrite: a "message-new" socket event for this
+        // contact can arrive (and get appended by onIncoming) while this GET
+        // is still in flight — a plain `.set(res.data)` would silently drop
+        // that just-arrived message since the DB snapshot the GET saw
+        // predates it.
+        this._thread.update((current) => {
+          const merged = [...res.data];
+          current.forEach((m) => {
+            if (!merged.some((x) => x._id === m._id)) merged.push(m);
+          });
+          merged.sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+          return merged;
+        });
         if (res.data.some((m) => m.sender === contactId && !m.isRead)) {
           this.markRead(contactId);
         }

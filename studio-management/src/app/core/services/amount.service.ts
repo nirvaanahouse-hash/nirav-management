@@ -85,6 +85,10 @@ export class AmountService {
         this.upsert(entry as AmountEntry);
       }
     }) as EventListener);
+
+    // Without this, a same-tab user switch keeps the previous user's
+    // financial ledger entries cached until this page happens to reload them.
+    window.addEventListener('auth-logout', () => this._entries.set([]));
   }
 
   private upsert(entry: AmountEntry): void {

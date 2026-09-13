@@ -75,6 +75,10 @@ export class ClientService {
         this.upsert(client as Client);
       }
     }) as EventListener);
+
+    // Without this, a same-tab user switch keeps the previous user's client
+    // list cached until this page happens to call list() again.
+    window.addEventListener('auth-logout', () => this._clients.set([]));
   }
 
   private upsert(client: Client): void {

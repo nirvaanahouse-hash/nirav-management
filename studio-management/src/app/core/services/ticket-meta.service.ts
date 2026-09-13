@@ -71,6 +71,17 @@ export class TicketMetaService {
 
   private loadedOnce = false;
 
+  constructor() {
+    // Without this, a same-tab user switch (or a stale-permission session
+    // kicked out by the interceptor) keeps showing the PREVIOUS user's
+    // ticket-type/client/employee dropdown options until some other page
+    // happens to call loadFormMeta() again.
+    window.addEventListener("auth-logout", () => {
+      this._meta.set(EMPTY_META);
+      this.loadedOnce = false;
+    });
+  }
+
   loadFormMeta(): Observable<TicketFormMeta> {
     return this.http
       .get<TicketFormMetaResponse>(`${environment.apiUrl}api/ticket/form-meta`)

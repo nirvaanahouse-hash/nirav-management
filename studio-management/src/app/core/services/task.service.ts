@@ -92,11 +92,7 @@ export class TaskService {
   create(draft: TicketDraft): Observable<TicketCreateResponse> {
     return this.http
       .post<TicketCreateResponse>(`${environment.apiUrl}api/ticket`, draft)
-      .pipe(
-        tap((response) => {
-          this._tickets.update((list) => [response.data, ...list]);
-        })
-      );
+      .pipe(tap((response) => this.upsert(response.data)));
   }
 
   update(id: string, changes: Partial<TicketRecord>): Observable<TicketCreateResponse> {

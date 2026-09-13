@@ -26,6 +26,7 @@ export interface NotificationData {
 export type NotificationFilter = "all" | "unread";
 
 export type TicketEvent =
+  | "ticket-created"
   | "ticket-assigned"
   | "ticket-updated"
   | "ticket-completed"
@@ -107,7 +108,7 @@ export class SocketService {
     this.socket.on("notification-count", () => {});
 
     (
-      ["ticket-assigned", "ticket-updated", "ticket-completed", "ticket-finalized", "ticket-deleted"] as TicketEvent[]
+      ["ticket-created", "ticket-assigned", "ticket-updated", "ticket-completed", "ticket-finalized", "ticket-deleted"] as TicketEvent[]
     ).forEach((event) => {
       this.socket?.on(event, (ticket: TicketRecord | { _id: string }) => {
         window.dispatchEvent(

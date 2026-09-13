@@ -142,9 +142,12 @@ export class TicketFormComponent implements OnInit {
 
   /**
    * User Percentage is the assigned user's SA-set profit share. It auto-fills
-   * whenever the assignee changes (on create) or the form is opened on an
-   * existing ticket (on edit). It fills once per assignee, so an SA can still
-   * hand-tweak the value afterwards without it snapping back.
+   * only when the assignee is newly picked (on create, or switched to a
+   * different employee on an existing ticket) — never on an existing ticket's
+   * own already-saved percentage, which must stick regardless of what the
+   * employee's current default happens to be. `lastFilledEmpId` is seeded
+   * from the ticket in patchTicket() so opening an edit doesn't re-trigger
+   * this for the assignee it already has.
    */
   private lastFilledEmpId = '';
   private percentageAutoFillEffect = effect(() => {
@@ -250,6 +253,10 @@ export class TicketFormComponent implements OnInit {
     });
     // Seed the guard so opening an edited ticket doesn't clobber a manual amount.
     this.lastHourKey = `${ticket.HR}|${ticket.mainHr}|${ticket.hrPrice || 0}|${ticket.mainHrPrice || 0}`;
+    // Seed the guard so opening an edited ticket doesn't clobber its own saved
+    // percentage with the assignee's current default — only switching to a
+    // *different* employee should suggest a new default from here on.
+    this.lastFilledEmpId = ticket.assignedEmployee ?? '';
   }
 
   requestSubmit(): void {

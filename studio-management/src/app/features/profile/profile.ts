@@ -18,7 +18,6 @@ import {
 } from "@angular/forms";
 import { AuthService } from "../../core/services/auth.service";
 import { ProfileService, ProfileData } from "../../core/services/profile.service";
-import { LocationService } from "../../core/services/location.service";
 import { PushNotificationService } from "../../core/services/push-notification.service";
 import { ToggleComponent } from "../../shared/components/toggle/toggle.component";
 import { ToastService } from "../../features/toast/toast.service";
@@ -54,13 +53,7 @@ export class ProfileComponent {
   private fb = new FormBuilder();
   private profileService = inject(ProfileService);
   private toastService = inject(ToastService);
-  readonly locationService = inject(LocationService);
   readonly pushNotifications = inject(PushNotificationService);
-
-  toggleLocationSharing(on: boolean): void {
-    this.locationService.setSharing(on);
-    this.toastService.success(on ? "Location sharing on." : "Location sharing off.");
-  }
 
   async togglePushNotifications(on: boolean): Promise<void> {
     if (on) {

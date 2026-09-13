@@ -155,30 +155,6 @@
 
       <section class="pf-card">
         <header class="pf-card__head">
-          <h3>Location sharing</h3>
-          <p>Lets the studio admin see where you are while you're signed in.</p>
-        </header>
-        <div class="pf-fields">
-          <div class="pf-field pf-span">
-            <app-toggle
-              [checked]="locationService.sharing()"
-              (changed)="toggleLocationSharing($event)"
-            >
-              Share my location
-              @if (locationService.active()) {
-                <small class="pf-switch__note pf-switch__note--ok">On — updates every couple of minutes while this app is open.</small>
-              } @else if (locationService.sharing() && locationService.blocked()) {
-                <small class="pf-switch__note pf-switch__note--warn">Your browser is blocking location. Allow location access for this site to share it.</small>
-              } @else {
-                <small class="pf-switch__note">Off — your location is not shared.</small>
-              }
-            </app-toggle>
-          </div>
-        </div>
-      </section>
-
-      <section class="pf-card">
-        <header class="pf-card__head">
           <h3>Push notifications</h3>
           <p>Get a notification on this device even when the tab isn't open.</p>
         </header>

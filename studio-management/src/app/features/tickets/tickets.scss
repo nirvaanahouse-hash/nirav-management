@@ -1,0 +1,169 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.tickets-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.tickets-page__toolbar {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Matches app-select's own trigger box exactly (same height/padding/radius/
+   focus ring) so the search input and the filter selects beside it line up. */
+.tickets-page__search {
+  min-height: var(--tap-target);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+.tickets-page__search {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* app-select fully styles its own trigger internally — this class only
+   needs to control layout, not re-apply box styling on top of it. */
+.tickets-page__filter {
+  min-width: 150px;
+}
+
+/* The filters sit in a row next to the search box (a 4th — employee — only
+   for SA, since an employee only ever sees their own tickets anyway). */
+.tickets-page__filters {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.tickets-page__count {
+  margin: calc(-1 * var(--sp-2)) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.tickets-page__table {
+  flex: 1 1 auto;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+
+  app-table {
+    min-width: 760px;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}
+
+.tickets-page__actions {
+  display: inline-flex;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+
+.tickets-page__dialog-intro {
+  margin: 0 0 var(--sp-4);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+.tickets-page__skeleton {
+  padding: var(--sp-8);
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+}
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  /* The card list below flows with the page instead of living in a fixed-
+     height scroll box — that fill-height pattern is a desktop data-grid
+     convention; phones already scroll the whole page naturally. */
+  :host,
+  .tickets-page,
+  .tickets-page__table,
+  .tickets-page__table app-table {
+    height: auto;
+    min-height: 0;
+  }
+
+  .tickets-page__table {
+    flex: 0 0 auto;
+  }
+
+  .tickets-page {
+    gap: var(--sp-4);
+  }
+
+  /* Search on its own row; the three filters scroll sideways underneath. */
+  .tickets-page__toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-2);
+  }
+
+  .tickets-page__search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Two per row, the odd one spanning — a sideways scroller just hides the
+     third filter behind the edge. */
+  .tickets-page__filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-2);
+  }
+
+  .tickets-page__filter {
+    min-width: 0;
+    width: 100%;
+
+    &:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* The card list replaces the table, so drop the table's width floor. */
+  .tickets-page__table {
+    overflow: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+
+    app-table {
+      min-width: 0;
+      display: block;
+    }
+  }
+}

@@ -1,0 +1,164 @@
+<div class="cmp-page">
+  <app-page-header
+    title="Comparison"
+    subtitle="Rank employees by work and earnings, and put any two side by side."
+  >
+  </app-page-header>
+
+  <div class="cmp-toolbar">
+    <div class="cmp-seg" role="group" aria-label="Time range">
+      @for (r of rangeOptions; track r.value) {
+        <button type="button" [class.cmp-seg-on]="range() === r.value" (click)="setRange(r.value)">
+          {{ r.label }}
+        </button>
+      }
+    </div>
+    @if (range() === 'custom') {
+      <label class="cmp-date">
+        <span>From</span>
+        <app-datepicker ariaLabel="From date" placeholder="From" [max]="customTo() || today" [ngModel]="customFrom()" (ngModelChange)="setCustomFrom($event)" />
+      </label>
+      <label class="cmp-date">
+        <span>To</span>
+        <app-datepicker ariaLabel="To date" placeholder="To" [min]="customFrom()" [max]="today" [ngModel]="customTo()" (ngModelChange)="setCustomTo($event)" />
+      </label>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="cmp-state">Loading comparison…</div>
+  } @else if (!rows().length) {
+    <div class="cmp-state">No employees to compare yet.</div>
+  } @else {
+    <!-- ============ leaderboard ============ -->
+    <section class="cmp-panel">
+      <div class="cmp-panel__hd"><h3>Leaderboard</h3><span class="cmp-muted">{{ rows().length }} employees · sorted by {{ sortKey() }}</span></div>
+      <div class="cmp-table-wrap">
+        <table class="cmp-table">
+          <thead>
+            <tr>
+              <th class="cmp-table__rank">#</th>
+              <th>Employee</th>
+              @for (c of columns; track c.key) {
+                <th
+                  class="cmp-table__num cmp-table__sortable"
+                  [class.cmp-table__sorted]="sortKey() === c.key"
+                  (click)="setSort(c.key)"
+                >
+                  {{ c.label }}
+                  @if (sortKey() === c.key) { <span class="cmp-table__arrow">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of sortedRows(); track trackRow($index, row); let i = $index) {
+              <tr>
+                <td class="cmp-table__rank">{{ medal(i) || (i + 1) }}</td>
+                <td class="cmp-table__name">
+                  {{ row.name }}
+                  @if (!row.isActive) { <span class="badge badge--neutral">inactive</span> }
+                </td>
+                @for (c of columns; track c.key) {
+                  <td class="cmp-table__num" [class.cmp-table__sorted]="sortKey() === c.key">
+                    @if (c.money) { {{ money(row[c.key]) }} }
+                    @else if (c.key === 'percentage') { {{ row.percentage }}% }
+                    @else { {{ row[c.key] }} }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ who does more ============ -->
+    <section class="cmp-panel">
+      <div class="cmp-panel__hd">
+        <h3>Who does more</h3>
+        <app-select
+          class="cmp-select"
+          ariaLabel="Bar metric"
+          sheetTitle="Metric"
+          [options]="barMetricOptions"
+          [ngModel]="barMetric()"
+          (ngModelChange)="barMetric.set($event)"
+        />
+      </div>
+      <ul class="cmp-bars">
+        @for (b of barRows(); track b._id) {
+          <li>
+            <span class="cmp-bars__name">{{ b.name }}</span>
+            <span class="cmp-bars__track">
+              <span class="cmp-bars__fill" [style.width.%]="b.pct"></span>
+            </span>
+            <span class="cmp-bars__val">
+              @if (isMoneyMetric(barMetric())) { {{ money(b.value) }} } @else { {{ b.value }} }
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <!-- ============ head to head ============ -->
+    <section class="cmp-panel">
+      <div class="cmp-panel__hd"><h3>Head&nbsp;to&nbsp;head</h3></div>
+      <div class="cmp-h2h">
+        <div class="cmp-h2h__picks">
+          <label>
+            <span class="cmp-h2h__dot cmp-h2h__dot--a"></span>
+            <app-select
+              ariaLabel="First employee"
+              sheetTitle="Employee A"
+              [options]="employeePickOptions()"
+              [ngModel]="pickA()"
+              (ngModelChange)="pickA.set($event)"
+            />
+          </label>
+          <span class="cmp-h2h__vs">vs</span>
+          <label>
+            <span class="cmp-h2h__dot cmp-h2h__dot--b"></span>
+            <app-select
+              ariaLabel="Second employee"
+              sheetTitle="Employee B"
+              [options]="employeePickOptions()"
+              [ngModel]="pickB()"
+              (ngModelChange)="pickB.set($event)"
+            />
+          </label>
+        </div>
+
+        @if (rowA() && rowB()) {
+          <div class="cmp-h2h__body">
+            <div class="cmp-h2h__radar">
+              <app-radar-chart [axes]="radarAxes" [series]="radarSeries()" />
+            </div>
+            <table class="cmp-table cmp-table--h2h">
+              <thead>
+                <tr><th>Metric</th><th class="cmp-table__num">{{ rowA()?.name }}</th><th class="cmp-table__num">{{ rowB()?.name }}</th></tr>
+              </thead>
+              <tbody>
+                @for (s of h2hStats(); track s.label) {
+                  <tr>
+                    <td>{{ s.label }}</td>
+                    <td class="cmp-table__num" [class.cmp-win]="s.winner === 'a'">
+                      @if (s.money) { {{ money(s.a) }} } @else { {{ s.a }}{{ s.label === 'Share %' ? '%' : '' }} }
+                      @if (s.winner === 'a') { <span class="cmp-win__mark">▲</span> }
+                    </td>
+                    <td class="cmp-table__num" [class.cmp-win]="s.winner === 'b'">
+                      @if (s.money) { {{ money(s.b) }} } @else { {{ s.b }}{{ s.label === 'Share %' ? '%' : '' }} }
+                      @if (s.winner === 'b') { <span class="cmp-win__mark">▲</span> }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="cmp-muted">Pick two employees to compare.</p>
+        }
+      </div>
+    </section>
+  }
+</div>

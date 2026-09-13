@@ -1,0 +1,21 @@
+<div class="main-layout">
+  <app-sidebar></app-sidebar>
+
+  <div class="main-layout__content">
+    <app-navbar></app-navbar>
+    <main class="main-layout__page" #pageScroll>
+      <div class="main-layout__outlet">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+
+  <!-- Phone shell: bottom tab bar (replaces the sidebar under 769px). -->
+  <app-mobile-nav></app-mobile-nav>
+
+  <app-confirm-dialog-host></app-confirm-dialog-host>
+
+  @if (financialReveal.dialogOpen()) {
+    <app-reveal-dialog></app-reveal-dialog>
+  }
+</div>

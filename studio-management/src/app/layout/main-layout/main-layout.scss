@@ -1,0 +1,56 @@
+.main-layout {
+  display: flex;
+  height: 100vh; /* fallback for older Android WebViews */
+  height: 100dvh;
+  overflow: hidden;
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Scroll lives here — the page content is a card that fills the viewport
+     below the (non-scrolling) navbar and scrolls internally. */
+  &__page {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: var(--sp-5);
+    padding: var(--sp-6);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+
+    /* Phone: drop the card frame so content runs edge-to-edge like a native
+       screen, and leave room for the fixed bottom tab bar. */
+    @media (max-width: 768px) {
+      margin: 0;
+      padding: var(--sp-4) var(--sp-4) calc(var(--mobile-nav-h) + var(--sp-5));
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+  }
+
+  /* The routed content — this is what animates on route change (see styles.scss
+     ::view-transition-*(page)). The card frame above stays put.
+     A flex column so a page that opts into the fill-height table pattern
+     (its own :host { height:100%; flex:1 } — see shared table.scss) can
+     stretch to fill the space instead of shrinking to its content height. */
+  &__outlet {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    view-transition-name: page;
+  }
+}

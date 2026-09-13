@@ -1,0 +1,404 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.ip-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ---- stat row ---- */
+.ip-stats {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-3);
+}
+
+.ip-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-card);
+
+  &__value {
+    font-size: var(--fs-xl, 1.5rem);
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  &__label {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  &--warn .ip-stat__value {
+    color: var(--danger);
+  }
+}
+
+/* ---- guard banner ---- */
+.ip-guard {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--text-muted);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+
+  &--on {
+    border-left-color: var(--success);
+    background: var(--success-soft);
+  }
+
+  &__text {
+    display: grid;
+    gap: 2px;
+
+    strong {
+      font-size: var(--fs-sm);
+      letter-spacing: 0.02em;
+    }
+
+    span {
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+    }
+  }
+}
+
+/* ---- tabs ---- */
+.ip-tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--sp-1);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  &__tab {
+    padding: var(--sp-3) var(--sp-4);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+
+    &--active {
+      color: var(--accent-strong, var(--accent));
+      border-bottom-color: var(--accent);
+    }
+  }
+}
+
+/* ---- panels ---- */
+.ip-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-card);
+  flex: 1 1 auto;
+  min-height: 300px;
+}
+
+.ip-panel__bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.ip-panel__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md, 1rem);
+  font-weight: 700;
+}
+
+.ip-panel__actions {
+  display: inline-flex;
+  gap: var(--sp-2);
+}
+
+.ip-panel__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ip-muted {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: var(--fs-sm);
+}
+
+.ip-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-8) var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+/* ---- filters ---- */
+.ip-filters {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Matches app-select's own trigger box exactly (same height/padding/radius/
+   focus ring) so the text filters and the select filters beside them line up. */
+input.ip-input {
+  min-height: var(--tap-target);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  min-width: 140px;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+/* app-select fully styles its own trigger internally — this class only
+   needs to control layout, not re-apply box styling on top of it. */
+app-select.ip-input {
+  min-width: 140px;
+}
+
+/* ---- tables ---- */
+.ip-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+}
+
+.ip-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+
+  th,
+  td {
+    padding: var(--sp-3);
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  &__num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__actions-col {
+    width: 1%;
+    white-space: nowrap;
+  }
+}
+
+.ip-row--muted td {
+  opacity: 0.55;
+}
+
+.ip-row-actions {
+  display: inline-flex;
+  gap: var(--sp-1);
+}
+
+.ip-mono {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.85em;
+}
+
+.ip-nowrap {
+  white-space: nowrap;
+}
+
+.ip-path {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ip-ua {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.ip-more {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: var(--sp-1);
+}
+
+/* ---- forms ---- */
+.ip-form {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.ip-limits {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.ip-limits__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--sp-3);
+}
+
+.ip-check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  input {
+    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
+  }
+
+  code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.9em;
+    background: var(--surface-2);
+    padding: 1px 4px;
+    border-radius: var(--r-xs, 3px);
+  }
+}
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  /* The fill-height desktop layout resets to natural page flow/scroll. */
+  :host,
+  .ip-page,
+  .ip-panel,
+  .ip-table-wrap {
+    height: auto;
+    min-height: 0;
+  }
+
+  .ip-panel,
+  .ip-table-wrap {
+    flex: 0 0 auto;
+  }
+
+  .ip-page {
+    gap: var(--sp-4);
+  }
+
+  .ip-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-2);
+  }
+
+  .ip-stat {
+    padding: var(--sp-3);
+  }
+
+  .ip-guard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ip-panel {
+    padding: var(--sp-4);
+  }
+
+  .ip-panel__bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ip-panel__actions {
+    display: flex;
+    gap: var(--sp-2);
+
+    ::ng-deep app-button {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    ::ng-deep .ui-btn {
+      width: 100%;
+    }
+  }
+
+  .ip-filters {
+    flex-wrap: nowrap;
+  }
+
+  .ip-input {
+    min-width: 0;
+    flex: 0 0 auto;
+    width: 60vw;
+    max-width: 240px;
+  }
+
+  .ip-table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+}

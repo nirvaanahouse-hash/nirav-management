@@ -1,0 +1,142 @@
+  <div class="app-table-wrap">
+      <table class="app-table">
+        <thead>
+          <tr>
+            @if (hasActions()) {
+              <th class="app-table__actions-col">Actions</th>
+            }
+            @for (col of columns(); track col.key) {
+              <th
+                [style.width]="col.width"
+                [style.textAlign]="col.align || 'left'"
+                [class.app-table__sortable]="col.sortable"
+                (click)="col.sortable && toggleSort(col.key)"
+              >
+                {{ col.label }}
+                @if (col.sortable) {
+                  <span class="app-table__sort-icon">
+                    {{ sort().key === col.key ? (sort().direction === 'asc' ? '▲' : '▼') : '↕' }}
+                  </span>
+                }
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @if (pagedRows().length === 0) {
+            <tr>
+              <td [attr.colspan]="columns().length + (hasActions() ? 1 : 0)">
+                <div class="app-table__empty">
+                  <p>{{ emptyMessage() }}</p>
+                </div>
+              </td>
+            </tr>
+          }
+          @for (row of pagedRows(); track $index) {
+            
+            <tr>
+              @if (hasActions()) {
+                <td class="app-table__actions-col">
+                  <ng-container [ngTemplateOutlet]="rowActionsTemplate() ?? null" [ngTemplateOutletContext]="{ $implicit: row }" />
+                </td>
+              }
+              @for (col of columns(); track col.key) {
+                <td [style.textAlign]="col.align || 'left'">
+                  @if (col.badge && col.badgeVariant) {
+                    <span [class]="'badge badge--' + col.badgeVariant(row)">
+                      {{ cellText(col, row) }}
+                    </span>
+                  } @else if (col.avatar) {
+                    <span class="app-table__identity">
+                      <app-avatar size="sm" [photo]="col.avatar(row)" [name]="cellText(col, row)" />
+                      <span>{{ cellText(col, row) }}</span>
+                    </span>
+                  } @else if (col.masked) {
+                    <app-masked-value [value]="cellText(col, row)" [label]="col.label" />
+                  } @else {
+                    {{ cellText(col, row) }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Phone layout: the same rows as tappable cards (CSS picks one). -->
+    <div class="app-cards">
+      @if (pagedRows().length === 0) {
+        <div class="app-table__empty">
+          <p>{{ emptyMessage() }}</p>
+        </div>
+      }
+      @for (row of pagedRows(); track $index) {
+        <article class="app-card">
+          <header class="app-card__head">
+            @if (primaryColumn(); as pcol) {
+              @if (pcol.badge && pcol.badgeVariant) {
+                <span [class]="'badge badge--' + pcol.badgeVariant(row)">{{ cellText(pcol, row) }}</span>
+              } @else if (pcol.avatar) {
+                <div class="app-card__identity">
+                  <app-avatar [photo]="pcol.avatar(row)" [name]="cellText(pcol, row)" />
+                  <h4 class="app-card__title">{{ cellText(pcol, row) }}</h4>
+                </div>
+              } @else {
+                <h4 class="app-card__title">{{ cellText(pcol, row) }}</h4>
+              }
+            }
+            @if (badgeColumns().length) {
+              <div class="app-card__badges">
+                @for (col of badgeColumns(); track col.key) {
+                  <span [class]="'badge badge--' + (col.badgeVariant ? col.badgeVariant(row) : 'neutral')">
+                    {{ cellText(col, row) }}
+                  </span>
+                }
+              </div>
+            }
+          </header>
+
+          @if (detailColumns().length) {
+            <dl class="app-card__rows">
+              @for (col of detailColumns(); track col.key) {
+                <div class="app-card__row">
+                  <dt>{{ col.label }}</dt>
+                  @if (col.avatar) {
+                    <dd class="app-card__identity">
+                      <app-avatar size="sm" [photo]="col.avatar(row)" [name]="cellText(col, row)" />
+                      <span>{{ cellText(col, row) }}</span>
+                    </dd>
+                  } @else if (col.masked) {
+                    <dd><app-masked-value [value]="cellText(col, row)" [label]="col.label" /></dd>
+                  } @else {
+                    <dd>{{ cellText(col, row) }}</dd>
+                  }
+                </div>
+              }
+            </dl>
+          }
+
+          <!-- Actions get their own row: some pages have six of them, and they
+               would squash the heading if they shared its line. -->
+          @if (hasActions()) {
+            <footer class="app-card__actions">
+              <ng-container [ngTemplateOutlet]="rowActionsTemplate() ?? null" [ngTemplateOutletContext]="{ $implicit: row }" />
+            </footer>
+          }
+        </article>
+      }
+    </div>
+
+    @if (rows().length > pageSize()) {
+      <div class="app-table__pagination">
+        <span class="app-table__page-info">
+          {{ startIndex() + 1 }}–{{ endIndex() }} of {{ rows().length }}
+        </span>
+        <div class="app-table__page-controls">
+          <button (click)="goToPage(page() - 1)" [disabled]="page() === 1">Prev</button>
+          <span>Page {{ page() }} / {{ totalPages() }}</span>
+          <button (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">Next</button>
+        </div>
+      </div>
+    }

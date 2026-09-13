@@ -1,0 +1,52 @@
+{
+  "name": "studio-management-system",
+  "version": "1.0.1",
+  "description": "Nirvaana House studio management — web (Angular 22), desktop (Tauri), mobile (Capacitor)",
+  "private": true,
+  "scripts": {
+    "start": "ng serve",
+    "build": "ng build --configuration production",
+    "build:dev": "ng build --configuration development",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "test:watch": "ng test --watch",
+    "test:coverage": "ng test --coverage",
+    "desktop:dev": "tauri dev",
+    "desktop:mac": "tauri build --target universal-apple-darwin",
+    "desktop:windows": "tauri build --target x86_64-pc-windows-msvc",
+    "mobile:sync": "npm run build && cap sync",
+    "ios:add": "cap add ios",
+    "ios:open": "npm run mobile:sync && cap open ios",
+    "ios:run": "npm run mobile:sync && cap run ios",
+    "android:add": "cap add android",
+    "android:open": "npm run mobile:sync && cap open android",
+    "android:run": "npm run mobile:sync && cap run android"
+  },
+  "dependencies": {
+    "@angular/animations": "^22.0.0",
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/router": "^22.0.0",
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
+    "maplibre-gl": "^6.9.0",
+    "rxjs": "^7.8.0",
+    "socket.io-client": "^4.8.3",
+    "tslib": "^2.6.0",
+    "zone.js": "^0.15.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.0",
+    "@angular/cli": "^22.0.0",
+    "@angular/compiler-cli": "^22.0.0",
+    "@tauri-apps/cli": "^2.11.4",
+    "jsdom": "^30.0.1",
+    "typescript": "^6.0.0",
+    "vitest": "^4.1.11"
+  }
+}

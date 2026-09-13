@@ -1,0 +1,101 @@
+<button
+  #trigger
+  type="button"
+  class="sel__trigger"
+  [class.sel__trigger--open]="isOpen()"
+  [class.sel__trigger--invalid]="invalid()"
+  [class.sel__trigger--placeholder]="!hasValue()"
+  [disabled]="disabled()"
+  [attr.aria-label]="ariaLabel() || null"
+  [attr.aria-expanded]="isOpen()"
+  aria-haspopup="listbox"
+  (click)="toggle()"
+  (keydown)="onTriggerKeydown($event)"
+>
+  <span class="sel__value">{{ triggerText() }}</span>
+  <svg class="sel__caret" viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+    <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+</button>
+
+@if (isOpen()) {
+  <!-- Phone: the list is a bottom sheet, so it never opens off-screen. -->
+  <div class="sel__scrim" [appPopover]="trigger" [positioned]="false" (click)="close()"></div>
+
+  <div class="sel__panel" [appPopover]="trigger" [matchWidth]="true" role="listbox" [attr.aria-multiselectable]="multiple() || null">
+    @if (sheetTitle()) {
+      <div class="sel__sheet-head">
+        <span class="sel__grabber" aria-hidden="true"></span>
+        <strong>{{ sheetTitle() }}</strong>
+      </div>
+    }
+
+    @if (searchable()) {
+      <div class="sel__search">
+        <svg class="sel__search-icon" viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
+          <circle cx="9" cy="9" r="6.2" stroke="currentColor" stroke-width="1.6" />
+          <path d="M17 17l-3.6-3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <input
+          #searchInput
+          type="text"
+          class="sel__search-input"
+          [placeholder]="'Search ' + (sheetTitle() || 'options') + '…'"
+          [value]="query()"
+          (input)="onSearchInput($any($event.target).value)"
+          (keydown)="onSearchKeydown($event)"
+          autocomplete="off"
+        />
+      </div>
+    }
+
+    <ul class="sel__list">
+      @for (opt of rows(); track opt.value; let i = $index) {
+        <li
+          class="sel__option"
+          role="option"
+          [class.sel__option--selected]="isSelected(opt.value)"
+          [class.sel__option--active]="activeIndex() === i"
+          [class.sel__option--disabled]="opt.disabled"
+          [attr.aria-selected]="isSelected(opt.value)"
+          (mouseenter)="activeIndex.set(i)"
+          (click)="pick(opt)"
+        >
+          @if (multiple()) {
+            <span class="sel__box" [class.sel__box--on]="isSelected(opt.value)" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
+                <path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+          }
+
+          <span class="sel__option-text">
+            <span class="sel__option-label">{{ opt.label }}</span>
+            @if (opt.hint) { <small class="sel__option-hint">{{ opt.hint }}</small> }
+          </span>
+
+          @if (!multiple() && isSelected(opt.value)) {
+            <svg class="sel__tick" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+              <path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+        </li>
+      } @empty {
+        <li class="sel__empty">
+          @if (query()) {
+            No matches for "{{ query() }}".
+          } @else {
+            Nothing to choose from.
+          }
+        </li>
+      }
+    </ul>
+
+    @if (multiple()) {
+      <div class="sel__sheet-foot">
+        <button type="button" class="sel__link" (click)="clear($event)">Clear</button>
+        <button type="button" class="sel__done" (click)="close()">Done</button>
+      </div>
+    }
+  </div>
+}

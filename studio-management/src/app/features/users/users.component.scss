@@ -1,0 +1,346 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.users-page__stats {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+
+.stat-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-4) var(--sp-5);
+  text-align: center;
+
+  &--active { border-top: 3px solid var(--success); }
+  &--inactive { border-top: 3px solid var(--danger); }
+
+  &__value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  &__label {
+    display: block;
+    margin-top: var(--sp-1);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.users-page__toolbar {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+/* Matches app-select's own trigger box exactly (same height/padding/radius/
+   focus ring) so the search input and the filter select beside it line up. */
+.users-page__search {
+  min-height: var(--tap-target);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+.users-page__search { flex: 1; min-width: 220px; }
+/* app-select fully styles its own trigger internally — this class only
+   needs to control layout, not re-apply box styling on top of it. */
+.users-page__filter { min-width: 150px; }
+
+.users-page__state {
+  padding: var(--sp-10) var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+}
+
+.users-page__table-wrap {
+  flex: 1 1 auto;
+  min-height: 300px;
+  overflow: auto;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.users-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: var(--sp-3) var(--sp-4);
+    text-align: left;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  td {
+    padding: var(--sp-3) var(--sp-4);
+    font-size: var(--fs-sm);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+
+  &__identity { display: flex; align-items: center; gap: var(--sp-3); }
+  &__identity-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  &__name { font-weight: 600; }
+  &__handle { font-size: var(--fs-xs); color: var(--text-muted); }
+  &__pwd { letter-spacing: 2px; color: var(--text-muted); }
+  &__num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  &__pwd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: var(--text-primary);
+  }
+
+  &__pwd-toggle {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--accent);
+  }
+  &__actions-col { text-align: right; width: 1%; white-space: nowrap; }
+  &__actions { display: flex; gap: var(--sp-1); justify-content: flex-end; }
+  &__remark {
+    white-space: normal;
+    max-width: 220px;
+    color: var(--text-secondary);
+  }
+  &__recorder {
+    margin-left: var(--sp-2);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+}
+
+.amount-entry__optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.users-edit {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.users-edit__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.users-page__pwd-note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.users-page__pwd-show {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  input { accent-color: var(--accent); }
+}
+
+.users-page__history-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.users-table.users-table--compact {
+  min-width: 0;
+
+  thead { background: var(--surface-1); }
+  th { position: sticky; top: 0; background: var(--surface-1); }
+  td, th { padding: var(--sp-2) var(--sp-3); }
+}
+
+.amount-entry {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.amount-entry__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.amount-entry__label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.amount-entry__control {
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  font-family: var(--font-body);
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+.users-loc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+
+  &__map {
+    position: relative;
+    width: 100%;
+    /* A taller frame than the old flat embed — the pitched view needs it. */
+    aspect-ratio: 4 / 3.2;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-1);
+
+    iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1) var(--sp-4);
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+  }
+
+  &__coords {
+    font-family: var(--font-mono, monospace);
+    color: var(--text-muted);
+  }
+
+  &__gmaps {
+    align-self: flex-start;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+@media (max-width: 768px) {
+  .users-page__stats { grid-template-columns: 1fr; }
+}
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .users-page {
+    gap: var(--sp-4);
+  }
+
+  .users-page__stats {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+
+  .users-page__toolbar {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .users-page__search,
+  .users-page__filter {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Hand-rolled table — keep it scrollable rather than squashing it. The
+     fill-height desktop layout resets to natural page flow/scroll. */
+  :host,
+  .users-page,
+  .users-page__table-wrap {
+    height: auto;
+    min-height: 0;
+  }
+
+  .users-page__table-wrap {
+    flex: 0 0 auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -1,0 +1,252 @@
+@use './styles/variables';
+@use './styles/themes/light';
+@use './styles/themes/dark';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  color: var(--text-primary);
+  background: var(--bg-app);
+  background-image: var(--bg-app-image);
+  background-attachment: fixed;
+  transition: background-color var(--dur-slow) var(--ease-out), color var(--dur-base) var(--ease-out);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--r-pill);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---- Shared primitives (theme-token driven, no literal colors) ---- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.badge--neutral { background: var(--surface-2); color: var(--text-secondary); border-color: var(--border-subtle); }
+.badge--accent  { background: var(--accent-soft);  color: var(--accent-strong); }
+.badge--success { background: var(--success-soft); color: var(--success); }
+.badge--warning { background: var(--warning-soft); color: var(--warning); }
+.badge--danger  { background: var(--danger-soft);  color: var(--danger); }
+.badge--info    { background: var(--info-soft);    color: var(--info); }
+
+/* The themed select / datepicker draw their own field box. Pages still put
+   their old control classes on them (.tickets-page__filter, .ip-input, …),
+   which were written for a native <select> and would paint a second box
+   around the component. Strip that outer box — !important because those page
+   rules are component-scoped and outrank a bare element selector. */
+app-select,
+app-datepicker {
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+}
+
+/* Card surface — mirrors the `surface-card` Sass mixin for use in plain HTML */
+.surface-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---- Route-change transitions (View Transitions API, enabled via withViewTransitions()) ----
+   Only the routed page animates; the shell (sidebar + navbar) is pinned so it never flashes.
+   `page` is set with `view-transition-name` on the router-outlet wrapper in main-layout. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(page) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(page) {
+  animation: 150ms cubic-bezier(0.4, 0, 1, 1) both route-leave;
+}
+
+::view-transition-new(page) {
+  animation: 320ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both route-enter;
+}
+
+@keyframes route-leave {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.995);
+  }
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+}
+
+/* The global reduced-motion rule uses `*`, which does not match the view-transition
+   pseudo-tree — so opt out explicitly. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(page),
+  ::view-transition-old(page),
+  ::view-transition-new(page) {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   Phone shell (≤768px)
+   The app ships as an APK, so the small-screen layout is a first-class target,
+   not a fallback: no horizontal scrolling, thumb-sized controls, and chrome
+   that clears the status bar and the home indicator.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  html,
+  body {
+    /* Stops iOS/Android rubber-banding the whole document behind the shell. */
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    font-size: var(--fs-base);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Nothing may push the viewport sideways. */
+  .main-layout,
+  .main-layout__page,
+  .main-layout__outlet {
+    max-width: 100%;
+  }
+
+  /* ---- the audit-log filter strip scrolls sideways ---- */
+  .ip-filters {
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--sp-1);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    > * {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+    }
+  }
+
+  /* ---- form controls: thumb-sized, and never zoom on focus ----
+     !important because every page styles its own inputs with a class, which
+     outranks this element selector — and a sub-16px font makes mobile Safari
+     zoom the whole page the moment a field takes focus.
+     Checkboxes and radios are excluded: a 44px min-height on a 16px box makes
+     the control float below its own label. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: var(--tap-target);
+  }
+
+  textarea {
+    min-height: 96px;
+  }
+
+  /* Slightly larger boxes instead, so they stay easy to hit. */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    min-height: 0;
+    flex-shrink: 0;
+  }
+
+  /* Any remaining multi-column form grid collapses to one column. */
+  .ip-limits__grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---- charts and wide blocks keep their own scroller ---- */
+  .chart-scroll,
+  pre,
+  .app-table-wrap {
+    overflow-x: auto;
+  }
+
+  /* Long ids / emails wrap rather than widen the page. */
+  .app-card dd,
+  .badge {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Landscape phones / small tablets: keep the tab bar but relax the padding. */
+@media (max-width: 768px) and (orientation: landscape) {
+  .main-layout__page {
+    padding-left: var(--sp-5);
+    padding-right: var(--sp-5);
+  }
+}

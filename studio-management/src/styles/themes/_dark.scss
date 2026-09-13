@@ -1,0 +1,39 @@
+[data-theme='dark'] {
+  --bg-app: #0E1015;
+  --bg-app-image: none;
+  --surface-1: #171A21;
+  --surface-2: #1D2129;
+  --surface-raised: #21252E;
+  --border-subtle: #2A2F3A;
+  --border-strong: #383F4C;
+
+  --text-primary: #F1F2F5;
+  --text-secondary: #A6ACB9;
+  --text-muted: #6D7382;
+  --text-on-accent: #171A21;
+
+  --accent: #E8B75B;
+  --accent-strong: #F4CB7E;
+  --accent-soft: rgba(232, 183, 91, 0.14);
+
+  --success: #4CC38A;
+  --success-soft: rgba(76, 195, 138, 0.14);
+  --warning: #E8B75B;
+  --warning-soft: rgba(232, 183, 91, 0.14);
+  --danger: #E9677D;
+  --danger-soft: rgba(233, 103, 125, 0.14);
+  --info: #6FA8DC;
+  --info-soft: rgba(111, 168, 220, 0.14);
+
+  --sidebar-bg: #0A0C10;
+  --sidebar-text: #8A8F9C;
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-active-bg: rgba(232, 183, 91, 0.14);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  --shadow-card: 0 1px 0 rgba(0, 0, 0, 0.4), 0 12px 28px rgba(0, 0, 0, 0.45);
+  --shadow-elevated: 0 20px 48px rgba(0, 0, 0, 0.55);
+
+  --glass-blur: 0px;
+  --backdrop-panel: var(--surface-1);
+}

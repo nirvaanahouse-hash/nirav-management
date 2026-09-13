@@ -1,0 +1,165 @@
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  height: 100vh;
+  height: 100dvh;
+  position: sticky;
+  top: 0;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--sp-3) var(--sp-5);
+  transition:
+    width var(--dur-slow) var(--ease-out),
+    min-width var(--dur-slow) var(--ease-out),
+    background var(--dur-slow) var(--ease-out);
+  border-right: 1px solid var(--sidebar-border);
+
+  &--collapsed {
+    width: var(--sidebar-w-collapsed);
+    min-width: var(--sidebar-w-collapsed);
+
+    .sidebar {
+      &__link,
+      &__collapse-btn {
+        // justify-content: center;
+      }
+
+      &__brand {
+        padding-left: 8px;
+      }
+    }
+  }
+
+  /* Phones use the bottom tab bar instead (layout/mobile-nav). */
+  @media (max-width: 768px) {
+    display: none;
+  }
+
+  /* Fixed to the same height as the navbar, and flush with the sidebar's
+     top edge (which starts at the same y as the navbar) — so the brand
+     mark and the navbar's page icon land on the same horizontal line. */
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    height: var(--navbar-h);
+    flex-shrink: 0;
+    padding: 0 var(--sp-3);
+    margin-bottom: var(--sp-4);
+    border-bottom: 1px solid var(--sidebar-border);
+    text-decoration: none;
+  }
+
+  &__mark {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-md);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    flex-shrink: 0;
+  }
+
+  &__brand-text {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-base);
+    color: var(--sidebar-text-active);
+    white-space: nowrap;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    flex: 1;
+  }
+
+  &__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--r-md);
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+    overflow: hidden;
+
+    &:hover {
+      color: var(--sidebar-text-active);
+    }
+
+    &--active {
+      background: var(--sidebar-active-bg);
+      color: var(--sidebar-text-active);
+
+      .sidebar__rail {
+        transform: scaleY(1);
+      }
+    }
+  }
+
+  // Signature element: a thin accent rail that grows in on the active route,
+  // recoloring instantly with the active theme's --accent variable.
+  &__rail {
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  &__icon {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &__collapse-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    background: transparent;
+    border: 1px solid var(--sidebar-border);
+    color: var(--sidebar-text);
+    border-radius: var(--r-md);
+    padding: var(--sp-2) var(--sp-4);
+    cursor: pointer;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+
+    &:hover {
+      color: var(--sidebar-text-active);
+      border-color: var(--border-strong);
+    }
+
+    svg {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    @media screen and (max-width: 768px) {
+      display: none;
+    }
+  }
+}

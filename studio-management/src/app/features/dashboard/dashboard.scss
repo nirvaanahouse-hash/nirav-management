@@ -1,0 +1,935 @@
+.dash {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+}
+
+/* ---- skeleton ---- */
+.dash__skeleton {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-4);
+
+  @media (max-width: 1080px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.dash__skel-card {
+  height: 132px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-1) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite;
+}
+
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---- header ---- */
+.dash__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+
+  .dash__greeting {
+    margin: 0;
+    font-size: clamp(1rem, 1.4vw, 1.15rem);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+}
+
+.dash__range {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.dash__seg {
+  display: inline-flex;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-pill);
+  padding: 3px;
+
+  button {
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 7px 14px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+  }
+
+  .dash__seg-on {
+    background: var(--accent);
+    color: var(--text-on-accent);
+  }
+}
+
+.dash__custom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+
+  input {
+    font: inherit;
+    font-size: var(--fs-sm);
+    padding: 6px 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-sm);
+    background: var(--surface-1);
+    color: var(--text-primary);
+
+    &:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  }
+}
+
+/* ---- Live outstanding balances ---- */
+.dash__bal {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-4);
+}
+
+.balc {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+
+  &--out { border-left-color: var(--danger); }
+  &--in { border-left-color: var(--success); }
+
+  &__label {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  &__val {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--out .balc__val { color: var(--danger); }
+  &--in .balc__val { color: var(--success); }
+
+  &__hint {
+    font-size: var(--fs-xs);
+    color: var(--text-secondary);
+  }
+}
+
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.health__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.health__title {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.health__pill {
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+
+  &--success { background: var(--success-soft); color: var(--success); }
+  &--warning { background: var(--warning-soft); color: var(--warning); }
+  &--danger { background: var(--danger-soft); color: var(--danger); }
+}
+
+.health__body {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex: 1;
+}
+
+.health__gauge {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.health__score {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  span {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+}
+
+.health__stats {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+
+  div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-child { border-bottom: none; padding-bottom: 0; }
+  }
+
+  dt {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ---- KPI cards ---- */
+.dash__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--sp-3);
+}
+
+.dash__kpi-hint {
+  margin: 0 0 calc(var(--sp-2) * -1);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+
+  b { color: var(--warning); font-weight: 800; }
+}
+
+.dash__cmp-a { color: var(--accent-strong, var(--accent)); font-weight: 700; }
+.dash__cmp-b { color: var(--warning); font-weight: 700; }
+.dash__cmp-vs { margin: 0 6px; color: var(--text-muted); }
+
+.dash__cmp-clear {
+  align-self: flex-start;
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+
+  &:hover { color: var(--text-primary); border-color: var(--border-strong); }
+}
+
+.kpi {
+  position: relative;
+  text-align: left;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+
+  &:hover { transform: translateY(-2px); }
+  &:hover .kpi__vs { opacity: 1; }
+
+  &--on {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent) inset, var(--shadow-card);
+  }
+
+  &--a { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset, var(--shadow-card); }
+  &--b { border-color: var(--warning); box-shadow: 0 0 0 1px var(--warning) inset, var(--shadow-card); }
+
+  &__tag {
+    position: absolute;
+    top: -8px;
+    left: var(--sp-4);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--r-pill);
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &--a { background: var(--accent); }
+    &--b { background: var(--warning); }
+  }
+
+  &__vs {
+    position: absolute;
+    top: var(--sp-2);
+    right: var(--sp-2);
+    padding: 1px 7px;
+    border-radius: var(--r-pill);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--warning-soft, var(--surface-2));
+    color: var(--warning);
+    border: 1px solid var(--warning);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+
+    &:hover { filter: brightness(1.05); }
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+  }
+
+  &__ic {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+
+    svg { width: 18px; height: 18px; display: block; }
+
+    &--accent  { background: var(--accent-soft);  color: var(--accent); }
+    &--success { background: var(--success-soft); color: var(--success); }
+    &--warning { background: var(--warning-soft); color: var(--warning); }
+    &--danger  { background: var(--danger-soft);  color: var(--danger); }
+    &--info    { background: var(--info-soft);    color: var(--info); }
+  }
+
+  &__label {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  &__mid {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+  }
+
+  &__val {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+  }
+
+  &__d {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+
+    small { color: var(--text-muted); font-weight: 500; }
+
+    &--up { color: var(--success); }
+    &--down { color: var(--danger); }
+    &--flat { color: var(--text-muted); }
+  }
+}
+
+/* ---- panels ---- */
+.dash__panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* chart on the left, status + type stacked on the right */
+.dash__main-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(300px, 1fr);
+  gap: var(--sp-4);
+  align-items: stretch;
+
+  @media (max-width: 1080px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash__side {
+  display: grid;
+  gap: var(--sp-4);
+  align-content: start;
+}
+
+/* scroll containers */
+.dash__scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dash__scroll--type {
+  flex: 1 1 auto;
+  min-height: 137px;
+  padding-right: var(--sp-2);
+}
+
+.dash__panel-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.dash__eyebrow {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.dash__big {
+  display: block;
+  margin-top: var(--sp-1);
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.dash__muted {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.dash__select {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  &:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+}
+
+/* ---- type bars ---- */
+.dash__bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-4);
+
+  li {
+    display: grid;
+    grid-template-columns: 130px 1fr 34px;
+    align-items: center;
+    gap: var(--sp-3);
+    font-size: var(--fs-sm);
+  }
+}
+
+.dash__bar-l {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash__bar-track {
+  height: 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.dash__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+
+  &--accent  { background: var(--accent); }
+  &--success { background: var(--success); }
+  &--warning { background: var(--warning); }
+  &--danger  { background: var(--danger); }
+  &--info    { background: var(--info); }
+  &--neutral { background: var(--text-muted); }
+}
+
+.dash__bar-v {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-primary);
+}
+
+/* ---- recent table ---- */
+.dash__link {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.dash__tbl-wrap {
+  overflow: auto;
+  overscroll-behavior: contain;
+  max-height: 500px;
+  margin: 0 calc(var(--sp-5) * -1) calc(var(--sp-5) * -1);
+}
+
+.dash__tbl {
+  width: 100%;
+  min-width: 660px;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    padding: var(--sp-3) var(--sp-5);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    background: var(--surface-1);
+    border-bottom: 1px solid var(--border-subtle);
+    box-shadow: inset 0 -1px 0 var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--sp-3) var(--sp-5);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+    color: var(--text-secondary);
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+
+  .badge { text-transform: capitalize; }
+}
+
+.dash__td-strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.dash__td-act { text-align: right; }
+
+/* Every dash panel/card just uses the site's own Light/Dark theme tokens
+   now — no forced palette here, so the whole page (including every nested
+   chart) stays visually consistent with the rest of the app in both themes. */
+.dash__panel--dark {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+/* ---- KPI card layout ---- */
+.dash__kpis .kpi {
+  padding: var(--sp-4) var(--sp-4) 0;
+  gap: var(--sp-1);
+  overflow: hidden;
+}
+
+.dash__kpis .kpi .kpi__top {
+  gap: var(--sp-2);
+}
+
+.kpi__pill {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+
+  &--up { background: rgba(52, 211, 153, 0.16); color: var(--success); }
+  &--down { background: rgba(248, 113, 113, 0.16); color: var(--danger); }
+  &--flat { background: var(--surface-2); color: var(--text-muted); }
+}
+
+.kpi .kpi__val {
+  display: block;
+  margin: 2px 0 var(--sp-2);
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.kpi__spark {
+  display: block;
+  margin: 0 calc(var(--sp-4) * -1);
+  height: 34px;
+  opacity: 0.85;
+}
+
+/* ---- Hero panel ----
+   Shares a row with the Ticket funnel panel (see .dash__main-row--two), so
+   the lede stacks above the chart like every other panel's own title-then-
+   content layout, instead of the wide side-by-side arrangement this used
+   when it was the only, full-width thing on its row. */
+.dash__hero {
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.dash__hero-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.dash__hero-lede {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.dash__hero-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.dash__hero-value {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.dash__hero-num {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.dash__hero-chart {
+  min-width: 0;
+}
+
+.dash__pill {
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+
+  &--up { background: rgba(52, 211, 153, 0.16); color: var(--success); }
+  &--down { background: rgba(248, 113, 113, 0.16); color: var(--danger); }
+  &--flat { background: var(--surface-2); color: var(--text-muted); }
+}
+
+.dash__select--ghost {
+  background: var(--surface-2);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.dash__cmp-clear {
+  align-self: flex-start;
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+
+  &:hover { color: var(--text-primary); }
+}
+
+/* ---- money mini cards ---- */
+.dash__mini {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--sp-3);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.minic {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+}
+
+.minic__label {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.minic__val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.minic--accent .minic__val { color: var(--accent-strong); }
+.minic--info .minic__val { color: var(--info); }
+.minic--warning .minic__val { color: var(--warning); }
+.minic--danger .minic__val { color: var(--danger); }
+
+/* ---- two-up insights row ---- */
+.dash__main-row--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @media (max-width: 1080px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- funnel footer ---- */
+.dash__funnel-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  width: 100%;
+
+  strong { color: var(--text-primary); }
+}
+
+/* ============================================================
+   Entrance animation — cards cascade in when the route opens
+   (plays once per mount; range/data changes don't retrigger it
+   because Angular reuses the card elements).
+   ============================================================ */
+@keyframes dash-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dash__bal .balc,
+  .dash__kpis .kpi,
+  .dash__hero,
+  .dash__main-row--two > .dash__panel,
+  .dash > .dash__panel {
+    animation: dash-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* balance cards */
+  .dash__bal .balc:nth-child(1) { animation-delay: 0.03s; }
+  .dash__bal .balc:nth-child(2) { animation-delay: 0.08s; }
+
+  /* KPI cards (staggered) */
+  @for $i from 1 through 8 {
+    .dash__kpis .kpi:nth-child(#{$i}) {
+      animation-delay: #{0.10s + ($i - 1) * 0.05s};
+    }
+  }
+
+  /* hero + insight panels + recent tickets */
+  .dash__hero { animation-delay: 0.18s; }
+  .dash__main-row--two > .dash__panel:nth-child(1) { animation-delay: 0.30s; }
+  .dash__main-row--two > .dash__panel:nth-child(2) { animation-delay: 0.36s; }
+  .dash > .dash__panel { animation-delay: 0.42s; }
+}
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .dash {
+    gap: var(--sp-4);
+  }
+
+  .dash__skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  /* Header: title over a full-width range picker that scrolls sideways. */
+  .dash__head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-3);
+  }
+
+  .dash__range {
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .dash__seg {
+    flex: 0 0 auto;
+    min-height: 38px;
+  }
+
+  .dash__custom {
+    flex-wrap: wrap;
+
+    input {
+      flex: 1 1 140px;
+      min-width: 0;
+    }
+  }
+
+  /* One card per row — two 165px columns are unreadable on a phone. */
+  .dash__bal,
+  .dash__kpis,
+  .dash__mini {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+  }
+
+  .dash__panel {
+    padding: var(--sp-4);
+  }
+
+  .dash__hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash__hero-num {
+    font-size: var(--fs-2xl);
+  }
+
+  /* Type breakdown: label above the bar so the track keeps a usable width. */
+  .dash__bars > * {
+    grid-template-columns: 1fr 40px;
+    grid-template-areas:
+      'label label'
+      'track value';
+    row-gap: 4px;
+  }
+
+  .dash__bar-l {
+    grid-area: label;
+  }
+
+  .dash__bar-track {
+    grid-area: track;
+  }
+
+  .dash__bar-v {
+    grid-area: value;
+  }
+
+  /* The recent-tickets table has a 660px floor — give it its own scroller. */
+  .dash__tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dash__donut-row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .dash__legend {
+    width: 100%;
+  }
+}

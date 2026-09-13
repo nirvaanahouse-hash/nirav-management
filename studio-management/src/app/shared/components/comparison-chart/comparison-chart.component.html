@@ -1,0 +1,59 @@
+<div class="cmp">
+  <div class="cmp__legend">
+    <span class="cmp__key cmp__key--a">
+      <i></i>{{ seriesA().label }}
+      <b>{{ fmt(totalA(), seriesA().kind) }}</b>
+    </span>
+    <span class="cmp__key cmp__key--b">
+      <i></i>{{ seriesB().label }}
+      <b>{{ fmt(totalB(), seriesB().kind) }}</b>
+    </span>
+  </div>
+
+  <div class="cmp__plot">
+    <svg
+      #svg
+      class="cmp__svg"
+      [attr.viewBox]="vb"
+      preserveAspectRatio="none"
+      (mousemove)="onMove($event)"
+      (mouseleave)="clearHover()"
+    >
+      <line
+        class="cmp__axis"
+        [attr.x1]="plot.x0"
+        [attr.x2]="plot.x1"
+        [attr.y1]="midY"
+        [attr.y2]="midY"
+      />
+
+      <g class="cmp__areas" [class.cmp__areas--in]="entered()">
+        <path class="cmp__area cmp__area--a" [attr.d]="areaA()" />
+        <path class="cmp__area cmp__area--b" [attr.d]="areaB()" />
+        <path class="cmp__line cmp__line--a" [attr.d]="lineA()" />
+        <path class="cmp__line cmp__line--b" [attr.d]="lineB()" />
+      </g>
+
+      @if (hovered(); as h) {
+        <line class="cmp__guide" [attr.x1]="h.x" [attr.x2]="h.x" [attr.y1]="plot.yTop" [attr.y2]="plot.yBot" />
+        <circle class="cmp__dot cmp__dot--a" [attr.cx]="h.x" [attr.cy]="h.ay" r="4" />
+        <circle class="cmp__dot cmp__dot--b" [attr.cx]="h.x" [attr.cy]="h.by" r="4" />
+      }
+
+      @for (lbl of xLabels(); track lbl.i) {
+        <text class="cmp__xlabel" [attr.x]="lbl.x" [attr.y]="plot.yBot + 16" text-anchor="middle">
+          {{ lbl.label }}
+        </text>
+      }
+    </svg>
+
+    @if (hovered(); as h) {
+      <div class="cmp__tip" [style.left]="tooltipLeft(h.x)">
+        <span class="cmp__tip-l">{{ h.label }}</span>
+        <span class="cmp__tip-row cmp__tip-row--a">{{ seriesA().label }}: <b>{{ fmt(h.va, seriesA().kind) }}</b></span>
+        <span class="cmp__tip-row cmp__tip-row--b">{{ seriesB().label }}: <b>{{ fmt(h.vb, seriesB().kind) }}</b></span>
+        <span class="cmp__tip-delta">A vs B {{ deltaLabel() }}</span>
+      </div>
+    }
+  </div>
+</div>

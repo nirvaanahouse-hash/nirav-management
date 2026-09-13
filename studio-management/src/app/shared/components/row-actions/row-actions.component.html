@@ -1,0 +1,37 @@
+@if (useMenu()) {
+  <button
+    #trigger
+    type="button"
+    class="row-actions__trigger"
+    [class.row-actions__trigger--active]="open()"
+    (click)="toggle()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="menu"
+    aria-label="More actions"
+    title="More actions"
+  >
+    <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+      <circle cx="10" cy="4.5" r="1.6" fill="currentColor" />
+      <circle cx="10" cy="10" r="1.6" fill="currentColor" />
+      <circle cx="10" cy="15.5" r="1.6" fill="currentColor" />
+    </svg>
+  </button>
+  <div #scrim class="row-actions__scrim" [class.row-actions__scrim--open]="open()" (click)="close()"></div>
+}
+
+<!-- Always rendered, never behind an @if — <ng-content> is projected into
+     this one stable node exactly once at creation and never has to move
+     between branches. It starts out in normal flow (inline, indistinguishable
+     from having no wrapper); once useMenu() turns true it is imperatively
+     moved to <body> a single time (see the component), after which open/close
+     is purely the `--open` class on this same node. -->
+<div
+  #panel
+  class="row-actions__panel"
+  [class.row-actions__panel--menu]="useMenu()"
+  [class.row-actions__panel--open]="open()"
+  role="menu"
+  (click)="onMenuClick($event)"
+>
+  <ng-content />
+</div>

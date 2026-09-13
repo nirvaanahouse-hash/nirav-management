@@ -1,0 +1,66 @@
+// Shared, theme-independent design tokens.
+// Color tokens live in styles/themes/*.scss and are swapped via [data-theme] on <html>.
+
+:root {
+  // Typography
+  --font-display: 'Sora', 'Segoe UI', sans-serif;
+  --font-body: 'Manrope', 'Segoe UI', sans-serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.625rem;
+  --fs-2xl: 2rem;
+  --fs-3xl: 2.5rem;
+
+  // Spacing scale (4px base)
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 28px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  // Radius
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  // Motion
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+  --transition-fast: var(--dur-fast) var(--ease-out);
+  --transition-base: var(--dur-base) var(--ease-out);
+  --transition-slow: var(--dur-slow) var(--ease-out);
+
+  // Fixed helpers (theme-independent)
+  --text-on-danger: #ffffff;
+
+  // Layout
+  --sidebar-w: 264px;
+  --sidebar-w-collapsed: 76px;
+  --navbar-h: 68px;
+  --content-max: 1440px;
+
+  // Phone shell (see layout/mobile-nav). The tab bar is fixed, so every
+  // scrolling surface reserves this much room at the bottom.
+  --navbar-h-mobile: 56px;
+  --mobile-nav-h: 60px;
+  --tap-target: 44px;
+}
+
+@mixin surface-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}

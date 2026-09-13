@@ -1,0 +1,182 @@
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 11, 20, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  padding: var(--sp-4);
+  animation: modal-fade var(--transition-base);
+}
+
+.app-modal {
+  width: min(100%, 720px);
+  max-height: min(90vh, 760px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-elevated);
+  animation: modal-pop var(--transition-slow);
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--border-subtle);
+
+    h3 {
+      font-size: var(--fs-md);
+      font-weight: 700;
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    /* No title (e.g. the centered confirm-dialog layout) — collapse to just
+       a corner close button, no header bar/border eating into the body. */
+    &--bare {
+      border-bottom: none;
+      justify-content: flex-end;
+      padding-bottom: 0;
+    }
+  }
+
+  &__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: var(--surface-2);
+      color: var(--text-primary);
+    }
+  }
+
+  &__body {
+    padding: var(--sp-5);
+    overflow-y: auto;
+  }
+
+  &__footer {
+    padding: var(--sp-4) var(--sp-5);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-3);
+    background: var(--surface-2);
+
+    /* A caller may wrap its buttons in a real element (<div modal-footer>)
+       instead of <ng-container modal-footer> — take it out of the box tree
+       so its buttons are still direct flex children here and get this
+       gap/justify-content, instead of stacking with no spacing of their own.
+       Desktop only: the mobile block below has its own (different, more
+       specific) way of handling the same wrapped-footer shape. */
+    @media (min-width: 769px) {
+      ::ng-deep > [modal-footer] {
+        display: contents;
+      }
+    }
+  }
+}
+
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- Phone: dialogs become bottom sheets ---- */
+@media (max-width: 768px) {
+  .app-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .app-modal {
+    width: 100%;
+    max-width: none !important;
+    /* Leave the app bar showing above the sheet, so the sheet can never be
+       taller than the space it actually has — the footer then always lands
+       on screen. The tab bar below is covered by the backdrop. */
+    max-height: calc(100dvh - var(--navbar-h-mobile) - env(safe-area-inset-top, 0px));
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    border-bottom: none;
+    animation: modal-sheet-up var(--transition-slow);
+
+    &__header {
+      padding: var(--sp-4);
+      position: sticky;
+      top: 0;
+      background: var(--surface-1);
+      z-index: 1;
+
+      h3 {
+        font-size: var(--fs-base);
+      }
+    }
+
+    &__close {
+      width: var(--tap-target);
+      height: var(--tap-target);
+
+      svg { width: 18px; height: 18px; }
+    }
+
+    &__body {
+      padding: var(--sp-4);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    /* Footer buttons share the width and clear the home indicator.
+       The buttons are projected content, so they only match through
+       ::ng-deep — a plain `> *` here carries this component's scoping
+       attribute and silently matches nothing. */
+    &__footer {
+      padding: var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+      gap: var(--sp-2);
+
+      /* A footer may hold the buttons directly (ng-container) or wrap them
+         in one element (the confirm dialog) — stretch either shape. */
+      ::ng-deep > * {
+        display: flex;
+        flex: 1 1 0;
+        gap: var(--sp-2);
+        min-width: 0;
+      }
+
+      ::ng-deep app-button {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      ::ng-deep .ui-btn {
+        width: 100%;
+        min-height: var(--tap-target);
+      }
+    }
+  }
+}
+
+@keyframes modal-sheet-up {
+  from { opacity: 0.4; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,157 @@
+:host {
+  display: contents;
+}
+
+.row-actions__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+
+  &:hover {
+    background: var(--surface-2);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &--active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+}
+
+.row-actions__scrim {
+  display: none;
+}
+
+/* Below the threshold: disappear from the box tree entirely, so the
+   projected icon-buttons behave exactly as if there were no wrapper at all
+   — whatever flex row (desktop) or card action strip (mobile) the caller
+   already has keeps working unmodified. */
+.row-actions__panel {
+  display: contents;
+}
+
+/* Above the threshold: a floating menu, moved to <body> by the component
+   itself the first time this rule starts applying — hidden until opened. */
+.row-actions__panel--menu {
+  display: none;
+  position: fixed;
+  z-index: 960;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--sp-1);
+  background: var(--surface-raised, var(--surface-1));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-elevated);
+  animation: row-actions-in var(--dur-fast, 0.14s) var(--ease-out, ease);
+
+  &.row-actions__panel--open {
+    display: flex;
+  }
+
+  /* Reveal the label text and restyle each icon-button as a full menu row
+     (icon + name) instead of a small square icon-only button. */
+  ::ng-deep app-icon-button {
+    display: block;
+    width: 100%;
+  }
+
+  ::ng-deep .icon-button {
+    width: 100%;
+    justify-content: flex-start;
+    gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    border: none;
+    border-radius: var(--r-sm);
+    background: none;
+    color: var(--text-primary);
+    font-size: var(--fs-sm);
+
+    &:hover:not(:disabled) {
+      background: var(--surface-2);
+      border-color: transparent;
+    }
+
+    &--danger {
+      color: var(--danger);
+
+      &:hover:not(:disabled) {
+        background: var(--danger-soft);
+      }
+    }
+
+    &--confirm {
+      color: var(--success);
+
+      &:hover:not(:disabled) {
+        background: var(--success-soft);
+      }
+    }
+  }
+
+  ::ng-deep .icon-button__label {
+    display: inline;
+    white-space: nowrap;
+  }
+}
+
+@keyframes row-actions-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Phone: a bottom sheet, same convention as the navbar/select dropdowns. */
+@media (max-width: 768px) {
+  .row-actions__scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 11, 20, 0.4);
+    z-index: 955;
+
+    &--open {
+      display: block;
+    }
+  }
+
+  .row-actions__panel--menu {
+    left: var(--sp-3) !important;
+    right: var(--sp-3);
+    bottom: env(safe-area-inset-bottom, var(--sp-3));
+    top: auto !important;
+    width: auto !important;
+    max-height: 60dvh;
+    border-radius: var(--r-lg);
+  }
+
+  .row-actions__trigger {
+    min-width: var(--tap-target);
+    min-height: var(--tap-target);
+  }
+
+  ::ng-deep .icon-button {
+    min-height: var(--tap-target);
+  }
+}

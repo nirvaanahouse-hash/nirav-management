@@ -1,0 +1,32 @@
+<div class="donut">
+  <svg class="donut__svg" viewBox="0 0 140 140" role="img">
+    <circle class="donut__track" cx="70" cy="70" [attr.r]="r" />
+    <g transform="rotate(-90 70 70)">
+      @for (a of arcs(); track a.label) {
+        <circle
+          class="donut__seg"
+          [class]="'donut__seg donut__seg--' + a.variant"
+          cx="70"
+          cy="70"
+          [attr.r]="r"
+          [attr.stroke-dasharray]="a.dashArray"
+          [attr.stroke-dashoffset]="a.dashOffset"
+        />
+      }
+    </g>
+    @if (centerValue()) {
+      <text class="donut__value" x="70" y="68" text-anchor="middle">{{ centerValue() }}</text>
+      <text class="donut__label" x="70" y="86" text-anchor="middle">{{ centerLabel() }}</text>
+    }
+  </svg>
+
+  <ul class="donut__legend">
+    @for (a of arcs(); track a.label) {
+      <li>
+        <span class="donut__dot" [class]="'donut__dot donut__dot--' + a.variant"></span>
+        <span class="donut__legend-label">{{ a.label }}</span>
+        <span class="donut__legend-value">{{ a.value }} · {{ a.pct }}%</span>
+      </li>
+    }
+  </ul>
+</div>

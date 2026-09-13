@@ -1,0 +1,584 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.client-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.client-page__actions {
+  display: inline-flex;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+
+.client-toolbar {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Matches app-select's own trigger box exactly (same height/padding/radius/
+   focus ring) so the search input and the filter selects beside it line up. */
+.client-toolbar__search {
+  min-height: var(--tap-target);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+.client-toolbar__search { flex: 1; min-width: 220px; }
+/* app-select fully styles its own trigger internally — this class only
+   needs to control layout, not re-apply box styling on top of it. */
+.client-toolbar__filter { min-width: 150px; }
+
+.client-page__table {
+  flex: 1 1 auto;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+
+  app-table {
+    min-width: 640px;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}
+
+.client-skeleton,
+.empty-state {
+  padding: var(--sp-10) var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+
+  p { margin: 0; }
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  input { accent-color: var(--accent); }
+}
+
+.payment-entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.payment-entry-form__label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.payment-entry-form__input {
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+.work-view-filters {
+  display: flex;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+/* Matches app-select's own trigger box exactly (same height/padding/radius/
+   focus ring) so the search input and the filter select beside it line up. */
+.work-view-filters__search {
+  min-height: var(--tap-target);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+.work-view-filters__search { flex: 1; min-width: 220px; }
+
+/* app-select fully styles its own trigger internally — this class only
+   needs to control layout, not re-apply box styling on top of it. */
+.work-view-filters__select {
+  min-width: 180px;
+}
+
+/* Work / payment-history tables live inside a modal — bounded height with
+   its own scroll (sticky header), so the modal body itself never has to
+   scroll along with it. On a phone sheet they also scroll sideways rather
+   than widen it. */
+.work-view-table-wrap {
+  width: 100%;
+  max-height: 50vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+}
+
+.work-view-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    padding: var(--sp-3) var(--sp-4);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+    color: var(--text-primary);
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+.client-form__row {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+
+  app-form-field {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+/* ---- Billing / invoice modal ---- */
+.billing {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+.billing__section {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.billing__section-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+/* Scope segmented control */
+.billing__scope {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+}
+
+.billing__scope-btn {
+  display: grid;
+  gap: 2px;
+  padding: var(--sp-3);
+  text-align: left;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--accent);
+  }
+
+  &--active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+}
+
+.billing__scope-title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.billing__scope-desc {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Custom date range */
+.billing__range {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.billing__range-arrow {
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+}
+
+.billing__control {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+}
+
+.billing__warn {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--danger);
+}
+
+/* Summary tiles */
+.billing__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+
+.billing__tile {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+
+  &--pending {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+  }
+
+  &--settled {
+    border-color: var(--success);
+    background: var(--success-soft);
+  }
+}
+
+.billing__tile-label {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.billing__tile-value {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+
+  .billing__tile--pending & { color: var(--danger); }
+  .billing__tile--settled & { color: var(--success); }
+}
+
+/* Tickets panel */
+.billing__panel {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface-1);
+}
+
+.billing__panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+}
+
+.billing__panel-title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.billing__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 var(--sp-2);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.billing__state {
+  padding: var(--sp-8) var(--sp-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+
+  &--empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--sp-2);
+    color: var(--text-muted);
+
+    p { margin: 0; }
+  }
+}
+
+.billing__table-wrap {
+  overflow-x: auto;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.billing__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    padding: var(--sp-2) var(--sp-4);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--sp-2) var(--sp-4);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  tbody tr:nth-child(even) td { background: var(--surface-2); }
+  tbody tr:hover td { background: var(--accent-soft); }
+
+  tfoot td {
+    padding: var(--sp-3) var(--sp-4);
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--surface-2);
+    border-top: 2px solid var(--border-subtle);
+    border-bottom: none;
+  }
+}
+
+.billing__col-idx {
+  width: 44px;
+  color: var(--text-muted);
+}
+
+.billing__couple {
+  font-weight: 600;
+}
+
+.billing__billed {
+  margin-left: var(--sp-2);
+}
+
+.billing__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.billing__ledger {
+  margin: calc(var(--sp-2) * -1) 0 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+
+  strong { color: var(--danger); }
+}
+
+.billing__ledger-sub {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.billing__note {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .billing__scope,
+  .billing__tiles {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .client-toolbar__row { flex-direction: column; }
+
+  .client-form__row {
+    flex-direction: column;
+    app-form-field { min-width: 100%; }
+  }
+}
+
+/* ---- Phone layout ---- */
+@media (max-width: 768px) {
+  .client-page {
+    gap: var(--sp-4);
+  }
+
+  /* Row actions: six icon buttons on this page — let them wrap in the card's
+     action row instead of overflowing it. */
+  .client-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--sp-2);
+    width: 100%;
+  }
+
+  .client-toolbar {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .client-toolbar__search,
+  .work-view-filters__search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .client-toolbar__filter {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* The shared table renders as cards here, so the wrapper frame goes away,
+     and the fill-height desktop layout resets to natural page flow/scroll. */
+  :host,
+  .client-page,
+  .client-page__table,
+  .client-page__table app-table {
+    height: auto;
+    min-height: 0;
+  }
+
+  .client-page__table {
+    flex: 0 0 auto;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .work-view-filters {
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  /* Wide, hand-rolled tables scroll inside their modal sheet — squeezing
+     seven columns into 375px makes them unreadable. */
+  .work-view-table-wrap,
+  .billing__table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .work-view-table {
+    min-width: 620px;
+  }
+
+  .billing__table {
+    min-width: 520px;
+  }
+
+  .work-view-table th,
+  .work-view-table td,
+  .billing__table th,
+  .billing__table td {
+    padding: var(--sp-2) var(--sp-3);
+    white-space: nowrap;
+  }
+
+  .billing__range {
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,66 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.page-header__subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  max-width: 60ch;
+}
+
+.page-header__actions {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  flex-shrink: 0;
+
+  /* A page projecting more than one button wraps them in <span actions>,
+     which otherwise has no layout of its own — gap them properly instead
+     of leaving them to fall back on inline whitespace. */
+  ::ng-deep [actions] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+}
+
+/* Phone: title on one row, actions stretched full width underneath. */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-3);
+  }
+
+  .page-header__subtitle {
+    font-size: var(--fs-xs);
+  }
+
+  /* Projected buttons: the <app-button> host has to stretch too, otherwise
+     the inner .ui-btn fills nothing but the host's content width. */
+  .page-header__actions {
+    flex-wrap: wrap;
+
+    ::ng-deep [actions] {
+      display: flex;
+      flex: 1 1 0;
+      gap: var(--sp-2);
+      min-width: 0;
+    }
+
+    ::ng-deep app-button {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    ::ng-deep .ui-btn {
+      width: 100%;
+      min-height: var(--tap-target);
+    }
+  }
+}

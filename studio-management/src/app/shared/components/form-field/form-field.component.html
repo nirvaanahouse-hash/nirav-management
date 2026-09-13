@@ -1,0 +1,58 @@
+ <label class="app-field">
+      <span class="app-field__label">
+        {{ label() }}
+        @if (required()) { <span class="app-field__required">*</span> }
+      </span>
+
+      @switch (type()) {
+        @case ('textarea') {
+          <textarea
+            class="app-field__control"
+            [class.app-field__control--invalid]="showError()"
+            [formControl]="control()"
+            [placeholder]="placeholder()"
+            rows="3"
+          ></textarea>
+        }
+        @case ('select') {
+          <app-select
+            [formControl]="control()"
+            [options]="options()"
+            [multiple]="multiple()"
+            [placeholder]="placeholder() || 'Select…'"
+            [sheetTitle]="label()"
+            [invalid]="showError()"
+            [ariaLabel]="label()"
+          />
+        }
+        @case ('date') {
+          <app-datepicker
+            [formControl]="control()"
+            [placeholder]="placeholder() || 'Select a date'"
+            [min]="min()"
+            [max]="max()"
+            [invalid]="showError()"
+            [ariaLabel]="label()"
+          />
+        }
+        @case ('checkbox') {
+          <app-checkbox [formControl]="control()" [ariaLabel]="label()" />
+        }
+        @default {
+          <input
+            class="app-field__control"
+            [class.app-field__control--invalid]="showError()"
+            [type]="type()"
+            [formControl]="control()"
+            [placeholder]="placeholder()"
+            [readonly]="readonly()"
+          />
+        }
+      }
+
+      @if (showError()) {
+        <span class="app-field__error">{{ errorMessage() }}</span>
+      } @else if (hint()) {
+        <span class="app-field__hint">{{ hint() }}</span>
+      }
+    </label>

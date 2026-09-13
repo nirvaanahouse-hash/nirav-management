@@ -19,6 +19,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TicketMetaService } from '../../../core/services/ticket-meta.service';
 import { ToastService } from '../../../features/toast/toast.service';
 import { toastIfInvalid } from '../../../core/utils/form-toast';
+import { hoursToTimeString, pricingMultiplier, timeFormatValidator, timeStringToHours } from '../../../core/utils/time-format';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 
 @Component({
@@ -181,15 +182,22 @@ export class TicketFormComponent implements OnInit {
     const job = this.isJobType();
     const sa = this.isSA();
     const started = !this.isPending();
-    const setReq = (name: 'HR' | 'mainHr' | 'hrPrice' | 'mainHrPrice', required: boolean) => {
+    // HR / Main HR are clock-style durations ("1:30"), validated by format
+    // rather than a numeric min — timeFormatValidator already rejects negatives.
+    const setHourReq = (name: 'HR' | 'mainHr', required: boolean) => {
+      const c = this.form.controls[name];
+      c.setValidators(required ? [Validators.required, timeFormatValidator] : [timeFormatValidator]);
+      c.updateValueAndValidity({ emitEvent: false });
+    };
+    const setPriceReq = (name: 'hrPrice' | 'mainHrPrice', required: boolean) => {
       const c = this.form.controls[name];
       c.setValidators(required ? [Validators.required, Validators.min(0)] : []);
       c.updateValueAndValidity({ emitEvent: false });
     };
-    setReq('HR', job && started);
-    setReq('mainHr', job && sa && started);
-    setReq('hrPrice', job && sa);
-    setReq('mainHrPrice', job && sa);
+    setHourReq('HR', job && started);
+    setHourReq('mainHr', job && sa && started);
+    setPriceReq('hrPrice', job && sa);
+    setPriceReq('mainHrPrice', job && sa);
   });
 
   /**
@@ -198,6 +206,9 @@ export class TicketFormComponent implements OnInit {
    * are priced independently) — but only when one of the inputs actually
    * changes, so an admin's manual override on an existing ticket is
    * preserved when the edit dialog opens.
+   *
+   * Under an hour prices by raw minutes, an hour or more prices by decimal
+   * hours (see pricingMultiplier) — e.g. "0:03" × 100 = 3, but "1:30" × 100 = 150.
    */
   private lastHourKey = "";
   private calculateAmountEffect = effect(() => {
@@ -206,15 +217,23 @@ export class TicketFormComponent implements OnInit {
     const key = `${v.HR}|${v.mainHr}|${v.hrPrice}|${v.mainHrPrice}`;
     if (key === this.lastHourKey) return;
     this.lastHourKey = key;
-    const hr = Number(v.HR) || 0;
+    const hr = pricingMultiplier(timeStringToHours(v.HR) ?? 0);
     const hrPrice = Number(v.hrPrice) || 0;
-    const mainHr = Number(v.mainHr) || 0;
+    const mainHr = pricingMultiplier(timeStringToHours(v.mainHr) ?? 0);
     const mainHrPrice = Number(v.mainHrPrice) || 0;
     this.form.patchValue(
       { amount: String(hr * hrPrice), mainAmount: String(mainHr * mainHrPrice) },
       { emitEvent: false },
     );
   });
+
+  /** Normalizes whatever the user typed ("1.5", "8", "1:60") into "H:MM" once they leave the field. */
+  onHourBlur(name: 'HR' | 'mainHr'): void {
+    const control = this.form.controls[name];
+    const parsed = timeStringToHours(control.value);
+    if (parsed === null) return; // leave invalid text in place so the format error shows
+    control.setValue(hoursToTimeString(parsed));
+  }
 
   ngOnInit(): void {
     this.ticketMeta.loadFormMeta().subscribe({
@@ -233,12 +252,15 @@ export class TicketFormComponent implements OnInit {
   }
 
   patchTicket(ticket: TicketRecord): void {
+    // Stored as decimal hours (e.g. "1.5") — the field displays clock-style ("1:30").
+    const hr = ticket.HR ? hoursToTimeString(ticket.HR) : ticket.HR;
+    const mainHr = ticket.mainHr ? hoursToTimeString(ticket.mainHr) : ticket.mainHr;
     this.form.patchValue({
       coupleName: ticket.coupleName,
       ticketType: ticket.ticketType,
       priorety: ticket.priorety,
-      HR: ticket.HR,
-      mainHr: ticket.mainHr,
+      HR: hr,
+      mainHr: mainHr,
       hrPrice: ticket.hrPrice || 0,
       mainHrPrice: ticket.mainHrPrice || 0,
       deleveryDate: ticket.deleveryDate,
@@ -251,8 +273,9 @@ export class TicketFormComponent implements OnInit {
       status: ticket.status ?? 'pending',
       isFinalized: ticket.isFinalized ?? false,
     });
-    // Seed the guard so opening an edited ticket doesn't clobber a manual amount.
-    this.lastHourKey = `${ticket.HR}|${ticket.mainHr}|${ticket.hrPrice || 0}|${ticket.mainHrPrice || 0}`;
+    // Seed the guard (in the same "H:MM" shape the form now holds) so opening
+    // an edited ticket doesn't clobber a manual amount.
+    this.lastHourKey = `${hr}|${mainHr}|${ticket.hrPrice || 0}|${ticket.mainHrPrice || 0}`;
     // Seed the guard so opening an edited ticket doesn't clobber its own saved
     // percentage with the assignee's current default — only switching to a
     // *different* employee should suggest a new default from here on.
@@ -284,9 +307,15 @@ export class TicketFormComponent implements OnInit {
     }
 
     const raw = this.form.getRawValue();
+    // The fields hold clock-style "H:MM" (validated above) — the backend still
+    // stores/calculates plain decimal hours, so convert right before sending.
+    const hr = raw.HR ? String(timeStringToHours(raw.HR) ?? '') : raw.HR;
+    const mainHr = raw.mainHr ? String(timeStringToHours(raw.mainHr) ?? '') : raw.mainHr;
     const draft: TicketDraft = isSA
       ? {
           ...raw,
+          HR: hr,
+          mainHr: mainHr,
           hrPrice: Number(raw.hrPrice) || 0,
           mainHrPrice: Number(raw.mainHrPrice) || 0,
           // Amounts are whatever is in the fields — auto-filled or hand-edited by the admin.
@@ -296,7 +325,7 @@ export class TicketFormComponent implements OnInit {
       : {
           coupleName: raw.coupleName,
           ticketType: raw.ticketType,
-          HR: raw.HR,
+          HR: hr,
           remark: raw.remark,
           priorety: raw.priorety,
           deleveryDate: raw.deleveryDate,

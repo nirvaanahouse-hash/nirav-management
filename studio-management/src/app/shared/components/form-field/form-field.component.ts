@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SelectComponent } from '../select/select.component';
 import { DatepickerComponent } from '../datepicker/datepicker.component';
@@ -34,6 +34,8 @@ export class FormFieldComponent {
   max = input('');
   errorMessages = input<Record<string, string>>({});
   readonly = input(false);
+  /** Native blur on the underlying `<input>` — lets a caller reformat the value once typing is done. */
+  @Output() blurred = new EventEmitter<void>();
 
   showError(): boolean {
     const c = this.control();

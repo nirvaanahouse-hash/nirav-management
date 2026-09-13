@@ -20,6 +20,7 @@ function messageFor(control: AbstractControl, name: string, labels?: Record<stri
   if (errors["min"]) return `${label} must be at least ${errors["min"].min}.`;
   if (errors["max"]) return `${label} must be at most ${errors["max"].max}.`;
   if (errors["pattern"]) return `${label} format is invalid.`;
+  if (errors["invalidTime"]) return `${label} must be a valid time, like 1:30.`;
   if (errors["passwordMismatch"]) return "Passwords do not match.";
   return `${label} is invalid.`;
 }

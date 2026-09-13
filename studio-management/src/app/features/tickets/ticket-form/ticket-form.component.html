@@ -103,18 +103,24 @@
       <div class="ticket-form__row">
         <app-form-field
           label="Work Hours (HR)"
-          type="number"
+          type="text"
           [control]="form.controls.HR"
-          placeholder="e.g. 8"
+          placeholder="e.g. 1:30"
+          hint="Hours:Minutes, e.g. 8:00 or 1:30"
+          [errorMessages]="{ invalidTime: 'Enter a valid time, e.g. 1:30' }"
           [required]="true"
+          (blurred)="onHourBlur('HR')"
         />
         @if (isSA()) {
           <app-form-field
             label="Main Hours (MainHr)"
-            type="number"
+            type="text"
             [control]="form.controls.mainHr"
-            placeholder="e.g. 10"
+            placeholder="e.g. 1:30"
+            hint="Hours:Minutes, e.g. 10:00 or 1:30"
+            [errorMessages]="{ invalidTime: 'Enter a valid time, e.g. 1:30' }"
             [required]="true"
+            (blurred)="onHourBlur('mainHr')"
           />
         } @else {
           <div></div>
@@ -164,6 +170,7 @@
   @if (isSA()) {
     <div class="ticket-form__section">
       <h3 class="ticket-form__heading">Pricing</h3>
+
       <div class="ticket-form__row">
         <app-form-field
           label="User Amount"

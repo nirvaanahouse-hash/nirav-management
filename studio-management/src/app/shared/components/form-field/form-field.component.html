@@ -46,6 +46,7 @@
             [formControl]="control()"
             [placeholder]="placeholder()"
             [readonly]="readonly()"
+            (blur)="blurred.emit()"
           />
         }
       }

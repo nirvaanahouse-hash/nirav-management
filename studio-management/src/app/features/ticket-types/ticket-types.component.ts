@@ -81,7 +81,13 @@ export class TicketTypesComponent {
 
   openCreate(): void {
     this.editing.set(null);
-    this.form.reset({ label: '', variant: 'neutral', isJob: false, isActive: true, showCount: false });
+    this.form.reset({
+      label: '',
+      variant: 'neutral',
+      isJob: false,
+      isActive: true,
+      showCount: false,
+    });
     this.form.controls.isJob.enable();
     this.showModal.set(true);
   }

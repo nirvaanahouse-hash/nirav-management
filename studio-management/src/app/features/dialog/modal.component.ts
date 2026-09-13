@@ -20,7 +20,16 @@ import {
 export class ModalComponent implements OnDestroy {
   private readonly host = inject(ElementRef<HTMLElement>);
 
+  // Every open modal binds its own `document:keydown.escape` listener, and
+  // stopPropagation() doesn't stop sibling listeners on the same `document`
+  // target from also firing — so pressing Escape while a confirm dialog sits
+  // on top of another open modal (e.g. "Save changes?" over an Edit dialog)
+  // used to close both at once. Track open order here so only the top-most
+  // modal actually responds.
+  private static readonly stack: ModalComponent[] = [];
+
   constructor() {
+    ModalComponent.stack.push(this);
     /**
      * Dialogs are declared deep inside `.main-layout__outlet`, which carries
      * `view-transition-name: page` for the route animation — and that forms a
@@ -38,6 +47,8 @@ export class ModalComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    const idx = ModalComponent.stack.indexOf(this);
+    if (idx !== -1) ModalComponent.stack.splice(idx, 1);
     // Angular would look for this element under its original parent, so take
     // it out ourselves now that it lives on <body>.
     this.host.nativeElement.remove();
@@ -57,9 +68,11 @@ export class ModalComponent implements OnDestroy {
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscape(event: Event): void {
+    // Ignore entirely if a different (more recently opened) modal is on top.
+    if (ModalComponent.stack[ModalComponent.stack.length - 1] !== this) return;
     if (!this.dismissOnEsc()) return;
     event.preventDefault();
-    event.stopPropagation();
+    event.stopImmediatePropagation();
     this.close.emit();
   }
 }

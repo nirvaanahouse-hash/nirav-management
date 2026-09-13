@@ -233,8 +233,13 @@ export class UsersComponent {
         this.editLoading.set(false);
       },
       error: () => {
+        // homeAddress/gender/dob are required by the backend but only ever
+        // came from this call — leaving the dialog open with them blank
+        // just invited a confusing "Please fill in: ..." rejection on save.
+        // Closing it and asking to retry is clearer than a half-filled form.
         this.editLoading.set(false);
-        this.toastService.error("Could not load details", "Some fields may be blank.");
+        this.editingUser.set(null);
+        this.toastService.error("Could not load details", "Please try editing this user again.");
       },
     });
   }
@@ -294,11 +299,12 @@ export class UsersComponent {
   editLoading = signal(false);
   editSaving = signal(false);
 
-  readonly roleOptions = [
-    { value: "U", label: "User" },
-    { value: "A", label: "Admin" },
-    { value: "SA", label: "Super Admin" },
-  ];
+  // Role changes aren't supported from this screen (see
+  // BE/controllers/employee.controller.js updateEmployeeDetails) — every
+  // Users-screen query filters to role U, so promoting someone here would
+  // both open a permission-escalation path and immediately make them
+  // unmanageable from this same screen. Only "User" is offered.
+  readonly roleOptions = [{ value: "U", label: "User" }];
   readonly genderOptions = [
     { value: "male", label: "Male" },
     { value: "female", label: "Female" },

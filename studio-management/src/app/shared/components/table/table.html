@@ -32,7 +32,7 @@
               </td>
             </tr>
           }
-          @for (row of pagedRows(); track $index) {
+          @for (row of pagedRows(); track trackByFn()(row)) {
             
             <tr>
               @if (hasActions()) {

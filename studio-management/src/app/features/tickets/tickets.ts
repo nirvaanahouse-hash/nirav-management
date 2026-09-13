@@ -28,6 +28,7 @@ import { ClientService } from "../../core/services/client.service";
 import { TableColumn } from "../../shared/components/table/table.model";
 import { SelectComponent } from "../../shared/components/select/select.component";
 import { SelectItem } from "../../shared/components/select/select.model";
+import { hoursToTimeString } from "../../core/utils/time-format";
 
 @Component({
   selector: "app-tickets",
@@ -157,7 +158,17 @@ export class TicketsComponent {
         label: "Work HR",
         sortable: true,
         align: "right" as const,
-        format: (row) => this.dashNum(row.HR),
+        format: (row) => this.dashHours(row.HR),
+      },
+      // Employee Earning is visible to everyone too — it's the assigned
+      // employee's own pay, not a studio-wide figure like Main Amount/Company
+      // Profit below, which stay SA-only.
+      {
+        key: "amount",
+        label: "Earning",
+        sortable: true,
+        align: "right" as const,
+        format: (row) => (this.isEmpty(row.amount) ? "-" : `₹${this.calculateEarnings(row).toLocaleString()}`),
       },
       {
         key: "_id",
@@ -176,9 +187,10 @@ export class TicketsComponent {
       },
     ];
 
-    // Main HR, company profit, main amount, employee earnings and balance due
-    // are SA-only — simply omitted for everyone else, so the columns either
-    // side of this block flow together with no gap.
+    // Main HR, company profit, main amount and balance due are SA-only —
+    // simply omitted for everyone else, so the columns either side of this
+    // block flow together with no gap. Work HR and Earning (above) are not:
+    // both are the assigned employee's own figures, not a studio-wide one.
     if (isSA) {
       baseColumns.push(
         {
@@ -186,7 +198,7 @@ export class TicketsComponent {
           label: "Main HR",
           sortable: true,
           align: "right" as const,
-          format: (row) => this.dashNum(row.mainHr),
+          format: (row) => this.dashHours(row.mainHr),
         },
         {
           key: "companyProfit",
@@ -206,15 +218,6 @@ export class TicketsComponent {
           align: "right" as const,
           masked: true,
           format: (row) => this.dashMoney(row.mainAmount),
-        },
-        {
-          key: "amount",
-          label: "Employee Earning",
-          sortable: true,
-          align: "right" as const,
-          masked: true,
-          format: (row) =>
-            this.isEmpty(row.amount) ? "-" : `₹${this.calculateEarnings(row).toLocaleString()}`,
         },
         {
           key: "balanceDue",
@@ -281,9 +284,9 @@ export class TicketsComponent {
     return v === null || v === undefined || v === "" || v === "null";
   }
 
-  /** Number cell with a "-" fallback (job-less tickets store null hours). */
-  private dashNum(v: string | number | null | undefined): string {
-    return this.isEmpty(v) ? "-" : `${Number(v)}`;
+  /** Stored as decimal hours ("1.5") — displayed clock-style ("1:30"), with a "-" fallback for job-less tickets. */
+  private dashHours(v: string | number | null | undefined): string {
+    return this.isEmpty(v) ? "-" : hoursToTimeString(v);
   }
 
   private dashMoney(v: string | number | null | undefined): string {

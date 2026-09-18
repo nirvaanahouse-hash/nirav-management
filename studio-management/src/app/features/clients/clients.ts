@@ -1,4 +1,5 @@
-import { Component, ViewChild, computed, inject, signal } from "@angular/core";
+import { Component, DestroyRef, ViewChild, computed, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { Observable, of } from "rxjs";
 import { TableComponent } from "../../shared/components/table/table";
@@ -75,6 +76,7 @@ export class ClientsComponent {
   private userService = inject(UserService);
   private amountService = inject(AmountService);
   private ticketMeta = inject(TicketMetaService);
+  private destroyRef = inject(DestroyRef);
 
   /** Lives inside the dialog, so it is only present while the dialog is open. */
   @ViewChild(ClientFormComponent) private clientForm?: ClientFormComponent;
@@ -219,7 +221,7 @@ export class ClientsComponent {
 
   private fetchClients(): void {
     this.loading.set(true);
-    this.clientService.list().subscribe({
+    this.clientService.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.loading.set(false),
       error: () => {
         this.toast.error("Could not load clients", "Please try again.");
@@ -229,7 +231,7 @@ export class ClientsComponent {
   }
 
   private loadEmployees(): void {
-    this.userService.list({ role: "U" }).subscribe({
+    this.userService.list({ role: "U" }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         const options = (response.data || []).map((u: User) => ({
           value: u._id,
@@ -276,12 +278,12 @@ export class ClientsComponent {
       ? this.clientService.update(editing._id, draft)
       : this.clientService.create(draft);
 
-    request.subscribe({
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         const saved = response.data;
         // The photo is a separate multipart call — a new client only gets an
         // id here, so it can only be uploaded once the record exists.
-        this.savePhoto(saved._id, form).subscribe({
+        this.savePhoto(saved._id, form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.saving.set(false);
             this.toast.success(editing ? "Client updated" : "Client created", saved.name || "");
@@ -322,7 +324,7 @@ export class ClientsComponent {
       });
       if (!confirmed) return;
 
-      this.clientService.deactivate(client._id).subscribe({
+      this.clientService.deactivate(client._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.toast.success("Client deactivated", client.name);
         },
@@ -337,7 +339,7 @@ export class ClientsComponent {
       });
       if (!confirmed) return;
 
-      this.clientService.reactivate(client._id).subscribe({
+      this.clientService.reactivate(client._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.toast.success("Client reactivated", client.name);
         },
@@ -371,7 +373,7 @@ export class ClientsComponent {
       amount,
     };
 
-    this.amountService.create(draft).subscribe({
+    this.amountService.create(draft).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success("Payment recorded", client.name);
         this.closePaymentEntry();
@@ -400,7 +402,7 @@ export class ClientsComponent {
       return;
     }
 
-    this.amountService.update(entry._id, { amount }).subscribe({
+    this.amountService.update(entry._id, { amount }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success("Payment updated", client.name);
         this.closeEditPaymentEntry();
@@ -425,7 +427,7 @@ export class ClientsComponent {
 
     if (!confirmed) return Promise.resolve();
 
-    this.amountService.delete(entry._id).subscribe({
+    this.amountService.delete(entry._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success("Payment deleted", client.name);
         this.loadClientPayments(client._id);
@@ -447,7 +449,7 @@ export class ClientsComponent {
 
   loadClientPayments(clientId: string): void {
     this.paymentLoading.set(true);
-    this.clientService.getPayments(clientId).subscribe({
+    this.clientService.getPayments(clientId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.paymentEntries.set(response.data || []);
         this.paymentLoading.set(false);
@@ -466,7 +468,7 @@ export class ClientsComponent {
     this.workEmployeeFilter.set("");
     this.workLoading.set(true);
 
-    this.taskService.list().subscribe({
+    this.taskService.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         const tickets = response.data.filter(
           (t: TicketRecord) => String(t.client) === String(client._id)
@@ -519,6 +521,7 @@ export class ClientsComponent {
     this.billingLoading.set(true);
     this.clientService
       .getBilling(client._id, this.billingMode(), this.billingFrom(), this.billingTo())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.billingRows.set(res.data.tickets || []);
@@ -541,6 +544,7 @@ export class ClientsComponent {
     this.billingDownloading.set(true);
     this.clientService
       .downloadBillingPdf(client._id, mode, this.billingFrom(), this.billingTo())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (blob) => {
           const safe = client.name.replace(/[^a-z0-9]+/gi, "-");

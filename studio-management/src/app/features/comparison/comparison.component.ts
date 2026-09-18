@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -35,6 +36,7 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 export class ComparisonComponent {
   private readonly service = inject(ComparisonService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly rows = signal<EmployeeComparisonRow[]>([]);
@@ -180,7 +182,7 @@ export class ComparisonComponent {
   load(): void {
     this.loading.set(true);
     const { from, to } = this.fromTo();
-    this.service.getEmployees(from, to).subscribe({
+    this.service.getEmployees(from, to).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         const data = res.data || [];
         this.rows.set(data);

@@ -1,4 +1,5 @@
-import { Injectable, inject, signal, computed, effect } from "@angular/core";
+import { DestroyRef, Injectable, inject, signal, computed, effect } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { io, Socket } from "socket.io-client";
 import { AuthService } from "./auth.service";
 import { environment } from "../../../environments/environment";
@@ -41,6 +42,7 @@ export type AmountEvent = "amount-created" | "amount-updated" | "amount-deleted"
 export class SocketService {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private socket: Socket | null = null;
 
@@ -165,7 +167,7 @@ export class SocketService {
     this.viewFilter = filter;
     this.viewIncludeDeleted = includeDeleted;
     this._loading.set(true);
-    this.notificationService.list({ filter, includeDeleted }).subscribe({
+    this.notificationService.list({ filter, includeDeleted }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this._notifications.set(response.data ?? []);
         if (response.unreadCount !== undefined) {
@@ -197,7 +199,7 @@ export class SocketService {
   }
 
   markAllNotificationsRead(): void {
-    this.notificationService.markAllRead().subscribe({
+    this.notificationService.markAllRead().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this._notifications.update((list) => list.map((n) => ({ ...n, isRead: true })));
         this._unreadCount.set(0);
@@ -220,7 +222,7 @@ export class SocketService {
       this._unreadCount.update((n) => Math.max(0, n + (next ? -1 : 1)));
     }
 
-    this.notificationService.setRead(id, next).subscribe({
+    this.notificationService.setRead(id, next).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       error: () => {
         this._notifications.update((list) =>
           list.map((n) => (n._id === id ? { ...n, isRead: current.isRead } : n)),
@@ -245,7 +247,7 @@ export class SocketService {
         : list.filter((n) => n._id !== id),
     );
 
-    this.notificationService.remove(id).subscribe({
+    this.notificationService.remove(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       error: () => this.loadNotifications(this.viewFilter, this.viewIncludeDeleted),
     });
   }
@@ -259,7 +261,7 @@ export class SocketService {
       list.map((n) => (n._id === id ? { ...n, isView: true } : n)),
     );
 
-    this.notificationService.restore(id).subscribe({
+    this.notificationService.restore(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       error: () => this.loadNotifications(this.viewFilter, this.viewIncludeDeleted),
     });
   }

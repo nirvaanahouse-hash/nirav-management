@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, input, signal } from "@angular/core";
+import { Component, DestroyRef, computed, effect, inject, input, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -59,6 +60,7 @@ export class TicketsComponent {
   private clientService = inject(ClientService);
   private taskCalculation = inject(TaskCalculationService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   searchTerm = signal("");
   statusFilter = signal("");
@@ -407,7 +409,7 @@ export class TicketsComponent {
 
   loadTasks(): void {
     this.loading.set(true);
-    this.taskService.list().subscribe({
+    this.taskService.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
@@ -431,7 +433,7 @@ export class TicketsComponent {
     if (editing) {
       // TaskService.update() already folds the response into the `tickets`
       // signal — no need to re-fetch the whole list after a save.
-      this.taskService.update(editing._id, draft).subscribe({
+      this.taskService.update(editing._id, draft).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.saving.set(false);
           this.toast.success("Ticket updated", "Changes saved.");
@@ -446,7 +448,7 @@ export class TicketsComponent {
         },
       });
     } else {
-      this.taskService.create(draft).subscribe({
+      this.taskService.create(draft).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.saving.set(false);
           this.toast.success("Ticket created", "The new ticket has been added.");
@@ -470,7 +472,7 @@ export class TicketsComponent {
 
     if (!confirmed) return;
 
-    this.taskService.delete(task._id).subscribe({
+    this.taskService.delete(task._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success("Ticket deleted", task.coupleName || "");
       },
@@ -481,7 +483,7 @@ export class TicketsComponent {
   }
 
   completeTask(task: TicketRecord): void {
-    this.taskService.complete(task._id).subscribe({
+    this.taskService.complete(task._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success("Ticket completed", `${task.coupleName || ""} marked as complete.`);
       },
@@ -507,7 +509,7 @@ export class TicketsComponent {
       return;
     }
 
-    this.taskService.finalize(task._id, !task.isFinalized).subscribe({
+    this.taskService.finalize(task._id, !task.isFinalized).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success(
           task.isFinalized ? "Ticket unfinalized" : "Ticket finalized",

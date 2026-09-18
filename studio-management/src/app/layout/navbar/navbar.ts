@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -14,17 +16,21 @@ import { AuthService } from '../../core/services/auth.service';
 import { SocketService, NotificationData } from '../../core/services/socket.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { BackupService } from '../../core/services/backup.service';
 import { ThemeId } from '../../core/models/theme.model';
 import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 import { NAV_ITEMS, NavIcon } from '../nav-items';
 import { NavIconComponent } from '../nav-icon.component';
+import { RemoteImageDirective } from '../../core/directives/remote-image.directive';
+import { ConfirmDialogService } from '../../features/dialog/confirm-dialog/confirm-dialog.service';
+import { ToastService } from '../../features/toast/toast.service';
 
 type NotifTab = 'all' | 'unread';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CheckboxComponent, NavIconComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CheckboxComponent, NavIconComponent, RemoteImageDirective],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -45,6 +51,12 @@ export class Navbar {
 
   readonly profileService = inject(ProfileService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly backupService = inject(BackupService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly toastService = inject(ToastService);
+
+  readonly backupRunning = signal(false);
 
   constructor(
     readonly authService: AuthService,
@@ -53,15 +65,20 @@ export class Navbar {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
   ) {
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-      this.updatePageTitle();
-      this._notificationMenuOpen.set(false);
-      this._userMenuOpen.set(false);
-    });
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.updatePageTitle();
+        this._notificationMenuOpen.set(false);
+        this._userMenuOpen.set(false);
+      });
     this.updatePageTitle();
 
     if (this.authService.isAuthenticated()) {
-      this.profileService.getProfile().subscribe({ error: () => {} });
+      this.profileService.getProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
     }
   }
 
@@ -162,8 +179,68 @@ export class Navbar {
     return date.toLocaleDateString();
   }
 
+  async runBackup(): Promise<void> {
+    if (this.backupRunning()) return;
+
+    const confirmed = await this.confirmDialogService.ask({
+      title: 'Back up database?',
+      message: 'This takes a full snapshot of the database, downloads it to this device, and uploads it to Google Drive if that\'s set up. It may take a moment.',
+      confirmLabel: 'Back up now',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
+
+    this.backupRunning.set(true);
+    this.backupService
+      .run()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.backupRunning.set(false);
+          const blob = res.body;
+          if (blob) this.downloadBlob(blob, `nirvaana-backup-${new Date().toISOString().slice(0, 10)}.gz`);
+
+          const driveStatus = res.headers.get('X-Drive-Status') || '';
+          if (driveStatus === 'uploaded') {
+            this.toastService.success('Backup complete', 'Downloaded, and uploaded to Google Drive.');
+          } else if (driveStatus.startsWith('failed')) {
+            this.toastService.error('Backup downloaded', `Drive upload failed: ${driveStatus.slice(8)}`);
+          } else {
+            this.toastService.success('Backup downloaded', "Google Drive isn't set up yet — upload it yourself for now.");
+          }
+        },
+        error: async (err) => {
+          this.backupRunning.set(false);
+          this.toastService.error('Backup failed', await this.readBlobErrorMessage(err));
+        },
+      });
+  }
+
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // responseType: 'blob' means a JSON error body arrives as a Blob too, not
+  // a parsed object — read it back out as text ourselves.
+  private async readBlobErrorMessage(err: { error?: Blob }): Promise<string> {
+    try {
+      if (err.error instanceof Blob) {
+        const parsed = JSON.parse(await err.error.text());
+        if (parsed?.message) return parsed.message;
+      }
+    } catch {
+      // fall through to the generic message below
+    }
+    return 'Please try again.';
+  }
+
   logout(): void {
-    this.authService.logout().subscribe(() => {
+    this.authService.logout().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.profileService.clear();
       this.router.navigate(['/auth/login']);
     });

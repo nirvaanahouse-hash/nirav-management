@@ -1,4 +1,5 @@
-import { Injectable, computed, inject } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -14,6 +15,7 @@ import {
 export class PermissionService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isSuperAdmin = this.auth.isSuperAdmin;
 
@@ -53,6 +55,7 @@ export class PermissionService {
     if (!this.auth.isAuthenticated()) return;
     this.http
       .get<MyPermissionsResponse>(`${environment.apiUrl}api/permissions/me`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           const user = this.auth.currentUser();

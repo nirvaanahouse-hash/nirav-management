@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   EventEmitter,
   Output,
   Input,
@@ -9,7 +10,7 @@ import {
   effect,
   computed,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
@@ -38,6 +39,7 @@ export class TicketFormComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly ticketMeta = inject(TicketMetaService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly meta = this.ticketMeta.meta;
   readonly ticketTypeOptions = computed(() => this.meta().ticketTypes);
@@ -236,7 +238,7 @@ export class TicketFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.ticketMeta.loadFormMeta().subscribe({
+    this.ticketMeta.loadFormMeta().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (meta) => {
         if (this.isSA() && meta.employees.length === 0) {
           this.toast.error('Employee data unavailable', 'No active employees found. Add an employee first.');

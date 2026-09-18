@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, signal, viewChild } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
@@ -21,6 +22,7 @@ export class MessagesComponent {
   private readonly chat = inject(ChatService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly scrollAnchor = viewChild<ElementRef<HTMLDivElement>>("scrollAnchor");
 
@@ -42,7 +44,7 @@ export class MessagesComponent {
   });
 
   constructor() {
-    this.chat.loadContacts().subscribe({
+    this.chat.loadContacts().pipe(takeUntilDestroyed()).subscribe({
       next: () => this.loading.set(false),
       error: () => {
         this.toast.error("Could not load conversations", "Please try again.");
@@ -64,7 +66,7 @@ export class MessagesComponent {
   openThread(contact: ChatContact): void {
     if (this.activeContactId() === contact._id) return;
     this.threadLoading.set(true);
-    this.chat.openThread(contact._id).subscribe({
+    this.chat.openThread(contact._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.threadLoading.set(false),
       error: () => {
         this.toast.error("Could not load messages", "Please try again.");
@@ -83,7 +85,7 @@ export class MessagesComponent {
     if (!text || !contactId || this.sending()) return;
 
     this.sending.set(true);
-    this.chat.send(contactId, text).subscribe({
+    this.chat.send(contactId, text).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.draft.set("");
         this.sending.set(false);

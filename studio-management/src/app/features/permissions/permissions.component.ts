@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -29,6 +30,7 @@ export class PermissionsComponent {
   private readonly userService = inject(UserService);
   private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly defaultKeys = DEFAULT_USER_PERMISSIONS;
   private readonly defaultSet = new Set(DEFAULT_USER_PERMISSIONS);
@@ -74,7 +76,7 @@ export class PermissionsComponent {
     forkJoin({
       reg: this.permissions.getRegistry(),
       users: this.userService.list(),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed()).subscribe({
       next: ({ reg, users }) => {
         this.groups.set(reg.data.groups);
         this.expanded.set(new Set(reg.data.groups.map((g) => g.key)));
@@ -98,7 +100,7 @@ export class PermissionsComponent {
     this.selectedUser.set(user);
     this.permLoading.set(true);
     this.targetIsSA.set(user.role === 'SA');
-    this.permissions.getUserPermissions(user._id).subscribe({
+    this.permissions.getUserPermissions(user._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.targetIsSA.set(res.data.isSuperAdmin);
         this.original = new Set(res.data.permissions);
@@ -188,7 +190,7 @@ export class PermissionsComponent {
     if (!user || this.targetIsSA()) return;
     this.saving.set(true);
     const keys = [...this.selected()];
-    this.permissions.setUserPermissions(user._id, keys).subscribe({
+    this.permissions.setUserPermissions(user._id, keys).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.original = new Set(res.data.permissions);
         this.selected.set(new Set(res.data.permissions));

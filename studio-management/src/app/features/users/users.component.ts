@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { Router } from "@angular/router";
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
@@ -60,6 +61,7 @@ export class UsersComponent {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly permissions = inject(PermissionService);
+  private readonly destroyRef = inject(DestroyRef);
 
   can(key: string): boolean {
     return this.permissions.can(key);
@@ -91,7 +93,7 @@ export class UsersComponent {
   private loadLocation(userId: string): void {
     this.locationLoading.set(true);
     this.locationData.set(null);
-    this.locationService.getUserLocation(userId).subscribe({
+    this.locationService.getUserLocation(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.locationLoading.set(false);
         const d = res.data;
@@ -185,7 +187,7 @@ export class UsersComponent {
       return;
     }
     this.pctSaving.set(true);
-    this.employeeService.setPercentage(user._id, pct).subscribe({
+    this.employeeService.setPercentage(user._id, pct).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.pctSaving.set(false);
         this.toastService.success("Percentage updated", `${user.firstName} → ${pct}%`);
@@ -215,7 +217,7 @@ export class UsersComponent {
       percentage: Number(user.percentage || 0),
     });
     // Pull the full record (incl. address / gender / dob) to pre-fill.
-    this.employeeService.getById(user._id).subscribe({
+    this.employeeService.getById(user._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         const d = res.data || ({} as User);
         this.editForm.patchValue({
@@ -266,7 +268,7 @@ export class UsersComponent {
     if (!confirmed) return;
 
     this.editSaving.set(true);
-    this.employeeService.updateDetails(user._id, this.editForm.getRawValue()).subscribe({
+    this.employeeService.updateDetails(user._id, this.editForm.getRawValue()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.editSaving.set(false);
         this.toastService.success("User updated", res.message || `${this.editForm.controls.firstName.value} saved.`);
@@ -327,7 +329,7 @@ export class UsersComponent {
 
   constructor() {
     this.loadEmployees();
-    this.employeeService.getStats().subscribe((res) => {
+    this.employeeService.getStats().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
       if (res.success) this.stats.set(res.data);
     });
   }
@@ -336,6 +338,7 @@ export class UsersComponent {
     if (!silent) this.loading.set(true);
     this.employeeService
       .list({ search: this.searchTerm || undefined, isActive: this.showInactive ? undefined : true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => { this.loading.set(false); },
         error: () => {
@@ -359,7 +362,7 @@ export class UsersComponent {
       cancelLabel: "Cancel",
     }).then((confirmed: boolean) => {
       if (confirmed) {
-        this.employeeService.activate(employee._id).subscribe({
+        this.employeeService.activate(employee._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: (response: EmployeeActionResponse) => {
             this.toastService.success(response.message || "Employee activated", employee.firstName);
             this.employeeService.refreshStats();
@@ -381,7 +384,7 @@ export class UsersComponent {
       danger: true,
     }).then((confirmed: boolean) => {
       if (confirmed) {
-        this.employeeService.deactivate(employee._id).subscribe({
+        this.employeeService.deactivate(employee._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: (response: EmployeeActionResponse) => {
             this.toastService.success(response.message || "Employee deactivated", employee.firstName);
             this.employeeService.refreshStats();
@@ -421,7 +424,7 @@ export class UsersComponent {
       description: this.amountEntryRemark.trim() || undefined,
     };
 
-    this.amountService.create(draft).subscribe({
+    this.amountService.create(draft).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toastService.success("Amount entry recorded", employee.firstName);
         this.closeAmountEntry();
@@ -446,7 +449,7 @@ export class UsersComponent {
 
   loadHistory(userId: string): void {
     this.historyLoading.set(true);
-    this.amountService.listFor(userId, "employee").subscribe({
+    this.amountService.listFor(userId, "employee").pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.historyEntries.set(res.data || []);
         this.historyLoading.set(false);
@@ -478,7 +481,7 @@ export class UsersComponent {
       this.toastService.error("Invalid amount", "Amount must be greater than 0.");
       return;
     }
-    this.amountService.update(entry._id, { amount: this.editAmount, description: this.editRemark.trim() }).subscribe({
+    this.amountService.update(entry._id, { amount: this.editAmount, description: this.editRemark.trim() }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toastService.success("Entry updated", user.firstName);
         this.closeEditEntry();
@@ -500,7 +503,7 @@ export class UsersComponent {
       danger: true,
     });
     if (!confirmed) return;
-    this.amountService.delete(entry._id).subscribe({
+    this.amountService.delete(entry._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toastService.success("Entry deleted", user.firstName);
         this.loadHistory(user._id);
@@ -529,7 +532,7 @@ export class UsersComponent {
       return;
     }
     this.passwordSaving.set(true);
-    this.employeeService.setPassword(user._id, pwd).subscribe({
+    this.employeeService.setPassword(user._id, pwd).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.passwordSaving.set(false);
         this.toastService.success("Password updated", `${user.firstName}'s password was changed.`);

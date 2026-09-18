@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   inject,
   signal,
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
@@ -36,6 +38,7 @@ export class Login {
     private readonly authService: AuthService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
+    private readonly destroyRef: DestroyRef,
   ) {}
 
   submit(): void {
@@ -47,7 +50,7 @@ export class Login {
 
     const payload = this.form.value as AuthCredentials;
 
-    this.authService.login(payload).subscribe({
+    this.authService.login(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.submitting.set(false);
         this.toast.success("Signed in", "Welcome back.");

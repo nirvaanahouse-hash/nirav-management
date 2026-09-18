@@ -1,4 +1,5 @@
-import { Directive, ElementRef, OnDestroy, effect, inject, input } from "@angular/core";
+import { Directive, DestroyRef, ElementRef, OnDestroy, effect, inject, input } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HttpClient } from "@angular/common/http";
 
 /**
@@ -16,6 +17,7 @@ import { HttpClient } from "@angular/common/http";
 export class RemoteImageDirective implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly el = inject(ElementRef<HTMLImageElement>);
+  private readonly destroyRef = inject(DestroyRef);
   private objectUrl: string | null = null;
 
   readonly appRemoteSrc = input<string | null | undefined>();
@@ -30,7 +32,7 @@ export class RemoteImageDirective implements OnDestroy {
         return;
       }
 
-      this.http.get(url, { responseType: "blob" }).subscribe({
+      this.http.get(url, { responseType: "blob" }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (blob) => {
           this.objectUrl = URL.createObjectURL(blob);
           this.el.nativeElement.src = this.objectUrl;

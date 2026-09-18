@@ -1,4 +1,5 @@
-import { Injectable, computed, effect, inject, signal } from "@angular/core";
+import { DestroyRef, Injectable, computed, effect, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HttpClient, HttpContext } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "../../../environments/environment";
@@ -39,6 +40,7 @@ const NO_TOAST = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 export class LocationService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /** User's toggle (optimistic; confirmed from the server after login). */
   private readonly _sharing = signal<boolean>(this.readPref());
@@ -79,6 +81,7 @@ export class LocationService {
 
     this.http
       .put(`${environment.apiUrl}api/location/sharing`, { sharing: on }, NO_TOAST)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ error: () => {} });
 
     if (on) this.start();
@@ -95,6 +98,7 @@ export class LocationService {
   private syncFromServer(): void {
     this.http
       .get<LocationStateResponse>(`${environment.apiUrl}api/location/me`, NO_TOAST)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           if (!res?.success || typeof res.data?.sharing !== "boolean") return;
@@ -139,6 +143,7 @@ export class LocationService {
             { lat: latitude, lng: longitude, accuracy },
             NO_TOAST,
           )
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({ error: () => {} });
       },
       (err) => {

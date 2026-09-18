@@ -151,6 +151,29 @@
       </div>
     }
 
+    <!-- Backup (SA only) -->
+    @if (authService.isSuperAdmin()) {
+      <button
+        class="navbar__icon-btn"
+        type="button"
+        (click)="runBackup()"
+        [disabled]="backupRunning()"
+        aria-label="Download a full database backup"
+        title="Download a full database backup"
+      >
+        @if (backupRunning()) {
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" class="navbar__spin-icon">
+            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6" stroke-dasharray="8 6" stroke-linecap="round"/>
+          </svg>
+        } @else {
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+            <path d="M10 3v9.5M10 12.5 6.5 9M10 12.5 13.5 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 13.5v1.8A1.7 1.7 0 0 0 5.7 17h8.6a1.7 1.7 0 0 0 1.7-1.7v-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        }
+      </button>
+    }
+
     <!-- Theme -->
     <button
       class="navbar__icon-btn navbar__theme-toggle"
@@ -177,7 +200,7 @@
         <button class="navbar__user" type="button" (click)="toggleUserMenu()" [class.navbar__user--active]="userMenuOpen()">
           <span class="navbar__avatar" [class.navbar__avatar--photo]="profileService.photo()">
             @if (profileService.photo(); as photo) {
-              <img [src]="photo" alt="Profile photo" />
+              <img [appRemoteSrc]="photo" alt="Profile photo" />
             } @else {
               {{ initials(user.firstName + ' ' + user.lastName) }}
             }

@@ -34,6 +34,9 @@ const corsOptions = {
     return callback(new Error("Not allowed by CORS: " + origin));
   },
   credentials: true,
+  // Custom response headers aren't readable cross-origin by default — the
+  // backup download reports its Drive-upload outcome via this one.
+  exposedHeaders: ["X-Drive-Status"],
 };
 
 module.exports = { isAllowedOrigin, corsOptions, staticOrigins };

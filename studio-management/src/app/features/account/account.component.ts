@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 
@@ -38,6 +39,7 @@ export class AccountComponent {
   private readonly amountService = inject(AmountService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmDialogService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   // AmountService keeps this in sync from each create/update/delete response
@@ -95,7 +97,7 @@ export class AccountComponent {
 
   reload(): void {
     this.loading.set(true);
-    this.amountService.list().subscribe({
+    this.amountService.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loading.set(false);
       },
@@ -140,7 +142,7 @@ export class AccountComponent {
       description: this.remark.trim() || undefined,
     };
     this.saving.set(true);
-    this.amountService.create(draft).subscribe({
+    this.amountService.create(draft).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saving.set(false);
         this.toast.success("Entry added", "Your admin can now see it.");
@@ -175,6 +177,7 @@ export class AccountComponent {
     this.saving.set(true);
     this.amountService
       .update(entry._id, { amount, description: this.editRemark.trim() })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.saving.set(false);
@@ -197,7 +200,7 @@ export class AccountComponent {
       danger: true,
     });
     if (!ok) return;
-    this.amountService.delete(entry._id).subscribe({
+    this.amountService.delete(entry._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success("Entry deleted", "");
       },

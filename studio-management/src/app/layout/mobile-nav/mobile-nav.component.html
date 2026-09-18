@@ -40,7 +40,7 @@
         <a class="msheet__user" routerLink="/profile" (click)="closeSheet()">
           <span class="msheet__avatar">
             @if (profile.photo(); as photo) {
-              <img [src]="photo" alt="" />
+              <img [appRemoteSrc]="photo" alt="" />
             } @else {
               {{ initials(u.firstName + ' ' + u.lastName) }}
             }

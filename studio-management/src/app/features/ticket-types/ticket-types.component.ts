@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -44,6 +45,7 @@ export class TicketTypesComponent {
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmDialogService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly variantOptions = BADGE_VARIANT_OPTIONS;
 
@@ -70,7 +72,7 @@ export class TicketTypesComponent {
 
   load(): void {
     this.loading.set(true);
-    this.service.list().subscribe({
+    this.service.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.loading.set(false),
       error: () => {
         this.loading.set(false);
@@ -136,7 +138,7 @@ export class TicketTypesComponent {
           showCount: raw.showCount,
         });
 
-    request.subscribe({
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saving.set(false);
         this.toast.success(editing ? 'Ticket type updated' : 'Ticket type added');
@@ -165,7 +167,7 @@ export class TicketTypesComponent {
   }
 
   toggleActive(type: TicketTypeRecord): void {
-    this.service.update(type._id, { isActive: !type.isActive }).subscribe({
+    this.service.update(type._id, { isActive: !type.isActive }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.toast.success(
           res.data.isActive
@@ -196,7 +198,7 @@ export class TicketTypesComponent {
     });
     if (!ok) return;
 
-    this.service.delete(type._id).subscribe({
+    this.service.delete(type._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success('Ticket type deleted');
         this.afterChange();

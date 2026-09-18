@@ -7,5 +7,5 @@
  */
 export const environment = {
   production: true,
-  apiUrl: 'https://nirav-management.onrender.com/',
+  apiUrl: 'https://reword-badge-eggplant.ngrok-free.dev/',
 };

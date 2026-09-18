@@ -2,7 +2,7 @@ const { execFile } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { getDriveClient, isConfigured, FOLDER_ID } = require("../config/google-drive");
+const { getDriveClient, FOLDER_ID } = require("../config/google-drive");
 
 // A freshly-installed CLI tool's PATH entry doesn't reach an already-running
 // PM2 daemon until it's next restarted from a login where the daemon itself
@@ -57,16 +57,4 @@ async function uploadToDrive(archivePath) {
   return response.data;
 }
 
-async function runFullBackup() {
-  if (!isConfigured()) {
-    throw new Error("Google Drive backup isn't set up yet — add the service account key and folder ID first.");
-  }
-  const archivePath = await dumpDatabase();
-  try {
-    return await uploadToDrive(archivePath);
-  } finally {
-    fs.unlink(archivePath, () => {});
-  }
-}
-
-module.exports = { dumpDatabase, runFullBackup };
+module.exports = { dumpDatabase, uploadToDrive };

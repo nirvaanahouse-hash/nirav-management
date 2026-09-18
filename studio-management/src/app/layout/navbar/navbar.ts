@@ -184,7 +184,7 @@ export class Navbar {
 
     const confirmed = await this.confirmDialogService.ask({
       title: 'Back up database?',
-      message: 'This takes a full snapshot of the database and downloads it to this device. It may take a moment.',
+      message: 'This takes a full snapshot of the database, downloads it to this device, and uploads it to Google Drive if that\'s set up. It may take a moment.',
       confirmLabel: 'Back up now',
       cancelLabel: 'Cancel',
     });
@@ -195,10 +195,19 @@ export class Navbar {
       .run()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (blob) => {
+        next: (res) => {
           this.backupRunning.set(false);
-          this.downloadBlob(blob, `nirvaana-backup-${new Date().toISOString().slice(0, 10)}.gz`);
-          this.toastService.success('Backup downloaded', 'Upload it to Google Drive yourself for now.');
+          const blob = res.body;
+          if (blob) this.downloadBlob(blob, `nirvaana-backup-${new Date().toISOString().slice(0, 10)}.gz`);
+
+          const driveStatus = res.headers.get('X-Drive-Status') || '';
+          if (driveStatus === 'uploaded') {
+            this.toastService.success('Backup complete', 'Downloaded, and uploaded to Google Drive.');
+          } else if (driveStatus.startsWith('failed')) {
+            this.toastService.error('Backup downloaded', `Drive upload failed: ${driveStatus.slice(8)}`);
+          } else {
+            this.toastService.success('Backup downloaded', "Google Drive isn't set up yet — upload it yourself for now.");
+          }
         },
         error: async (err) => {
           this.backupRunning.set(false);

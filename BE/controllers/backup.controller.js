@@ -1,10 +1,7 @@
 const fs = require("fs");
-const { dumpDatabase } = require("../services/backup.service");
+const { dumpDatabase, uploadToDrive } = require("../services/backup.service");
+const { isConfigured } = require("../config/google-drive");
 
-// Drive isn't wired up yet (needs a service account + folder set up on
-// Google's side first — see BE/config/google-drive.js) — until then this
-// just hands the admin the gzipped dump directly, so backups still work
-// today and can be dragged into Drive by hand.
 async function runBackup(req, res) {
   let archivePath;
   try {
@@ -12,6 +9,20 @@ async function runBackup(req, res) {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message || "Backup failed." });
     return;
+  }
+
+  // Best-effort — a failed/unset-up Drive upload should never block the
+  // admin from still getting their download. X-Drive-Status tells the
+  // frontend which happened, since the response body is the file itself.
+  if (isConfigured()) {
+    try {
+      await uploadToDrive(archivePath);
+      res.set("X-Drive-Status", "uploaded");
+    } catch (error) {
+      res.set("X-Drive-Status", `failed: ${String(error.message || error).slice(0, 200).replace(/[\r\n]+/g, " ")}`);
+    }
+  } else {
+    res.set("X-Drive-Status", "not-configured");
   }
 
   const fileName = `nirvaana-backup-${new Date().toISOString().slice(0, 10)}.gz`;

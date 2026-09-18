@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { dumpDatabase, uploadToDrive } = require("../services/backup.service");
+const { dumpDatabase, uploadToDrive, restoreDatabase } = require("../services/backup.service");
 const { isConfigured } = require("../config/google-drive");
 
 async function runBackup(req, res) {
@@ -34,4 +34,23 @@ async function runBackup(req, res) {
   });
 }
 
-module.exports = { runBackup };
+async function restoreBackup(req, res) {
+  const archivePath = req.file.path;
+  try {
+    const { restoredCount, skippedCount } = await restoreDatabase(archivePath);
+    res.json({
+      success: true,
+      message:
+        skippedCount > 0
+          ? `Restored ${restoredCount} new document(s). ${skippedCount} already existed and were left unchanged.`
+          : `Restored ${restoredCount} new document(s).`,
+      data: { restoredCount, skippedCount },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || "Restore failed." });
+  } finally {
+    fs.unlink(archivePath, () => {});
+  }
+}
+
+module.exports = { runBackup, restoreBackup };

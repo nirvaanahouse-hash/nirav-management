@@ -1,4 +1,5 @@
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const multer = require("multer");
 
@@ -91,9 +92,42 @@ function createImageUpload(dir, nameFor) {
 const handleProfileImageUpload = createImageUpload(PROFILE_DIR, (req) => req.user.id);
 const handleClientImageUpload = createImageUpload(CLIENT_DIR, (req) => req.params.id);
 
+// A restore archive is transient (deleted right after mongorestore runs), so
+// it lives in the OS temp dir rather than the permanent /uploads tree.
+const MAX_RESTORE_BYTES = 200 * 1024 * 1024; // 200 MB
+
+const restoreUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, os.tmpdir()),
+    filename: (req, file, cb) => cb(null, `nirvaana-restore-${Date.now()}.gz`),
+  }),
+  fileFilter: (req, file, cb) => {
+    if (!/\.gz$/i.test(file.originalname || "")) {
+      return cb(new Error("Only a .gz backup archive can be restored."));
+    }
+    cb(null, true);
+  },
+  limits: { fileSize: MAX_RESTORE_BYTES, files: 1 },
+}).single("backup");
+
+function handleRestoreUpload(req, res, next) {
+  restoreUpload(req, res, (err) => {
+    if (err) {
+      const message =
+        err.code === "LIMIT_FILE_SIZE" ? "Backup file too large (max 200 MB)." : err.message || "Upload failed.";
+      return res.status(400).json({ success: false, message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No backup file was sent." });
+    }
+    return next();
+  });
+}
+
 module.exports = {
   handleProfileImageUpload,
   handleClientImageUpload,
+  handleRestoreUpload,
   UPLOADS_ROOT,
   PROFILE_DIR,
   CLIENT_DIR,

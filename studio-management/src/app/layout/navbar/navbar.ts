@@ -57,6 +57,7 @@ export class Navbar {
   private readonly toastService = inject(ToastService);
 
   readonly backupRunning = signal(false);
+  readonly restoreRunning = signal(false);
 
   constructor(
     readonly authService: AuthService,
@@ -223,6 +224,36 @@ export class Navbar {
     link.download = fileName;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  async onRestoreFileChosen(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // lets the same file be re-picked later
+    if (!file || this.restoreRunning()) return;
+
+    const confirmed = await this.confirmDialogService.ask({
+      title: 'Restore from backup?',
+      message: `Import "${file.name}" into the database. Existing records are never overwritten — only records that don't already exist get added. This may take a moment.`,
+      confirmLabel: 'Restore now',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
+
+    this.restoreRunning.set(true);
+    this.backupService
+      .restore(file)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.restoreRunning.set(false);
+          this.toastService.success('Restore complete', res.message);
+        },
+        error: (err) => {
+          this.restoreRunning.set(false);
+          this.toastService.error('Restore failed', err?.error?.message || 'Please try again.');
+        },
+      });
   }
 
   // responseType: 'blob' means a JSON error body arrives as a Blob too, not

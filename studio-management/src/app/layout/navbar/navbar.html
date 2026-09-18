@@ -172,6 +172,33 @@
           </svg>
         }
       </button>
+
+      <input
+        #restoreFileInput
+        type="file"
+        accept=".gz"
+        hidden
+        (change)="onRestoreFileChosen($event)"
+      />
+      <button
+        class="navbar__icon-btn"
+        type="button"
+        (click)="restoreFileInput.click()"
+        [disabled]="restoreRunning()"
+        aria-label="Restore database from a backup file"
+        title="Restore database from a backup file"
+      >
+        @if (restoreRunning()) {
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" class="navbar__spin-icon">
+            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6" stroke-dasharray="8 6" stroke-linecap="round"/>
+          </svg>
+        } @else {
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+            <path d="M10 13.5V4M10 4 6.5 7.5M10 4l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 13.5v1.8A1.7 1.7 0 0 0 5.7 17h8.6a1.7 1.7 0 0 0 1.7-1.7v-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        }
+      </button>
     }
 
     <!-- Theme -->

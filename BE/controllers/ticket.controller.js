@@ -418,12 +418,15 @@ const updateTicket = async (req, res) => {
         });
       }
 
+      // mainHr is deliberately absent — like hrPrice/mainHrPrice, Main Hours
+      // is SA-only (it feeds calculatedMainAmount/companyProfit, both
+      // stripped from this same employee's own response) even though the
+      // ticket form never sends it for a non-SA session either.
       const allowedFields = [
         "coupleName",
         "client",
         "ticketType",
         "HR",
-        "mainHr",
         "remark",
         "priorety",
         "deleveryDate",

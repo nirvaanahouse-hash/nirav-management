@@ -25,6 +25,7 @@ import { AuthService } from "../../core/services/auth.service";
 import { PermissionService } from "../../core/services/permission.service";
 import { TicketMetaService } from "../../core/services/ticket-meta.service";
 import { ClientService } from "../../core/services/client.service";
+import { TaskCalculationService } from "../../core/services/task-calculation.service";
 import { TableColumn } from "../../shared/components/table/table.model";
 import { SelectComponent } from "../../shared/components/select/select.component";
 import { SelectItem } from "../../shared/components/select/select.model";
@@ -56,6 +57,7 @@ export class TicketsComponent {
   private confirmDialog = inject(ConfirmDialogService);
   private ticketMeta = inject(TicketMetaService);
   private clientService = inject(ClientService);
+  private taskCalculation = inject(TaskCalculationService);
   private router = inject(Router);
 
   searchTerm = signal("");
@@ -168,7 +170,10 @@ export class TicketsComponent {
         label: "Earning",
         sortable: true,
         align: "right" as const,
-        format: (row) => (this.isEmpty(row.amount) ? "-" : `₹${this.calculateEarnings(row).toLocaleString()}`),
+        format: (row) =>
+          this.isEmpty(row.amount) && this.isEmpty(row.calculatedAmount)
+            ? "-"
+            : `₹${this.calculateEarnings(row).toLocaleString()}`,
       },
       {
         key: "_id",
@@ -293,27 +298,26 @@ export class TicketsComponent {
     return this.isEmpty(v) ? "-" : `₹${Number(v).toLocaleString()}`;
   }
 
-  /** What the assigned employee earns on this ticket. */
+  /**
+   * What the assigned employee earns on this ticket. Delegates to
+   * TaskCalculationService, which prefers calculatedAmount (HR × hrPrice) over
+   * the raw `amount` field — for a job ticket whose stored amount predates
+   * its hour/price inputs (or an employee whose own view never got `amount`
+   * set at all, since only SA can set it), the two can diverge.
+   */
   calculateEarnings(ticket: TicketRecord): number {
-    if (ticket.employeeEarnings !== undefined) {
-      return Math.round(ticket.employeeEarnings);
-    }
-    const amount = Number(ticket.amount || 0);
-    const userPercentage = Number(ticket.userPersentage || 0);
-    return Math.round(amount * (userPercentage / 100));
+    return Math.round(this.taskCalculation.calculate(ticket).employeeEarnings);
   }
 
   calculateProfit(ticket: TicketRecord): number {
-    if (ticket.companyProfit !== undefined) {
-      return Math.round(ticket.companyProfit);
-    }
-    const mainAmount = Number(ticket.mainAmount || 0);
-    return Math.round(mainAmount - this.calculateEarnings(ticket));
+    return Math.round(this.taskCalculation.calculate(ticket).companyProfit);
   }
 
   /** Outstanding amount owed to the assigned employee for this ticket. */
   formatBalanceDue(ticket: TicketRecord): string {
-    if (!ticket.assignedEmployee || this.isEmpty(ticket.amount)) return "-";
+    if (!ticket.assignedEmployee || (this.isEmpty(ticket.amount) && this.isEmpty(ticket.calculatedAmount))) {
+      return "-";
+    }
     const due =
       ticket.balanceDue !== undefined
         ? ticket.balanceDue

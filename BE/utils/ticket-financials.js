@@ -22,6 +22,15 @@ function calculateTicketFinancials(t) {
   let calculatedAmount = amount;
   let calculatedMainAmount = mainAmount;
   if (isJobType) {
+    // NOTE: `amount === 0` deliberately keeps recalculating even once a
+    // stored amount is "0" — that's what lets an employee's later HR entry
+    // (the ticket starts at HR=0/amount="0" when SA first assigns it) flow
+    // through to a real calculatedAmount without SA re-touching the ticket.
+    // This does mean an SA who explicitly types 0 to waive/comp a job (with
+    // hrPrice still set) gets that overridden back to HR × hrPrice — a real
+    // but narrower edge case than the auto-recalc path above, which is this
+    // feature's primary flow. Fixing both needs a separate "manually
+    // overridden" flag, not a zero-value heuristic; left as-is intentionally.
     if ((amount === 0 || !t.amount) && hrPrice > 0) {
       calculatedAmount = hrPrice * HR;
     }

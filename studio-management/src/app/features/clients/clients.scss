@@ -532,13 +532,19 @@
   }
 
   /* The shared table renders as cards here, so the wrapper frame goes away,
-     and the fill-height desktop layout resets to natural page flow/scroll. */
+     and the fill-height desktop layout resets to natural page flow/scroll.
+     min-width also resets — the 640px below is the desktop table's scroll
+     threshold; left in place here it forced the card grid to the same
+     640px and, since .client-page__table switches to overflow:visible for
+     cards (no scrollbar to reveal it), the right side of every card
+     (Company/Status) was silently clipped by the page's own overflow-x:hidden. */
   :host,
   .client-page,
   .client-page__table,
   .client-page__table app-table {
     height: auto;
     min-height: 0;
+    min-width: 0;
   }
 
   .client-page__table {

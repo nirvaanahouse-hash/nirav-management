@@ -4,6 +4,7 @@ const Profile = require("../models/profile.model");
 const Ticket = require("../models/ticket.model");
 const AmountEntry = require("../models/amountEntry.model");
 const { calculateTicketFinancials } = require("../utils/ticket-financials");
+const { escapeRegex } = require("../utils/validate");
 const { ERole, DEFAULT_USER_PERMISSIONS } = require("../constants");
 const { emitScopedEvent } = require("../services/notification.service");
 
@@ -170,7 +171,7 @@ const getAllUsers = async (req, res) => {
     const filter = {};
     if (role) filter.role = role;
     if (search) {
-      const regex = new RegExp(search, "i");
+      const regex = new RegExp(escapeRegex(search), "i");
       filter.$or = [
         { firstName: regex },
         { lastName: regex },
@@ -204,7 +205,7 @@ const getEmployees = async (req, res) => {
     const filter = { role: ERole.U };
 
     if (search) {
-      const regex = new RegExp(search, "i");
+      const regex = new RegExp(escapeRegex(search), "i");
       filter.$or = [
         { firstName: regex },
         { lastName: regex },

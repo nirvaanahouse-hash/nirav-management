@@ -25,7 +25,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = authService.getToken();
   const authorizedReq = req.clone({
     withCredentials: false,
-    setHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+    setHeaders: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      // No-op against a normal host; when the API is tunneled through ngrok's
+      // free tier, this skips its browser-warning interstitial (an HTML page
+      // ngrok injects in front of GET requests from a browser User-Agent —
+      // POSTs like login sailed through untouched, which is why only
+      // GET-driven pages looked broken).
+      "ngrok-skip-browser-warning": "true",
+    },
   });
 
   return next(authorizedReq).pipe(

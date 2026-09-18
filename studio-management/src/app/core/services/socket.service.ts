@@ -82,6 +82,9 @@ export class SocketService {
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
+      // Same ngrok free-tier interstitial bypass as auth.interceptor.ts — a
+      // no-op against a normal host.
+      extraHeaders: { "ngrok-skip-browser-warning": "true" },
     });
 
     this.socket.on("connect", () => {

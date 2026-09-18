@@ -407,6 +407,15 @@ const getAmountSummary = async (req, res) => {
       const { calculatedMainAmount } = calculateTicketFinancials(t);
       return sum + calculatedMainAmount;
     }, 0);
+    // Matches saTotalEmployeeAmount's population (completed + finalized only)
+    // so `profit` below subtracts cost from the same revenue it was actually
+    // earned against — pending/in-progress tickets contribute to
+    // saTotalMainAmount (a "total billed" figure) but not to realized profit.
+    const saRealizedMainAmount = tickets.reduce((sum, t) => {
+      if (!(t.status === "completed" && t.isFinalized)) return sum;
+      const { calculatedMainAmount } = calculateTicketFinancials(t);
+      return sum + calculatedMainAmount;
+    }, 0);
     const saTotalSentToEmployees = Object.values(sentAmountMap).reduce(
       (sum, e) => sum + e.totalSent,
       0
@@ -430,7 +439,7 @@ const getAmountSummary = async (req, res) => {
         saTotals: {
           totalEmployeeAmount: saTotalEmployeeAmount,
           totalMainAmount: saTotalMainAmount,
-          profit: saTotalMainAmount - saTotalEmployeeAmount,
+          profit: saRealizedMainAmount - saTotalEmployeeAmount,
           totalSentToEmployees: saTotalSentToEmployees,
           pendingFromEmployees: saPendingFromEmployees,
           totalClientAmount: saTotalClientAmount,

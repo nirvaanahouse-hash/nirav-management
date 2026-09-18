@@ -2,6 +2,7 @@ const Client = require("../models/client.model");
 const Ticket = require("../models/ticket.model");
 const AmountEntry = require("../models/amountEntry.model");
 const { calculateTicketFinancials } = require("../utils/ticket-financials");
+const { escapeRegex } = require("../utils/validate");
 const { buildClientInvoicePdf } = require("../utils/invoice-pdf");
 const { TICKET_STATUS } = require("../constants");
 const { hasPermission } = require("../utils/permissions");
@@ -45,7 +46,7 @@ const getClient = async (req, res) => {
     }
 
     if (search) {
-      const regex = new RegExp(search, "i");
+      const regex = new RegExp(escapeRegex(search), "i");
       filter.$or = [
         { name: regex },
         { sortName: regex },

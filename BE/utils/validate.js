@@ -3,6 +3,13 @@ const MOBILE_RE = /^\d{10}$/;
 const PHONE_RE = /^[0-9+\-\s]{7,15}$/;
 const MONGO_ID_RE = /^[a-fA-F0-9]{24}$/;
 
+// Escapes regex metacharacters so user-typed search text can safely build a
+// RegExp — without this, a term like "(" throws (uncaught SyntaxError -> 500)
+// instead of just matching nothing.
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function isEmpty(value) {
   return (
     value === undefined ||
@@ -109,6 +116,7 @@ module.exports = {
   MOBILE_RE,
   PHONE_RE,
   MONGO_ID_RE,
+  escapeRegex,
   isEmpty,
   runSchema,
   validationFailed,

@@ -151,15 +151,15 @@
       </div>
     }
 
-    <!-- Backup (admin only) -->
-    @if (authService.isAdmin()) {
+    <!-- Backup (SA only) -->
+    @if (authService.isSuperAdmin()) {
       <button
         class="navbar__icon-btn"
         type="button"
         (click)="runBackup()"
         [disabled]="backupRunning()"
-        aria-label="Back up database to Google Drive"
-        title="Back up database to Google Drive"
+        aria-label="Download a full database backup"
+        title="Download a full database backup"
       >
         @if (backupRunning()) {
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" class="navbar__spin-icon">

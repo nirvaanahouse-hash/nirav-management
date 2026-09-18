@@ -184,7 +184,7 @@ export class Navbar {
 
     const confirmed = await this.confirmDialogService.ask({
       title: 'Back up database?',
-      message: 'This takes a full snapshot of the database and uploads it to Google Drive. It may take a moment.',
+      message: 'This takes a full snapshot of the database and downloads it to this device. It may take a moment.',
       confirmLabel: 'Back up now',
       cancelLabel: 'Cancel',
     });
@@ -195,15 +195,39 @@ export class Navbar {
       .run()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
+        next: (blob) => {
           this.backupRunning.set(false);
-          this.toastService.success(res.message || 'Backup complete', res.data?.name);
+          this.downloadBlob(blob, `nirvaana-backup-${new Date().toISOString().slice(0, 10)}.gz`);
+          this.toastService.success('Backup downloaded', 'Upload it to Google Drive yourself for now.');
         },
-        error: (err) => {
+        error: async (err) => {
           this.backupRunning.set(false);
-          this.toastService.error('Backup failed', err?.error?.message || 'Please try again.');
+          this.toastService.error('Backup failed', await this.readBlobErrorMessage(err));
         },
       });
+  }
+
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // responseType: 'blob' means a JSON error body arrives as a Blob too, not
+  // a parsed object — read it back out as text ourselves.
+  private async readBlobErrorMessage(err: { error?: Blob }): Promise<string> {
+    try {
+      if (err.error instanceof Blob) {
+        const parsed = JSON.parse(await err.error.text());
+        if (parsed?.message) return parsed.message;
+      }
+    } catch {
+      // fall through to the generic message below
+    }
+    return 'Please try again.';
   }
 
   logout(): void {

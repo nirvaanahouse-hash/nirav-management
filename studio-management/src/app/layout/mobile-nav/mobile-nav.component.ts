@@ -8,6 +8,7 @@ import { ThemeService } from '../../core/services/theme.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { NAV_ITEMS, NavItem } from '../nav-items';
 import { NavIconComponent } from '../nav-icon.component';
+import { RemoteImageDirective } from '../../core/directives/remote-image.directive';
 
 /** How many destinations sit in the bar before the rest move into "More". */
 const TAB_SLOTS = 4;
@@ -20,7 +21,7 @@ const TAB_SLOTS = 4;
 @Component({
   selector: 'app-mobile-nav',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, NavIconComponent],
+  imports: [RouterLink, RouterLinkActive, NavIconComponent, RemoteImageDirective],
   templateUrl: './mobile-nav.component.html',
   styleUrl: './mobile-nav.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

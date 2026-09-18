@@ -16,17 +16,21 @@ import { AuthService } from '../../core/services/auth.service';
 import { SocketService, NotificationData } from '../../core/services/socket.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { BackupService } from '../../core/services/backup.service';
 import { ThemeId } from '../../core/models/theme.model';
 import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 import { NAV_ITEMS, NavIcon } from '../nav-items';
 import { NavIconComponent } from '../nav-icon.component';
+import { RemoteImageDirective } from '../../core/directives/remote-image.directive';
+import { ConfirmDialogService } from '../../features/dialog/confirm-dialog/confirm-dialog.service';
+import { ToastService } from '../../features/toast/toast.service';
 
 type NotifTab = 'all' | 'unread';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CheckboxComponent, NavIconComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CheckboxComponent, NavIconComponent, RemoteImageDirective],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -48,6 +52,11 @@ export class Navbar {
   readonly profileService = inject(ProfileService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly backupService = inject(BackupService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly toastService = inject(ToastService);
+
+  readonly backupRunning = signal(false);
 
   constructor(
     readonly authService: AuthService,
@@ -168,6 +177,33 @@ export class Navbar {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
+  }
+
+  async runBackup(): Promise<void> {
+    if (this.backupRunning()) return;
+
+    const confirmed = await this.confirmDialogService.ask({
+      title: 'Back up database?',
+      message: 'This takes a full snapshot of the database and uploads it to Google Drive. It may take a moment.',
+      confirmLabel: 'Back up now',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
+
+    this.backupRunning.set(true);
+    this.backupService
+      .run()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.backupRunning.set(false);
+          this.toastService.success(res.message || 'Backup complete', res.data?.name);
+        },
+        error: (err) => {
+          this.backupRunning.set(false);
+          this.toastService.error('Backup failed', err?.error?.message || 'Please try again.');
+        },
+      });
   }
 
   logout(): void {

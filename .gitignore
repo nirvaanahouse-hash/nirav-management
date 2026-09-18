@@ -12,6 +12,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+BE/config/google-drive-key.json
 
 # ---- Angular (studio-management) ----
 studio-management/dist/

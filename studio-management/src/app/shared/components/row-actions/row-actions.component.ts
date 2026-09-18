@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ContentChildren,
+  DestroyRef,
   ElementRef,
   HostListener,
   OnDestroy,
@@ -13,7 +14,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 
 /** Above this many buttons, a row's actions collapse into a dropdown menu. */
@@ -59,9 +60,9 @@ export class RowActionsComponent implements AfterContentInit, OnDestroy {
   private readonly triggerRef = viewChild<ElementRef<HTMLElement>>('trigger');
   private readonly scrimRef = viewChild<ElementRef<HTMLElement>>('scrim');
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly count = signal(0);
-  private changesSub?: Subscription;
   private movedToBody = false;
   private readonly reposition = () => this.position();
 
@@ -82,13 +83,12 @@ export class RowActionsComponent implements AfterContentInit, OnDestroy {
 
   ngAfterContentInit(): void {
     this.count.set(this.buttons.length);
-    this.changesSub = this.buttons.changes.subscribe((list: QueryList<IconButtonComponent>) => {
+    this.buttons.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((list: QueryList<IconButtonComponent>) => {
       this.count.set(list.length);
     });
   }
 
   ngOnDestroy(): void {
-    this.changesSub?.unsubscribe();
     window.removeEventListener('resize', this.reposition);
     this.panelRef()?.nativeElement.remove();
     this.scrimRef()?.nativeElement.remove();

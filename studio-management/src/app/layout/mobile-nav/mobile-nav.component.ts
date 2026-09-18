@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -30,6 +31,7 @@ export class MobileNavComponent {
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly profile = inject(ProfileService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly user = this.auth.currentUser;
   readonly sheetOpen = signal(false);
@@ -91,7 +93,7 @@ export class MobileNavComponent {
 
   logout(): void {
     this.closeSheet();
-    this.auth.logout().subscribe(() => {
+    this.auth.logout().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.profile.clear();
       this.router.navigate(['/auth/login']);
     });

@@ -1,10 +1,12 @@
 import {
   Component,
+  DestroyRef,
   computed,
   signal,
   ChangeDetectionStrategy,
   inject,
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormFieldComponent } from "../../shared/components/form-field/form-field.component";
 import { ButtonComponent } from "../../shared/components/button/button";
@@ -54,6 +56,7 @@ export class ProfileComponent {
   private fb = new FormBuilder();
   private profileService = inject(ProfileService);
   private toastService = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
   readonly pushNotifications = inject(PushNotificationService);
 
   async togglePushNotifications(on: boolean): Promise<void> {
@@ -148,7 +151,7 @@ export class ProfileComponent {
   }
 
   loadProfile(): void {
-    this.profileService.getProfile().subscribe({
+    this.profileService.getProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.profile.set({
@@ -280,7 +283,7 @@ export class ProfileComponent {
     if (this.isUploadingPhoto()) return;
     this.isUploadingPhoto.set(true);
 
-    this.profileService.uploadPhoto(file).subscribe({
+    this.profileService.uploadPhoto(file).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.isUploadingPhoto.set(false);
         this.profile.update((prev) => ({
@@ -300,7 +303,7 @@ export class ProfileComponent {
     if (this.isUploadingPhoto()) return;
     this.isUploadingPhoto.set(true);
 
-    this.profileService.deletePhoto().subscribe({
+    this.profileService.deletePhoto().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.isUploadingPhoto.set(false);
         this.profile.update((prev) => ({ ...prev, image: "" }));
@@ -346,7 +349,7 @@ export class ProfileComponent {
       payload.password = raw.password;
     }
 
-    this.profileService.updateProfile(payload).subscribe({
+    this.profileService.updateProfile(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.toastService.success('Profile updated successfully.');

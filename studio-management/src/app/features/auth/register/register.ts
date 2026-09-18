@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, signal, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, signal, inject } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import {
   AbstractControl,
@@ -55,6 +56,7 @@ export class Register {
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
+    private readonly destroyRef: DestroyRef,
   ) {}
 
   submit(): void {
@@ -89,7 +91,7 @@ export class Register {
       role: "U",
     };
 
-    this.authService.register(payload).subscribe({
+    this.authService.register(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.submitting.set(false);
         this.toast.success("Account created", "You can sign in now.");

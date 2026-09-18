@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from "@angular/core";
+import { Component, DestroyRef, computed, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
@@ -63,6 +64,7 @@ export class DashboardComponent {
   private authService = inject(AuthService);
   private ticketMeta = inject(TicketMetaService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   loading = signal(true);
   tickets = signal<TicketRecord[]>([]);
@@ -503,7 +505,7 @@ export class DashboardComponent {
   }
 
   loadEntries(): void {
-    this.amountService.list().subscribe({
+    this.amountService.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => this.entries.set(res.success ? res.data || [] : []),
       error: () => this.entries.set([]),
     });
@@ -546,7 +548,7 @@ export class DashboardComponent {
 
   loadTickets(): void {
     this.loading.set(true);
-    this.taskService.list().subscribe({
+    this.taskService.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.tickets.set(response.data);
         this.loading.set(false);

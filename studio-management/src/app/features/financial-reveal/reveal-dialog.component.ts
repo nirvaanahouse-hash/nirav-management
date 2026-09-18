@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ModalComponent } from '../dialog/modal.component';
 import { ButtonComponent } from '../../shared/components/button/button';
@@ -69,6 +70,7 @@ import { ToastService } from '../toast/toast.service';
 export class RevealDialogComponent {
   protected readonly reveal = inject(FinancialRevealService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly sending = signal(false);
   readonly verifying = signal(false);
@@ -78,7 +80,7 @@ export class RevealDialogComponent {
 
   send(): void {
     this.sending.set(true);
-    this.reveal.requestOtp().subscribe({
+    this.reveal.requestOtp().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.sending.set(false);
         this.sent.set(true);
@@ -96,7 +98,7 @@ export class RevealDialogComponent {
       return;
     }
     this.verifying.set(true);
-    this.reveal.verifyOtp(this.otp.trim()).subscribe({
+    this.reveal.verifyOtp(this.otp.trim()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.verifying.set(false);
         this.toast.success('Revealed', 'Financial figures are visible for 5 minutes.');

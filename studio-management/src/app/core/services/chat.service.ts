@@ -1,4 +1,5 @@
-import { Injectable, computed, inject, signal } from "@angular/core";
+import { DestroyRef, Injectable, computed, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HttpClient } from "@angular/common/http";
 import { Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
@@ -33,6 +34,7 @@ export interface SendMessageResponse {
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly base = `${environment.apiUrl}api/messages`;
 
   private readonly _contacts = signal<ChatContact[]>([]);
@@ -155,7 +157,7 @@ export class ChatService {
   }
 
   markRead(contactId: string): void {
-    this.http.put(`${this.base}/read/${contactId}`, {}).subscribe({
+    this.http.put(`${this.base}/read/${contactId}`, {}).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this._contacts.update((list) => list.map((c) => (c._id === contactId ? { ...c, unreadCount: 0 } : c)));
       },

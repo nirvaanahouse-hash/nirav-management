@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -57,6 +58,7 @@ export class IpComponent {
   private readonly confirm = inject(ConfirmDialogService);
   private readonly fb = inject(FormBuilder);
   private readonly permissions = inject(PermissionService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly canManageRules = computed(() => this.permissions.can('security.rules.manage'));
   readonly canManageSettings = computed(() => this.permissions.can('security.settings.manage'));
@@ -149,7 +151,7 @@ export class IpComponent {
       stats: this.ipService.stats(),
       settings: this.ipService.getSettings(),
       who: this.ipService.whoami(),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ stats, settings, who }) => {
         this.stats.set(stats.data);
         this.settings.set(settings.data);
@@ -165,7 +167,7 @@ export class IpComponent {
   }
 
   private refreshStats(): void {
-    this.ipService.stats().subscribe({ next: (r) => this.stats.set(r.data), error: () => {} });
+    this.ipService.stats().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (r) => this.stats.set(r.data), error: () => {} });
   }
 
   private patchLimitsForm(s: IpSettings): void {
@@ -198,7 +200,7 @@ export class IpComponent {
       });
       if (!ok) return;
     }
-    this.ipService.updateSettings({ guardEnabled: next }).subscribe({
+    this.ipService.updateSettings({ guardEnabled: next }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.settings.set(res.data);
         this.toast.success(next ? 'IP guard enabled' : 'IP guard disabled');
@@ -211,7 +213,7 @@ export class IpComponent {
   // --- Rules --------------------------------------------------------
   loadRules(): void {
     this.rulesLoading.set(true);
-    this.ipService.listRules().subscribe({
+    this.ipService.listRules().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.rules.set(res.data);
         this.rulesLoading.set(false);
@@ -260,7 +262,7 @@ export class IpComponent {
       ? this.ipService.updateRule(editing._id, payload)
       : this.ipService.createRule(payload);
 
-    req.subscribe({
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.savingRule.set(false);
         this.toast.success(editing ? 'Rule updated' : 'Rule added');
@@ -287,7 +289,7 @@ export class IpComponent {
   }
 
   toggleRuleActive(rule: IpRule): void {
-    this.ipService.updateRule(rule._id, { isActive: !rule.isActive }).subscribe({
+    this.ipService.updateRule(rule._id, { isActive: !rule.isActive }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.rules.update((list) => list.map((r) => (r._id === res.data._id ? res.data : r)));
         this.toast.success(res.data.isActive ? 'Rule enabled' : 'Rule disabled');
@@ -306,7 +308,7 @@ export class IpComponent {
       danger: true,
     });
     if (!ok) return;
-    this.ipService.deleteRule(rule._id).subscribe({
+    this.ipService.deleteRule(rule._id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.rules.update((list) => list.filter((r) => r._id !== rule._id));
         this.toast.success('Rule deleted');
@@ -324,7 +326,7 @@ export class IpComponent {
       return;
     }
     this.savingLimits.set(true);
-    this.ipService.updateSettings(this.limitsForm.getRawValue()).subscribe({
+    this.ipService.updateSettings(this.limitsForm.getRawValue()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.settings.set(res.data);
         this.patchLimitsForm(res.data);
@@ -353,6 +355,7 @@ export class IpComponent {
         limit: this.pageSize,
         skip: this.loginSkip,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.logins.update((cur) => (reset ? res.data : [...cur, ...res.data]));
@@ -388,6 +391,7 @@ export class IpComponent {
         limit: this.pageSize,
         skip: this.requestSkip,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.requests.update((cur) => (reset ? res.data : [...cur, ...res.data]));

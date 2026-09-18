@@ -1,4 +1,5 @@
-import { Injectable, inject, signal } from "@angular/core";
+import { DestroyRef, Injectable, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable, tap } from "rxjs";
 import { User, EmployeeSummary } from "../../core/models/user.model";
@@ -30,6 +31,7 @@ export interface EmployeeActionResponse {
 @Injectable({ providedIn: "root" })
 export class EmployeeService {
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly _employees = signal<User[]>([]);
   private readonly _stats = signal<EmployeeSummary | null>(null);
 
@@ -123,7 +125,7 @@ export class EmployeeService {
   }
 
   refreshStats(): void {
-    this.getStats().subscribe({
+    this.getStats().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       error: () => {},
     });
   }

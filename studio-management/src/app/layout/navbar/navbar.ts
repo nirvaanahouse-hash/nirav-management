@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -45,6 +47,7 @@ export class Navbar {
 
   readonly profileService = inject(ProfileService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     readonly authService: AuthService,
@@ -53,15 +56,20 @@ export class Navbar {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
   ) {
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-      this.updatePageTitle();
-      this._notificationMenuOpen.set(false);
-      this._userMenuOpen.set(false);
-    });
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.updatePageTitle();
+        this._notificationMenuOpen.set(false);
+        this._userMenuOpen.set(false);
+      });
     this.updatePageTitle();
 
     if (this.authService.isAuthenticated()) {
-      this.profileService.getProfile().subscribe({ error: () => {} });
+      this.profileService.getProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
     }
   }
 
@@ -163,7 +171,7 @@ export class Navbar {
   }
 
   logout(): void {
-    this.authService.logout().subscribe(() => {
+    this.authService.logout().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.profileService.clear();
       this.router.navigate(['/auth/login']);
     });

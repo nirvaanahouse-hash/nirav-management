@@ -1,4 +1,5 @@
-import { Injectable, computed, inject, signal } from "@angular/core";
+import { DestroyRef, Injectable, computed, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HttpClient } from "@angular/common/http";
 import { Observable, map, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
@@ -56,6 +57,7 @@ const EMPTY_META: TicketFormMeta = {
 @Injectable({ providedIn: "root" })
 export class TicketMetaService {
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly _meta = signal<TicketFormMeta>(EMPTY_META);
   readonly meta = this._meta.asReadonly();
@@ -102,7 +104,7 @@ export class TicketMetaService {
   ensureLoaded(): void {
     if (this.loadedOnce) return;
     this.loadedOnce = true;
-    this.loadFormMeta().subscribe({
+    this.loadFormMeta().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       error: () => {
         this.loadedOnce = false;
       },
@@ -111,7 +113,7 @@ export class TicketMetaService {
 
   /** Re-fetch after the SA changes the ticket type registry. */
   refresh(): void {
-    this.loadFormMeta().subscribe({ error: () => {} });
+    this.loadFormMeta().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
   }
 
   typeLabel(key: string): string {

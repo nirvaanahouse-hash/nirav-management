@@ -21,6 +21,7 @@ import { ProfileService, ProfileData } from "../../core/services/profile.service
 import { PushNotificationService } from "../../core/services/push-notification.service";
 import { ToggleComponent } from "../../shared/components/toggle/toggle.component";
 import { ToastService } from "../../features/toast/toast.service";
+import { RemoteImageDirective } from "../../core/directives/remote-image.directive";
 
 interface Profile {
   image: string;
@@ -39,7 +40,7 @@ interface Profile {
 
 @Component({
   selector: "app-profile",
-  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, ButtonComponent, ToggleComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, ButtonComponent, ToggleComponent, RemoteImageDirective],
   templateUrl: "./profile.html",
   styleUrl: "./profile.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { RemoteImageDirective } from '../../../core/directives/remote-image.directive';
 
 /**
  * Small round photo with an initials fallback. Used for client photos in the
@@ -7,10 +8,11 @@ import { ChangeDetectionStrategy, Component, computed, input, signal } from '@an
 @Component({
   selector: 'app-avatar',
   standalone: true,
+  imports: [RemoteImageDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (src()) {
-      <img [src]="src()" [alt]="name()" loading="lazy" (error)="onError()" />
+      <img [appRemoteSrc]="src()" [alt]="name()" loading="lazy" (error)="onError()" />
     } @else {
       <span class="avatar__initials" aria-hidden="true">{{ initials() }}</span>
     }

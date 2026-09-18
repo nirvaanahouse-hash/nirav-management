@@ -8,7 +8,7 @@
     <div class="pf-hero__body">
       <div class="pf-hero__avatar">
         @if (profile().image) {
-          <img [src]="profile().image" alt="Profile photo" />
+          <img [appRemoteSrc]="profile().image" alt="Profile photo" />
         } @else {
           <span class="pf-hero__avatar-initial">{{ initial() }}</span>
         }
